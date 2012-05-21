@@ -3,4 +3,5 @@ __all__ = [
 	'jack',
 	'router',
 	'test',
+	'util',
 ]
