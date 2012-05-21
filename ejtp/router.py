@@ -5,7 +5,7 @@
 	and clients on the other side for internal frame routing.
 '''
 
-from frame import frame
+from frame import Frame
 from ConcurrenTree.util.crashnicely import Guard
 
 class Router(object):
