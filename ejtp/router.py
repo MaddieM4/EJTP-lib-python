@@ -1,11 +1,11 @@
 '''
-	MCP Router.
+	EJTP Router.
 
 	This virtual device takes jacks on one side for external communication,
-	and clients on the other side for internal message routing.
+	and clients on the other side for internal frame routing.
 '''
 
-from message import Message
+from frame import frame
 from ConcurrenTree.util.crashnicely import Guard
 
 class Router(object):
@@ -18,13 +18,13 @@ class Router(object):
 		self.log = []
 
 	def recv(self, msg):
-		# Accepts string or message.Message
-		#print "\nRouter incoming message: "+repr(str(msg))
+		# Accepts string or frame.frame
+		#print "\nRouter incoming frame: "+repr(str(msg))
 		self.log_add(msg)
 		try:
-			msg = Message(msg)
+			msg = frame(msg)
 		except Exception as e:
-			print "Could not parse message:", repr(msg)
+			print "Could not parse frame:", repr(msg)
 			print e
 			return
 		if msg.type == "r":
@@ -33,9 +33,9 @@ class Router(object):
 				with Guard():
 					recvr.route(msg)
 			else:
-				print "Could not deliver message:", str(msg.addr)
+				print "Could not deliver frame:", str(msg.addr)
 		elif msg.type == "s":
-			print "Message recieved directly from "+str(msg.addr)
+			print "frame recieved directly from "+str(msg.addr)
 
 	def jack(self, addr):
 		# Return jack registered at addr, or None

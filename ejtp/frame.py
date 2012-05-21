@@ -1,7 +1,7 @@
 '''
-	Message
+	Frame
 
-	Class for MCP messages.
+	Class for EJTP frames.
 '''
 
 from ConcurrenTree.util import hasher
@@ -9,9 +9,9 @@ import json
 
 PACKET_SIZE = 8192
 
-class Message(object):
+class Frame(object):
 	def __init__(self, data):
-		if type(data) in (str, unicode, Message):
+		if type(data) in (str, unicode, frame):
 			data = str(data)
 			self._load(data)
 
@@ -45,7 +45,7 @@ class Message(object):
 
 def onion(msg, hops=[]):
 	'''
-		Encrypt a message into multiple hops, splitting the end
+		Encrypt a frame into multiple hops, splitting the end
 		result into a multihop if necessary.
 
 		To split into multipart with only one recipient, call
@@ -79,7 +79,7 @@ def make(type, addr, encryptor, content):
 	if addr != None:
 		straddr = hasher.strict(addr)
 	ciphercontent = (encryptor and encryptor.encrypt(content)) or content
-	msg = Message(type +straddr+'\x00'+ciphercontent)
+	msg = Frame(type +straddr+'\x00'+ciphercontent)
 	msg.content = content
 	return msg
 
