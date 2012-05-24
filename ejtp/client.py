@@ -4,8 +4,10 @@
 	Base class for router clients.
 '''
 
-import message
 from ejtp.util.crypto import make
+
+import frame
+import jack
 
 class BaseClient(object):
 	def __init__(self, router):
@@ -21,7 +23,7 @@ class BaseClient(object):
 		raise NotImplementedError("Subclasses of BaseClient must define route()")
 
 class SimpleClient(BaseClient):
-	def __init__(self, router, interface, getencryptor):
+	def __init__(self, router, interface, getencryptor, make_jack = True):
 		'''
 			getencryptor should be a function that accepts an argument "iface"
 			and returns an encryptor prototype (2-element list, like ["rotate", 5]).
@@ -31,6 +33,8 @@ class SimpleClient(BaseClient):
 		def get_e(iface):
 			return make(getencryptor(iface))
 		self.getencryptor = get_e
+		if make_jack:
+			jack.make(router, interface)
 
 	def route(self, msg):
 		# Recieve message from router (will be type 'r' or 's', which contains message)

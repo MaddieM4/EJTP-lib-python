@@ -3,6 +3,7 @@ import datetime
 import json
 
 from router import Router
+from client import SimpleClient
 
 class Interactive(object):
 	def __init__(self, router=None):
@@ -64,7 +65,7 @@ class Interactive(object):
 			raise TypeError("Expected bool or none, got %r" % rt)
 
 	def set_client(self, interface):
-		self.client = self.router.client(interface)
+		client = SimpleClient(self.router, interface, lambda x: x)
 
 	def scan_client(self):
 		interface = self.scan(
@@ -73,10 +74,10 @@ class Interactive(object):
 			"Client scan failed",
 			json.loads
 		)
-		try:
-			return self.set_client(interface)
-		except:
-			print "Failed to create client"
+		#try:
+		return self.set_client(interface)
+		#except:
+		#	print "Failed to create client"
 
 	def scan(self, prompt, failmsg, validator):
 		while True:

@@ -6,7 +6,7 @@
 
 import jack
 import socket
-import message
+import frame
 
 class UDPJack(jack.Jack):
 	def __init__(self, router, host='::', port=3972, ipv=6):
@@ -25,7 +25,7 @@ class UDPJack(jack.Jack):
 		self.closed = True
 
 	def route(self, msg):
-		# Send message to somewhere
+		# Send frame to somewhere
 		location = msg.addr[1]
 		if self.ifacetype == 'udp':
 			addr = (location[0], location[1], 0,0)
@@ -39,7 +39,7 @@ class UDPJack(jack.Jack):
 	def run(self):
 		self.closed = False
 		while not self.closed:
-			data = self.sock.recv(message.PACKET_SIZE)
+			data = self.sock.recv(frame.PACKET_SIZE)
 			self.recv(data)
 
 	def close(self):
