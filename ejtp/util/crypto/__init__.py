@@ -1,3 +1,7 @@
-__all__ = ['file', 'rsa', 'rotate', 'aes', 'factory']
+__all__ = [
+	'rsa',
+	'rotate',
+	'aes',
+]
 
 from encryptor import make

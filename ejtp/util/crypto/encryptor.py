@@ -1,6 +1,6 @@
-from ConcurrenTree.model import ModelBase
+from ejtp.util.hasher import strict
 
-class Encryptor(ModelBase):
+class Encryptor(object):
 	def encrypt(self, s):
 		raise NotImplementedError("Encryptor must define 'encrypt'")
 
@@ -15,6 +15,9 @@ class Encryptor(ModelBase):
 
 	def flip(self):
 		return Flip(self)
+
+	def __str__(self):
+		return strict(self.proto())
 
 class Flip(Encryptor):
 	def __init__(self, parent):
