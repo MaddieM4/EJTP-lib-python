@@ -11,10 +11,6 @@ class Guard(object):
 	>>> with Guard(print_traceback=False):
 	... 	print "This code is bad"[""] # doctest: +ELLIPSIS
 	Traceback <traceback object at ...> caught by <ejtp.util.crashnicely.Guard object at ...>
-	>>> with Guard(print_catch=False):
-	... 	print "This code is bad"[""] # doctest: +IGNORE_EXCEPTION_DETAIL
-	Traceback (most recent call last):
-	TypeError: string indices must be integers, not str
 	'''
 	def __init__(self, print_catch=True, print_traceback=True):
 		# Workaround for doctest being dumb, will fix better later
