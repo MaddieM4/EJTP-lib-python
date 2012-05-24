@@ -22,7 +22,7 @@ class Router(object):
 		#print "\nRouter incoming frame: "+repr(str(msg))
 		self.log_add(msg)
 		try:
-			msg = frame(msg)
+			msg = Frame(msg)
 		except Exception as e:
 			print "Could not parse frame:", repr(msg)
 			print e

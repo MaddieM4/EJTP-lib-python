@@ -4,6 +4,16 @@ import json
 
 from router import Router
 from client import SimpleClient
+from util   import hasher
+
+commands = (
+	'messages',
+	'send',
+	'set client',
+	'log',
+	'clear log',
+	'quit',
+)
 
 class Interactive(object):
 	def __init__(self, router=None):
@@ -65,19 +75,33 @@ class Interactive(object):
 			raise TypeError("Expected bool or none, got %r" % rt)
 
 	def set_client(self, interface):
-		client = SimpleClient(self.router, interface, lambda x: x)
+		self.client = SimpleClient(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
 
 	def scan_client(self):
 		interface = self.scan(
 '||| What interface do you want to use? \n\
-||| Example: ["udp4", ["192.168.1.5", 5802], "stevey"]\n',
+||| Example: ["udp4", ["127.0.0.1", 5802], "stevey"]\n',
 			"Client scan failed",
 			json.loads
 		)
-		#try:
 		return self.set_client(interface)
-		#except:
-		#	print "Failed to create client"
+
+	def scan_recipient(self):
+		interface = self.scan(
+'||| What interface do you want to send to? \n\
+||| Example: ["udp4", ["127.0.0.1", 5803], "caroline"]\n',
+			"Recipient scan failed",
+			json.loads
+		)
+		return interface
+
+	def scan_message(self):
+		message = self.scan(
+			'||| What message do you want to send? \n',
+			"Message scan failed",
+			json.loads
+		)
+		return message
 
 	def scan(self, prompt, failmsg, validator):
 		while True:
@@ -93,24 +117,31 @@ class Interactive(object):
 		self.scan_client()
 		def validate_command(command):
 			command = command.lower()
-			if command in (
-				'messages',
-				'set client',
-				'quit',
-			):
+			if command in commands:
 				return command
 			else:
 				raise ValueError(command)
 		while True:
 			command = self.scan(
-				'||| Enter a command [messages | set client | quit]\n',
+				'||| Enter a command [%s]\n' % " | ".join(commands),
 				"That's not a command.",
 				validate_command
 			)
 			if command == "messages":
 				self.view_messages()
+			elif command == "send":
+				recipient = self.scan_recipient()
+				message   = self.scan_message()
+				self.client.write_json(recipient, message)
 			elif command == "set client":
 				self.scan_client()
+			elif command == "log":
+				print "    Router log:\n"+"-"*80
+				self.router.log_dump()
+			elif command == "clear log":
+				print "    Clearing router log..."
+				del self.router.log[:]
+				print "    Done."
 			elif command == "quit":
 				quit()
 
@@ -136,8 +167,11 @@ class ReceiveEvent(object):
 	def reply(self, contents, client):
 		pass
 
+	def timestr(self):
+		return self.time.strftime("%m/%d/%y %H:%M:%S")
+
 	def __str__(self):
-		return json.dumps(self.sender)+("(at %r):\n" % self.time)+json.dumps(self.contents, indent=4)
+		return json.dumps(self.sender)+("(at %s):\n" % self.timestr())+json.dumps(self.contents, indent=4)
 
 if __name__ == "__main__":
 	inter = Interactive()

@@ -11,7 +11,7 @@ PACKET_SIZE = 8192
 
 class Frame(object):
 	def __init__(self, data):
-		if type(data) in (str, unicode, frame):
+		if type(data) in (str, unicode, Frame):
 			data = str(data)
 			self._load(data)
 
