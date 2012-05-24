@@ -20,6 +20,8 @@ class Frame(object):
 		sep = data.index('\x00')
 		self.straddr = data[1:sep]
 		self.ciphercontent = data[sep+1:]
+		if self.type =="j":
+			self.content = self.ciphercontent
 		if self.straddr:
 			self.addr = json.loads(self.straddr)
 			if (type(self.addr) != list or len(self.addr)<3):

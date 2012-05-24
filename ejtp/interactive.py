@@ -12,12 +12,14 @@ commands = (
 	'set client',
 	'log',
 	'clear log',
+	'eval',
 	'quit',
 )
 
 class Interactive(object):
 	def __init__(self, router=None):
 		self.router = router or Router()
+		self.router.run()
 		self.client = None
 		self.messages   = []
 		self.encryptors = {}
@@ -51,6 +53,9 @@ class Interactive(object):
 	def receive(self, *args, **kwargs):
 		self.messages.append(ReceiveEvent(*args, **kwargs))
 
+	def rcv_callback(self, msg, client):
+		self.receive(json.loads(msg.content), msg.addr)
+
 	def read_type(self, rt):
 		'''
 		Convert a True/False/None into the appropriate read filter name.
@@ -76,6 +81,7 @@ class Interactive(object):
 
 	def set_client(self, interface):
 		self.client = SimpleClient(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
+		self.client.rcv_callback = self.rcv_callback
 
 	def scan_client(self):
 		interface = self.scan(
@@ -142,6 +148,8 @@ class Interactive(object):
 				print "    Clearing router log..."
 				del self.router.log[:]
 				print "    Done."
+			elif command == "eval":
+				print eval(raw_input("\n"))
 			elif command == "quit":
 				quit()
 

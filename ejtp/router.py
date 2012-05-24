@@ -10,6 +10,7 @@ from ejtp.util.crashnicely import Guard
 
 class Router(object):
 	def __init__(self, jacks=[], clients=[]):
+		self.runstate = "stopped"
 		self._jacks = {}
 		self._clients = {}
 		self._loadjacks(jacks)
@@ -66,6 +67,15 @@ class Router(object):
 		for i in self._jacks:
 			self._jacks[i].run_threaded()
 
+	def run(self, level="threaded"):
+		if level=="threaded":
+			if self.runstate == "stopped":
+				self.thread_all()
+		elif level=="stopped":
+			# stop all jacks
+			pass
+		self.runstate = level
+
 	def _loadjacks(self, jacks):
 		for j in jacks:
 			self._loadjack(j)
@@ -77,6 +87,8 @@ class Router(object):
 	def _loadjack(self, jack):
 		key = rtuple(jack.interface[:2])
 		self._jacks[key] = jack
+		if self.runstate == "threaded":
+			jack.run_threaded()
 
 	def _loadclient(self, client):
 		key = rtuple(client.interface[:3])

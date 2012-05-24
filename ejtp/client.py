@@ -67,7 +67,7 @@ class SimpleClient(BaseClient):
 				encryptor = encryptor.flip()
 			msg.decode(encryptor)
 		#print "Unpacking:",repr(msg.content)
-		result = frame.Message(msg.content)
+		result = frame.Frame(msg.content)
 		if result.addr == None:
 			result.addr = msg.addr
 		return result
