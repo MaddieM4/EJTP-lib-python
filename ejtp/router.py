@@ -6,7 +6,7 @@
 '''
 
 from frame import Frame
-from ConcurrenTree.util.crashnicely import Guard
+from ejtp.util.crashnicely import Guard
 
 class Router(object):
 	def __init__(self, jacks=[], clients=[]):

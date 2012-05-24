@@ -5,7 +5,7 @@
 '''
 
 import message
-from ConcurrenTree.util.crypto import make
+from ejtp.util.crypto import make
 
 class BaseClient(object):
 	def __init__(self, router):
@@ -82,7 +82,7 @@ class SimpleClient(BaseClient):
 			self.send(m)
 
 	def hello(self, target):
-		from ConcurrenTree.util.hasher import strict
+		from ejtp.util.hasher import strict
 		iface = self.interface
 		obj = {
 			"type":"hello",
@@ -111,8 +111,8 @@ class SimpleClient(BaseClient):
 
 if __name__ == "__main__":
 	import router, udpjack
-	from ConcurrenTree.util.crypto.rotate import RotateEncryptor
-	from ConcurrenTree.util import hasher
+	from ejtp.util.crypto.rotate import RotateEncryptor
+	from ejtp.util import hasher
 
 	target = None
 	proxy = []

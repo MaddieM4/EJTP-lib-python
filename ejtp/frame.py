@@ -4,7 +4,7 @@
 	Class for EJTP frames.
 '''
 
-from ConcurrenTree.util import hasher
+from ejtp.util import hasher
 import json
 
 PACKET_SIZE = 8192
