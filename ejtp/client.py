@@ -14,10 +14,8 @@ GNU Lesser Public License for more details.
 You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
-'''
 
 
-'''
 	BaseClient
 
 	Base class for router clients.
