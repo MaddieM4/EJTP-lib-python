@@ -33,9 +33,9 @@ class Client(object):
 			getencryptor should be a function that accepts an argument "iface"
 			and returns an encryptor prototype (2-element list, like ["rotate", 5]).
 		'''
+		self.interface = interface
 		self.router = router
 		self.router._loadclient(self)
-		self.interface = interface
 		def get_e(iface):
 			return make(getencryptor(iface))
 		self.getencryptor = get_e
@@ -81,23 +81,24 @@ class Client(object):
 			result.addr = msg.addr
 		return result
 
-	def write(self, addr, txt):
+	def write(self, addr, txt, wrap_sender=True):
 		# Write and send a frame to addr
-		self.owrite([addr], txt)
+		self.owrite([addr], txt, wrap_sender)
 
-	def owrite(self, hoplist, txt):
+	def owrite(self, hoplist, msg, wrap_sender=True):
 		# Write a frame and send through a list of addresses
-		self.router.log_add(txt)
-		sig_s = self.getencryptor(self.interface).flip()
-		msg   = frame.make('s', self.interface, sig_s, txt)
-		self.router.log_add(msg)
+		self.router.log_add(">>> "+msg)
+		if wrap_sender:
+			sig_s = self.getencryptor(self.interface).flip()
+			msg   = frame.make('s', self.interface, sig_s, msg)
+			self.router.log_add(msg)
 		hoplist = [(a, self.getencryptor(a)) for a in hoplist]
 		for m in frame.onion(msg, hoplist):
 			self.send(m)
 
-	def write_json(self, addr, data):
+	def write_json(self, addr, data, wrap_sender=True):
 		msg = frame.make('j', None, None, strict(data))
-		self.write(addr, str(msg))
+		self.write(addr, str(msg), wrap_sender)
 
 	def hello(self, target):
 		iface = self.interface
@@ -107,7 +108,7 @@ class Client(object):
 			"key":self.getencryptor(self.interface).public(),
 			"sigs":[]
 		}
-		self.write_json(target, obj)
+		self.write_json(target, obj, False)
 
 	# Encryption
 

@@ -59,4 +59,4 @@ def make(data):
 		import rsa
 		return rsa.RSA(*args)
 	else:
-		raise TypeError("Unsupported encryption type: "+str(data))
+		raise TypeError("Unsupported encryption type: %r"%type(data))
