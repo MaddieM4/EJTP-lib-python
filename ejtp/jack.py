@@ -34,6 +34,10 @@ class Jack(object):
 		# Receive loop
 		raise NotImplementedError("Subclasses of Jack must define run")
 
+	def close(self):
+		# Stop the loop
+		raise NotImplementedError("Subclasses of Jack must define close")
+
 	def route(self, msg):
 		# Send a message.Message from the router
 		raise NotImplementedError("Subclasses of Jack must define route")

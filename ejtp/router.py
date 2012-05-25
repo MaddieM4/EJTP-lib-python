@@ -86,13 +86,18 @@ class Router(object):
 		for i in self._jacks:
 			self._jacks[i].run_threaded()
 
+	def stop_all(self):
+		# Run all Jack threads
+		for i in self._jacks:
+			self._jacks[i].close()
+
 	def run(self, level="threaded"):
 		if level=="threaded":
 			if self.runstate == "stopped":
 				self.thread_all()
 		elif level=="stopped":
 			# stop all jacks
-			pass
+			self.stop_all()
 		self.runstate = level
 
 	def _loadjacks(self, jacks):
