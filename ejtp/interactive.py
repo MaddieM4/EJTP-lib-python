@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 This file is part of the Python EJTP library.
 
@@ -16,13 +18,11 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-
-#!/usr/bin/env python
 import datetime
 import json
 
 from router import Router
-from client import SimpleClient
+from client import Client
 from util   import hasher
 
 commands = (
@@ -99,7 +99,7 @@ class Interactive(object):
 			raise TypeError("Expected bool or none, got %r" % rt)
 
 	def set_client(self, interface):
-		self.client = SimpleClient(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
+		self.client = Client(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
 		self.client.rcv_callback = self.rcv_callback
 
 	def scan_client(self):

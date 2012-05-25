@@ -27,7 +27,7 @@ from ejtp.util.hasher import strict
 import frame
 import jack
 
-class Client(BaseClient):
+class Client(object):
 	def __init__(self, router, interface, getencryptor, make_jack = True):
 		'''
 			getencryptor should be a function that accepts an argument "iface"
