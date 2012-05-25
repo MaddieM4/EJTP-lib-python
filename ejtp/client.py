@@ -27,32 +27,24 @@ from ejtp.util.hasher import strict
 import frame
 import jack
 
-class BaseClient(object):
-	def __init__(self, router):
-		self.router = router
-		self.router._loadclient(self)
-
-	def send(self, msg):
-		# Send frame to router
-		self.router.recv(msg)
-
-	def route(self, msg):
-		# Recieve frame from router
-		raise NotImplementedError("Subclasses of BaseClient must define route()")
-
-class SimpleClient(BaseClient):
+class Client(BaseClient):
 	def __init__(self, router, interface, getencryptor, make_jack = True):
 		'''
 			getencryptor should be a function that accepts an argument "iface"
 			and returns an encryptor prototype (2-element list, like ["rotate", 5]).
 		'''
+		self.router = router
+		self.router._loadclient(self)
 		self.interface = interface
-		BaseClient.__init__(self, router)
 		def get_e(iface):
 			return make(getencryptor(iface))
 		self.getencryptor = get_e
 		if make_jack:
 			jack.make(router, interface)
+
+	def send(self, msg):
+		# Send frame to router
+		self.router.recv(msg)
 
 	def route(self, msg):
 		# Recieve frame from router (will be type 'r' or 's', which contains message)
