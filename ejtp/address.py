@@ -16,14 +16,31 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.util.hasher import strict
+from json import loads
 
-__all__ = [
-	'address',
-	'frame',
-	'interactive',
-	'jack',
-		'udpjack',
-	'router',
-	'test',
-	'util',
-]
+def str_address(address):
+	'''
+		Converts address to string, only if it isn't already
+		>>> str_address([0,9])
+		'[0,9]'
+		>>> str_address("[0,9]")
+		'[0,9]'
+	'''
+	if type(address) in (str, unicode):
+		return address
+	else:
+		return strict(address)
+
+def py_address(address):
+	'''
+		Converts address to non-string, only if it isn't already
+		>>> py_address([0,9])
+		[0, 9]
+		>>> py_address("[0,9]")
+		[0, 9]
+	'''
+	if type(address) in (str, unicode):
+		return loads(address)
+	else:
+		return address

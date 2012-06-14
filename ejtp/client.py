@@ -14,31 +14,25 @@ GNU Lesser Public License for more details.
 You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
-
-
-	BaseClient
-
-	Base class for router clients.
 '''
 
 from ejtp.util.crypto import make
 from ejtp.util.hasher import strict
 
+from address import *
 import frame
 import jack
 
 class Client(object):
-	def __init__(self, router, interface, getencryptor, make_jack = True):
+	def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
 		'''
-			getencryptor should be a function that accepts an argument "iface"
+			encryptor_get should be a function that accepts an argument "iface"
 			and returns an encryptor prototype (2-element list, like ["rotate", 5]).
 		'''
 		self.interface = interface
 		self.router = router
 		self.router._loadclient(self)
-		def get_e(iface):
-			return make(getencryptor(iface))
-		self.getencryptor = get_e
+		self.encryptor_cache = encryptor_cache or dict()
 		if make_jack:
 			jack.make(router, interface)
 
@@ -68,7 +62,7 @@ class Client(object):
 
 	def unpack(self, msg):
 		# Return the frame inside a Type R or S
-		encryptor = self.getencryptor(msg.addr)
+		encryptor = self.encryptor_get(msg.addr)
 		if encryptor == None:
 			msg.raw_decode()
 		else:
@@ -89,10 +83,10 @@ class Client(object):
 		# Write a frame and send through a list of addresses
 		self.router.log_add(">>> "+msg)
 		if wrap_sender:
-			sig_s = self.getencryptor(self.interface).flip()
+			sig_s = self.encryptor_get(self.interface).flip()
 			msg   = frame.make('s', self.interface, sig_s, msg)
 			self.router.log_add(msg)
-		hoplist = [(a, self.getencryptor(a)) for a in hoplist]
+		hoplist = [(a, self.encryptor_get(a)) for a in hoplist]
 		for m in frame.onion(msg, hoplist):
 			self.send(m)
 
@@ -105,7 +99,7 @@ class Client(object):
 		obj = {
 			"type":"hello",
 			"interface":iface,
-			"key":self.getencryptor(self.interface).public(),
+			"key":self.encryptor_get(self.interface).public(),
 			"sigs":[]
 		}
 		self.write_json(target, obj, False)
@@ -113,13 +107,17 @@ class Client(object):
 	# Encryption
 
 	def sign(self, iface, obj):
-		enc = self.getencryptor(iface)
+		enc = self.encryptor_get(iface)
 		return enc.encrypt(self.hash(obj))
 
 	def sig_verify(self, iface, obj, sig):
 		hash = self.hash(obj)
-		return hash == self.getencryptor(iface).decode(sig)
+		return hash == self.encryptor_get(iface).decode(sig)
 
 	def hash(self, obj):
 		txt = strict(obj)
 		return make(['sha1']).encrypt(txt)
+
+	def encryptor_get(self, address):
+		address = str_address(address)
+		return make(self.encryptor_cache[address])
