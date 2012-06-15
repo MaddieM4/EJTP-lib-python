@@ -66,16 +66,34 @@ class Frame(object):
 
 def onion(msg, hops=[]):
 	'''
-		Encrypt a frame into multiple hops.
+		Encrypt a frame into multiple hops, splitting the end
+		result into a multihop if necessary.
 
-		Historically, this function supported splitting.
-		At some future point we will put this functionality
-		back in, but probably as a separate function.
+		To split into multipart with only one recipient, call
+		with the plaintext as "msg" and only one (addr, encryptor)
+		tuple in "hops".
 	'''
 	hops.reverse()
 	for (addr, encryptor) in hops:
 		msg = str(make('r', addr, encryptor, str(msg)))
-	return msg
+	if len(msg) > PACKET_SIZE:
+		# Split into multiple parts
+		straddr = msg[1:msg.index('\x00')]
+		addrlen = len(straddr)
+		chunksize = PACKET_SIZE-(2+addrlen)
+
+		chunks = split_text(msg, chunksize)
+		hashes = [hasher.make(c) for c in chunks]
+
+		mpmsg = hasher.strict({
+			'type':'multipart',
+			'parts':hashes,
+			'id':hasher.make(msg)
+		})
+		multipart = onion(mpmsg, hops[-1:])
+		return multipart + ["r"+straddr+'\x00'+c for c in chunks]
+	else:
+		return [msg]
 
 def make(type, addr, encryptor, content):
 	straddr = ""
@@ -85,3 +103,15 @@ def make(type, addr, encryptor, content):
 	msg = Frame(type +straddr+'\x00'+ciphercontent)
 	msg.content = content
 	return msg
+
+def split_text(txt, size):
+	# Split txt into an array of chunks, "size" or smaller
+	if size <= 0:
+		raise ValueError("Chunk size must be > 0, was given "+repr(size))
+	marker = 0
+	total = len(txt)
+	result = []
+	while marker < total:
+		result.append(txt[marker:marker+size])
+		marker += size
+	return result
