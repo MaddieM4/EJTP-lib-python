@@ -31,7 +31,8 @@ class Client(object):
 		'''
 		self.interface = interface
 		self.router = router
-		self.router._loadclient(self)
+		if hasattr(self.router, "_loadclient"):
+			self.router._loadclient(self)
 		self.encryptor_cache = encryptor_cache or dict()
 		if make_jack:
 			jack.make(router, interface)
@@ -50,12 +51,12 @@ class Client(object):
 				self.route(self.unpack(msg))
 		elif msg.type == 's':
 			self.route(self.unpack(msg))
-		elif msg.type == 'a':
-			print "Ack:", msg.content
 		elif msg.type == 'j':
 			self.rcv_callback(msg, self)
-		elif msg.type == 'p':
-			print "Part:", msg.content
+		#elif msg.type == 'a':
+		#	print "Ack:", msg.content
+		#elif msg.type == 'p':
+		#	print "Part:", msg.content
 
 	def rcv_callback(self, msg, client_obj):
 		print "Recieved from %s: %s" % (repr(msg.addr),repr(msg.content))
@@ -69,7 +70,6 @@ class Client(object):
 			if msg.type == "s":
 				encryptor = encryptor.flip()
 			msg.decode(encryptor)
-		#print "Unpacking:",repr(msg.content)
 		result = frame.Frame(msg.content)
 		if result.addr == None:
 			result.addr = msg.addr
@@ -94,30 +94,24 @@ class Client(object):
 		msg = frame.make('j', None, None, strict(data))
 		self.write(addr, str(msg), wrap_sender)
 
-	def hello(self, target):
-		iface = self.interface
-		obj = {
-			"type":"hello",
-			"interface":iface,
-			"key":self.encryptor_get(self.interface).public(),
-			"sigs":[]
-		}
-		self.write_json(target, obj, False)
-
 	# Encryption
-
-	def sign(self, iface, obj):
-		enc = self.encryptor_get(iface)
-		return enc.encrypt(self.hash(obj))
-
-	def sig_verify(self, iface, obj, sig):
-		hash = self.hash(obj)
-		return hash == self.encryptor_get(iface).decode(sig)
-
-	def hash(self, obj):
-		txt = strict(obj)
-		return make(['sha1']).encrypt(txt)
 
 	def encryptor_get(self, address):
 		address = str_address(address)
 		return make(self.encryptor_cache[address])
+
+	def encryptor_set(self, address, encryptor):
+		'''
+		>>> client = mock_client()
+		>>> client.encryptor_set(["x", ["y", 8], "z"], ['rotate', 4])
+		>>> e = client.encryptor_get('["x",["y",8],"z"]')
+		>>> e #doctest: +ELLIPSIS
+		<ejtp.util.crypto.rotate.RotateEncryptor object ...>
+		>>> e.encrypt("Aquaboogie")
+		'Euyefsskmi'
+		'''
+		address = str_address(address)
+		self.encryptor_cache[address] = list(encryptor)
+
+def mock_client():
+	return Client(None, None, make_jack=False)
