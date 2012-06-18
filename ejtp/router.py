@@ -36,6 +36,7 @@ class Router(object):
 		self._loadclients(clients)
 		self.logging = True
 		self.log = []
+		self.run()
 
 	def recv(self, msg):
 		# Accepts string or frame.frame
@@ -44,7 +45,7 @@ class Router(object):
 		try:
 			msg = Frame(msg)
 		except Exception as e:
-			print "Could not parse frame:", repr(msg)
+			print "Router could not parse frame:", repr(msg)
 			print e
 			return
 		if msg.type == "r":
@@ -53,7 +54,7 @@ class Router(object):
 				with Guard():
 					recvr.route(msg)
 			else:
-				print "Could not deliver frame:", str(msg.addr)
+				print "Router could not deliver frame:", str(msg.addr)
 		elif msg.type == "s":
 			print "frame recieved directly from "+str(msg.addr)
 

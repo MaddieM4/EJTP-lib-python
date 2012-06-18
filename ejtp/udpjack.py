@@ -34,19 +34,19 @@ class UDPJack(jack.Jack):
 	...     ['udp4', ['127.0.0.1', 19999], 'stacy']
 	... )
 	Router equality (should be false): False
-	(u'127.0.0.1', 19999)
 	UDPJack out: 88 / 88 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
-	(u'127.0.0.1', 18999)
+	Client ['udp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'udp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
 	UDPJack out: 88 / 88 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+	Client ['udp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'udp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
 	>>> jack.test_jacks(
 	...     ['udp', ['::1', 8999], 'charlie'],
 	...     ['udp', ['::1', 9999], 'stacy']
 	... )
 	Router equality (should be false): False
-	(u'::1', 9999, 0, 0)
 	UDPJack out: 72 / 72 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
-	(u'::1', 8999, 0, 0)
+	Client ['udp', ['::1', 9999], 'stacy'] recieved from [u'udp', [u'::1', 8999], u'charlie']: '"A => B"'
 	UDPJack out: 72 / 72 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
+	Client ['udp', ['::1', 8999], 'charlie'] recieved from [u'udp', [u'::1', 9999], u'stacy']: '"B => A"'
 	'''
 	def __init__(self, router, host='::', port=3972, ipv=6):
 		if ipv==6:
@@ -62,6 +62,7 @@ class UDPJack(jack.Jack):
 		self.sock = socket.socket(sockfamily, socket.SOCK_DGRAM)
 		self.sock.bind(self.address)
 		self.closed = True
+		self.initlock.release()
 
 	def route(self, msg):
 		# Send frame to somewhere
@@ -70,12 +71,13 @@ class UDPJack(jack.Jack):
 			addr = (location[0], location[1], 0,0)
 		else:
 			addr = (location[0], location[1])
-		print addr
 		print "UDPJack out:", len(str(msg)), "/", self.sock.sendto(str(msg), addr), \
 			self.address, "->", addr
 		#print repr(str(msg))
 
 	def run(self):
+		self.initlock.acquire()
+		self.initlock.release()
 		self.closed = False
 		while not self.closed:
 			data = self.sock.recv(frame.PACKET_SIZE)

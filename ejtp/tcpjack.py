@@ -26,21 +26,17 @@ class TCPJack(jack.Jack):
 	>>> jack.test_jacks(
 	...     ['tcp4', ['127.0.0.1', 18999], 'charlie'],
 	...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
-	... )
+	... ) #doctest: +ELLIPSIS
 	Router equality (should be false): False
-	(u'127.0.0.1', 19999)
-	TCPJack out: 88 / 88 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
-	(u'127.0.0.1', 18999)
-	TCPJack out: 88 / 88 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+	TCPJack out: 88 / 88 ('127.0.0.1', 18999) -> ('127.0.0.1', ...)
+	TCPJack out: 88 / 88 ('127.0.0.1', 19999) -> ('127.0.0.1', ...)
 	>>> jack.test_jacks(
 	...     ['tcp', ['::1', 8999], 'charlie'],
 	...     ['tcp', ['::1', 9999], 'stacy']
-	... )
+	... ) #doctest: +ELLIPSIS
 	Router equality (should be false): False
-	(u'::1', 9999, 0, 0)
-	TCPJack out: 72 / 72 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
-	(u'::1', 8999, 0, 0)
-	TCPJack out: 72 / 72 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
+	TCPJack out: 72 / 72 ('::1', 8999, 0, 0) -> ('::1', ..., 0, 0)
+	TCPJack out: 72 / 72 ('::1', 9999, 0, 0) -> ('::1', ..., 0, 0)
 	'''
 	def __init__(self, router, host='::', port=3972, ipv=6):
 		if ipv==6:
@@ -59,38 +55,54 @@ class TCPJack(jack.Jack):
 		self.streams = {}
 		self.threads = {}
 		self.closed = True
+		self.initlock.release()
 
 	def route(self, msg, retries = 3):
 		# Send frame to somewhere
-		location = msg.addr[1]
-		sock = self.socket(location)
+		sock = self.socket(msg.addr)
+		addr = sock.getsockname()
 		strmsg = str(msg)
 		try:
 			print "TCPJack out:", len(strmsg), "/", sock.send(strmsg), \
 				self.address, "->", addr
 		except IOError:
-			print "TCP send failed. Retrying..."
-			self.route(msg, retries-1)
+			if retries > 0:
+				print "TCP send failed. Retrying..."
+				self.route(msg, retries-1)
+			else:
+				print "No retries left."
 
 	def run(self):
+		self.initlock.acquire()
+		self.initlock.release()
 		self.closed = False
+		self.server.listen(5)
 		while not self.closed:
-			self.server.listen(5)
+			conn, addr = self.server.accept()
+			conn, addr = self.server.accept()
+			self.socket([0, addr[:2]], conn)
 
 	def close(self):
 		self.closed = True
 
-	def socket(self, address):
+	def socket(self, address, conn=None):
 		sockaddr = tuple(address[1])
 		if sockaddr in self.sockets:
 			return self.sockets[sockaddr]
 		else:
-			s = socket.create_connection(sockaddr)
-			s.settimeout(1)
-			self.sockets[sockaddr] = s
+			if not conn:
+				if self.ifacetype == 'tcp':
+					addrinfo = socket.getaddrinfo(sockaddr[0], sockaddr[1], socket.AF_INET6, socket.SOCK_STREAM)
+					(family, socktype, proto, canonname, advsockaddr) = addrinfo[0]
+					conn = socket.socket(family, socktype, proto)
+					conn.connect(advsockaddr)
+				else:
+					conn = socket.create_connection(sockaddr)
+			conn.settimeout(1)
+			self.sockets[sockaddr] = conn
 			self.streams[sockaddr] = ''
 			self.threads[sockaddr] = self.sockthread(sockaddr)
-			return s
+			return conn
 
 	def sockthread(self, address):
 		def thread_contents():

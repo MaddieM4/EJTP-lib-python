@@ -23,9 +23,12 @@ along with the Python EJTP library.  If not, see
 	Base class for jacks. Each jack handles routing inbound and outbound
 	for an address type, like UDP or Email.
 '''
+import threading
 
 class Jack(object):
 	def __init__(self, router, interface):
+		self.initlock = threading.Lock()
+		self.initlock.acquire()
 		self.router = router
 		self.interface = interface
 		self.router._loadjack(self)
@@ -59,6 +62,7 @@ class Jack(object):
 
 def make(router, iface):
 	t = iface[0]
+	# UDP Jack
 	if t == "udp":
 		import udpjack
 		host, port = iface[1]
@@ -67,6 +71,16 @@ def make(router, iface):
 		import udpjack
 		host, port = iface[1]
 		return udpjack.UDPJack(router, host=host, port=port, ipv=4)
+
+	# TCP Jack
+	elif t == "tcp":
+		import tcpjack
+		host, port = iface[1]
+		return tcpjack.TCPJack(router, host=host, port=port)
+	elif t == "tcp4":
+		import tcpjack
+		host, port = iface[1]
+		return tcpjack.TCPJack(router, host=host, port=port, ipv=4)
 
 def test_jacks(ifaceA, ifaceB):
 	# Tests client communication across distinct routers.
@@ -81,7 +95,16 @@ def test_jacks(ifaceA, ifaceB):
 	clientA.encryptor_cache = clientB.encryptor_cache
 	clientA.encryptor_set(ifaceA, ['rotate', 43])
 	clientA.encryptor_set(ifaceB, ['rotate', 93])
+	# Syncronize for output consistency
+	recv_lock = threading.Condition()
+	recv_lock.acquire()
+	def rcv_callback(msg, client_obj):
+		print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
+		recv_lock.notify()
+	# Do the test
 	clientA.write_json(ifaceB, "A => B")
+	recv_lock.wait(1)
 	clientB.write_json(ifaceA, "B => A")
+	recv_lock.wait(1)
 	routerA.stop_all()
 	routerB.stop_all()
