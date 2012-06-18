@@ -42,7 +42,7 @@ class Jack(object):
 		raise NotImplementedError("Subclasses of Jack must define close")
 
 	def route(self, msg):
-		# Send a message.Message from the router
+		# Send a message.Message from the router (assumes full flush)
 		raise NotImplementedError("Subclasses of Jack must define route")
 
 	def recv(self, data):
@@ -96,15 +96,25 @@ def test_jacks(ifaceA, ifaceB):
 	clientA.encryptor_set(ifaceA, ['rotate', 43])
 	clientA.encryptor_set(ifaceB, ['rotate', 93])
 	# Syncronize for output consistency
-	recv_lock = threading.Condition()
-	recv_lock.acquire()
+	transfer_condition = threading.Condition() # Prevent transfers from clobbering each other
+	transfer_condition.acquire()
+	print_lock = threading.Lock() # Prevent prints within a transfer from colliding
 	def rcv_callback(msg, client_obj):
+		print_lock.acquire()
 		print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
-		recv_lock.notify()
+		transfer_condition.notify()
+		print_lock.release()
 	# Do the test
+	print_lock.acquire()
 	clientA.write_json(ifaceB, "A => B")
-	recv_lock.wait(1)
+	print_lock.release()
+	transfer_condition.wait(2)
+
+	print_lock.acquire()
 	clientB.write_json(ifaceA, "B => A")
-	recv_lock.wait(1)
+	print_lock.release()
+	transfer_condition.wait(2)
+
+	# Clean up
 	routerA.stop_all()
 	routerB.stop_all()
