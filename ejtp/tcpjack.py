@@ -28,15 +28,19 @@ class TCPJack(jack.Jack):
 	...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
 	... ) #doctest: +ELLIPSIS
 	Router equality (should be false): False
-	TCPJack out: 88 / 88 ('127.0.0.1', 18999) -> ('127.0.0.1', ...)
-	TCPJack out: 88 / 88 ('127.0.0.1', 19999) -> ('127.0.0.1', ...)
+	TCPJack out: 91 / 91 ('127.0.0.1', 18999) -> ('127.0.0.1', ...)
+	Client ['tcp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'tcp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
+	TCPJack out: 91 / 91 ('127.0.0.1', 19999) -> ('127.0.0.1', ...)
+	Client ['tcp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'tcp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
 	>>> jack.test_jacks(
 	...     ['tcp', ['::1', 8999], 'charlie'],
 	...     ['tcp', ['::1', 9999], 'stacy']
 	... ) #doctest: +ELLIPSIS
 	Router equality (should be false): False
-	TCPJack out: 72 / 72 ('::1', 8999, 0, 0) -> ('::1', ..., 0, 0)
-	TCPJack out: 72 / 72 ('::1', 9999, 0, 0) -> ('::1', ..., 0, 0)
+	TCPJack out: 75 / 75 ('::1', 8999, 0, 0) -> ('::1', ..., 0, 0)
+	Client ['tcp', ['::1', 9999], 'stacy'] recieved from [u'tcp', [u'::1', 8999], u'charlie']: '"A => B"'
+	TCPJack out: 75 / 75 ('::1', 9999, 0, 0) -> ('::1', ..., 0, 0)
+	Client ['tcp', ['::1', 8999], 'charlie'] recieved from [u'tcp', [u'::1', 9999], u'stacy']: '"B => A"'
 	'''
 	def __init__(self, router, host='::', port=3972, ipv=6):
 		if ipv==6:
@@ -62,6 +66,8 @@ class TCPJack(jack.Jack):
 		sock = self.socket(msg.addr)
 		addr = sock.getsockname()
 		strmsg = str(msg)
+		msglen = len(strmsg)
+		strmsg = hex(msglen)[2:] + "." + strmsg
 		try:
 			print "TCPJack out:", len(strmsg), "/", sock.send(strmsg), \
 				self.address, "->", addr
@@ -78,7 +84,6 @@ class TCPJack(jack.Jack):
 		self.closed = False
 		self.server.listen(5)
 		while not self.closed:
-			conn, addr = self.server.accept()
 			conn, addr = self.server.accept()
 			self.socket([0, addr[:2]], conn)
 
