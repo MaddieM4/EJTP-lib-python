@@ -16,12 +16,32 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-import jack
-import select
-import socket
 import frame
+import jack
+import socket
+import threading
 
 class TCPJack(jack.Jack):
+	'''
+	>>> jack.test_jacks(
+	...     ['tcp4', ['127.0.0.1', 18999], 'charlie'],
+	...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
+	... )
+	Router equality (should be false): False
+	(u'127.0.0.1', 19999)
+	TCPJack out: 88 / 88 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
+	(u'127.0.0.1', 18999)
+	TCPJack out: 88 / 88 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+	>>> jack.test_jacks(
+	...     ['tcp', ['::1', 8999], 'charlie'],
+	...     ['tcp', ['::1', 9999], 'stacy']
+	... )
+	Router equality (should be false): False
+	(u'::1', 9999, 0, 0)
+	TCPJack out: 72 / 72 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
+	(u'::1', 8999, 0, 0)
+	TCPJack out: 72 / 72 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
+	'''
 	def __init__(self, router, host='::', port=3972, ipv=6):
 		if ipv==6:
 			ifacetype = "tcp"
@@ -37,6 +57,7 @@ class TCPJack(jack.Jack):
 		self.server.bind(self.address)
 		self.sockets = {}
 		self.streams = {}
+		self.threads = {}
 		self.closed = True
 
 	def route(self, msg, retries = 3):
@@ -55,18 +76,6 @@ class TCPJack(jack.Jack):
 		self.closed = False
 		while not self.closed:
 			self.server.listen(5)
-			ready_read, ready_write, errored = select.select(
-				[self.server]+self.sockets.values(),
-				[],
-				[],
-			)
-			if self.server in ready_read:
-				conn, addr = self.server.accept()
-				self.sockets[addr] = conn
-				ready_read.remove(self.server)
-			for sock in ready_read:
-				self.streams[sock.getpeername()] += sock.recv()
-			process_streams()
 
 	def close(self):
 		self.closed = True
@@ -77,15 +86,23 @@ class TCPJack(jack.Jack):
 			return self.sockets[sockaddr]
 		else:
 			s = socket.create_connection(sockaddr)
-			s.setblocking(0)
+			s.settimeout(1)
 			self.sockets[sockaddr] = s
-			self.streams[sockaddr] = ""
+			self.streams[sockaddr] = ''
+			self.threads[sockaddr] = self.sockthread(sockaddr)
 			return s
 
-	def process_streams(self):
-		# Analyze every stream, eating messages where possible
-		for stream in self.streams:
-			self.process_stream(stream)
+	def sockthread(self, address):
+		def thread_contents():
+			while not self.closed:
+				try:
+					self.streams[address] += self.sockets[address].recv(4096)
+					self.process_stream(address)
+				except socket.timeout:
+					pass
+		mythread = threading.Thread(target=thread_contents)
+		mythread.start()
+		return mythread
 
 	def process_stream(self, streamname):
 		data = self.streams[streamname]
