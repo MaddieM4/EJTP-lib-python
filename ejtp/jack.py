@@ -67,3 +67,21 @@ def make(router, iface):
 		import udpjack
 		host, port = iface[1]
 		return udpjack.UDPJack(router, host=host, port=port, ipv=4)
+
+def test_jacks(ifaceA, ifaceB):
+	# Tests client communication across distinct routers.
+	# The printed output can be used for unit testing.
+	import router, client
+	routerA = router.Router()
+	routerB = router.Router()
+	clientA = client.Client(routerA, ifaceA)
+	clientB = client.Client(routerB, ifaceB)
+	print "Router equality (should be false):", clientA.router == clientB.router
+	# Share encryptor data
+	clientA.encryptor_cache = clientB.encryptor_cache
+	clientA.encryptor_set(ifaceA, ['rotate', 43])
+	clientA.encryptor_set(ifaceB, ['rotate', 93])
+	clientA.write_json(ifaceB, "A => B")
+	clientB.write_json(ifaceA, "B => A")
+	routerA.stop_all()
+	routerB.stop_all()

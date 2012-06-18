@@ -28,6 +28,26 @@ import socket
 import frame
 
 class UDPJack(jack.Jack):
+	'''
+	>>> jack.test_jacks(
+	...     ['udp4', ['127.0.0.1', 18999], 'charlie'],
+	...     ['udp4', ['127.0.0.1', 19999], 'stacy']
+	... )
+	Router equality (should be false): False
+	(u'127.0.0.1', 19999)
+	UDPJack out: 88 / 88 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
+	(u'127.0.0.1', 18999)
+	UDPJack out: 88 / 88 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+	>>> jack.test_jacks(
+	...     ['udp', ['::1', 8999], 'charlie'],
+	...     ['udp', ['::1', 9999], 'stacy']
+	... )
+	Router equality (should be false): False
+	(u'::1', 9999, 0, 0)
+	UDPJack out: 72 / 72 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
+	(u'::1', 8999, 0, 0)
+	UDPJack out: 72 / 72 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
+	'''
 	def __init__(self, router, host='::', port=3972, ipv=6):
 		if ipv==6:
 			ifacetype = "udp"
