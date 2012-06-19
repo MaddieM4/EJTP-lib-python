@@ -24,6 +24,7 @@ __all__ = [
 	'interactive',
 	'jack',
 		'udpjack',
+		'tcpjack',
 	'router',
 	'test',
 	'util',

@@ -55,7 +55,7 @@ class Client(object):
 			self.rcv_callback(msg, self)
 
 	def rcv_callback(self, msg, client_obj):
-		print "Client %r recieved from %r: %r" % (self.interface, msg.addr, msg.content)
+		print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
 
 	def unpack(self, msg):
 		# Return the frame inside a Type R or S

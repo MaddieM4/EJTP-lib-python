@@ -24,6 +24,7 @@ along with the Python EJTP library.  If not, see
 	and clients on the other side for internal frame routing.
 '''
 
+import threading
 from frame import Frame
 from ejtp.util.crashnicely import Guard
 
@@ -36,24 +37,26 @@ class Router(object):
 		self._loadclients(clients)
 		self.logging = True
 		self.log = []
+		self.flush_lock = threading.Lock()
+		self.run()
 
 	def recv(self, msg):
-		# Accepts string or frame.frame
-		#print "\nRouter incoming frame: "+repr(str(msg))
+		# Accepts string or frame.Frame
 		self.log_add(msg)
 		try:
 			msg = Frame(msg)
 		except Exception as e:
-			print "Could not parse frame:", repr(msg)
+			print "Router could not parse frame:", repr(msg)
 			print e
 			return
 		if msg.type == "r":
 			recvr = self.client(msg.addr) or self.jack(msg.addr)
 			if recvr:
 				with Guard():
-					recvr.route(msg)
+					with self.flush_lock:
+						recvr.route(msg)
 			else:
-				print "Could not deliver frame:", str(msg.addr)
+				print "Router could not deliver frame:", str(msg.addr)
 		elif msg.type == "s":
 			print "frame recieved directly from "+str(msg.addr)
 
