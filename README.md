@@ -18,6 +18,23 @@ go into the uncompressed directory, and run "./setup.py install" as
 an administrator account. This is standard procedure for most
 Python libraries, and is how this one works as well.
 
+The latest stable version (really, really recommended you don't try
+to use anything development-y, since I have a tendency for code
+demolition and reconstruction) is [Version 0.8.1](
+https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.8.x),
+which is fairly lean and debuggable, and has the new TCP Jack. If
+you have issues, be sure to [submit the issue](
+https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
+ideally, send patches. These don't have to fix the underlying problem,
+as long as they expose it to the unit testing mechanism, which allows
+me to hammer at the code until it works again.
+
+
+Dependencies
+============
+
+ * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
+
 
 Usage
 =====
@@ -26,6 +43,24 @@ You can try out the EJTP demo client by running ```./ejtp/interactive.py```.
 For demo code you can look inside that file, but basically, all you
 need is a Router object, and to create Clients as necessary, setting
 their rcv_callback property to your own preferred callback.
+
+
+Testing
+=======
+
+The "install_and_test.sh" script is a one-liner that I use to quickly
+install updated code and run it through the test suite while I work.
+If you want to know whether this EJTP implementation has any problems
+on your system, run this script, and it should spit out something like
+
+    0 failures, 32 tests.
+
+at the end. If there are failures, be sure to copy the entire output
+of the command and put that in a [Github Issue](
+https://github.com/campadrenalin/EJTP-lib-python/issues/new) so I can
+have a look at it. I may reply with questions in response to that, but
+filing a test failure takes less than 5 minutes of your time and is
+really appreciated.
 
 
 EJTP Theory
@@ -121,4 +156,8 @@ loops back to them.
 
 There are further complexities involving maximum frame size (which is the
 same across all underlying transports), but I'm going to hold off on
-formalizing those rules for awhile.
+formalizing those rules for awhile. Currently, frame splitting has been
+removed from the codebase since it was not being used (or rather, split
+messages could be sent but not decoded) and it seemed better to temporarily
+remove the functionality entirely, rather than have it break in edge
+cases where you send a message long enough to split.
