@@ -20,6 +20,7 @@ import frame
 import jack
 import socket
 import threading
+from ejtp.util.crashnicely import Guard
 
 class TCPJack(jack.Jack):
 	'''
@@ -81,18 +82,24 @@ class TCPJack(jack.Jack):
 		self.initlock.release()
 		self.closed = False
 		self.server = socket.socket(self.sockfamily, socket.SOCK_STREAM)
+		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind(self.address)
 		self.server.listen(5)
 		while not self.closed:
-			conn, addr = self.server.accept()
-			self.socket([0, addr[:2]], conn)
-		print "Clean up after ourselves"
-		kill_socket(self.server)
-		for sockaddr in self.sockets:
+			try:
+				conn, addr = self.server.accept()
+				self.socket([0, addr[:2]], conn)
+			except socket.error:
+				pass
+		for sockaddr in list(self.sockets.keys()):
 			self.socket_remove(sockaddr)
+		self.initlock.release()
 
 	def close(self):
+		self.initlock.acquire()
 		self.closed = True
+		kill_socket(self.server)
+		self.initlock.acquire()
 
 	def socket(self, address, conn=None):
 		sockaddr = tuple(address[1])

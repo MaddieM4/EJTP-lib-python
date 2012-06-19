@@ -91,10 +91,12 @@ def test_jacks(ifaceA, ifaceB):
 	clientA = client.Client(routerA, ifaceA)
 	clientB = client.Client(routerB, ifaceB)
 	print "Router equality (should be false):", clientA.router == clientB.router
+
 	# Share encryptor data
 	clientA.encryptor_cache = clientB.encryptor_cache
 	clientA.encryptor_set(ifaceA, ['rotate', 43])
 	clientA.encryptor_set(ifaceB, ['rotate', 93])
+
 	# Syncronize for output consistency
 	transfer_condition = threading.Condition() # Prevent transfers from clobbering each other
 	print_lock = threading.Lock() # Prevent prints within a transfer from colliding
@@ -108,16 +110,17 @@ def test_jacks(ifaceA, ifaceB):
 	clientB.rcv_callback = rcv_callback
 
 	# Do the test
+	timeout = 0.5
 	transfer_condition.acquire()
 	with print_lock:
 		clientA.write_json(ifaceB, "A => B")
-	transfer_condition.wait(2)
+	transfer_condition.wait(timeout)
 	transfer_condition.release()
 
 	transfer_condition.acquire()
 	with print_lock:
 		clientB.write_json(ifaceA, "B => A")
-	transfer_condition.wait(2)
+	transfer_condition.wait(timeout)
 	transfer_condition.release()
 
 	# Clean up
