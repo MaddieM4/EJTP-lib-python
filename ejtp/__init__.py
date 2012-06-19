@@ -18,10 +18,13 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
+	'address',
+	'client',
 	'frame',
 	'interactive',
 	'jack',
 		'udpjack',
+		'tcpjack',
 	'router',
 	'test',
 	'util',

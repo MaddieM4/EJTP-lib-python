@@ -14,31 +14,26 @@ GNU Lesser Public License for more details.
 You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
-
-
-	BaseClient
-
-	Base class for router clients.
 '''
 
 from ejtp.util.crypto import make
 from ejtp.util.hasher import strict
 
+from address import *
 import frame
 import jack
 
 class Client(object):
-	def __init__(self, router, interface, getencryptor, make_jack = True):
+	def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
 		'''
-			getencryptor should be a function that accepts an argument "iface"
+			encryptor_get should be a function that accepts an argument "iface"
 			and returns an encryptor prototype (2-element list, like ["rotate", 5]).
 		'''
 		self.interface = interface
 		self.router = router
-		self.router._loadclient(self)
-		def get_e(iface):
-			return make(getencryptor(iface))
-		self.getencryptor = get_e
+		if hasattr(self.router, "_loadclient"):
+			self.router._loadclient(self)
+		self.encryptor_cache = encryptor_cache or dict()
 		if make_jack:
 			jack.make(router, interface)
 
@@ -56,26 +51,21 @@ class Client(object):
 				self.route(self.unpack(msg))
 		elif msg.type == 's':
 			self.route(self.unpack(msg))
-		elif msg.type == 'a':
-			print "Ack:", msg.content
 		elif msg.type == 'j':
 			self.rcv_callback(msg, self)
-		elif msg.type == 'p':
-			print "Part:", msg.content
 
 	def rcv_callback(self, msg, client_obj):
-		print "Recieved from %s: %s" % (repr(msg.addr),repr(msg.content))
+		print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
 
 	def unpack(self, msg):
 		# Return the frame inside a Type R or S
-		encryptor = self.getencryptor(msg.addr)
+		encryptor = self.encryptor_get(msg.addr)
 		if encryptor == None:
 			msg.raw_decode()
 		else:
 			if msg.type == "s":
 				encryptor = encryptor.flip()
 			msg.decode(encryptor)
-		#print "Unpacking:",repr(msg.content)
 		result = frame.Frame(msg.content)
 		if result.addr == None:
 			result.addr = msg.addr
@@ -89,37 +79,59 @@ class Client(object):
 		# Write a frame and send through a list of addresses
 		self.router.log_add(">>> "+msg)
 		if wrap_sender:
-			sig_s = self.getencryptor(self.interface).flip()
-			msg   = frame.make('s', self.interface, sig_s, msg)
-			self.router.log_add(msg)
-		hoplist = [(a, self.getencryptor(a)) for a in hoplist]
-		for m in frame.onion(msg, hoplist):
-			self.send(m)
+			msg = self.wrap_sender(msg)
+		hoplist = [(a, self.encryptor_get(a)) for a in hoplist]
+		self.send(frame.onion(msg, hoplist))
 
 	def write_json(self, addr, data, wrap_sender=True):
 		msg = frame.make('j', None, None, strict(data))
 		self.write(addr, str(msg), wrap_sender)
 
-	def hello(self, target):
-		iface = self.interface
-		obj = {
-			"type":"hello",
-			"interface":iface,
-			"key":self.getencryptor(self.interface).public(),
-			"sigs":[]
-		}
-		self.write_json(target, obj, False)
+	def wrap_sender(self, msg):
+		# Encapsulate a message within a sender frame
+		sig_s = self.encryptor_get(self.interface).flip()
+		msg   = frame.make('s', self.interface, sig_s, msg)
+		self.router.log_add(msg)
+		return msg
 
 	# Encryption
 
-	def sign(self, iface, obj):
-		enc = self.getencryptor(iface)
-		return enc.encrypt(self.hash(obj))
+	def encryptor_get(self, address):
+		address = str_address(address)
+		return make(self.encryptor_cache[address])
 
-	def sig_verify(self, iface, obj, sig):
-		hash = self.hash(obj)
-		return hash == self.getencryptor(iface).decode(sig)
+	def encryptor_set(self, address, encryptor):
+		'''
+		>>> client = mock_client()
+		>>> client.encryptor_set(["x", ["y", 8], "z"], ['rotate', 4])
+		>>> e = client.encryptor_get('["x",["y",8],"z"]')
+		>>> e #doctest: +ELLIPSIS
+		<ejtp.util.crypto.rotate.RotateEncryptor object ...>
+		>>> e.encrypt("Aquaboogie")
+		'Euyefsskmi'
+		'''
+		address = str_address(address)
+		self.encryptor_cache[address] = list(encryptor)
 
-	def hash(self, obj):
-		txt = strict(obj)
-		return make(['sha1']).encrypt(txt)
+def mock_client():
+	return Client(None, None, make_jack=False)
+
+def mock_locals(name1="c1", name2="c2"):
+	'''
+	Returns two clients that talk locally through a router.
+	>>> c1, c2 = mock_locals()
+	>>> c1.encryptor_cache = c2.encryptor_cache # Let's only set this stuff once
+	>>> c1.encryptor_set(c1.interface, ['rotate',  3])
+	>>> c1.encryptor_set(c2.interface, ['rotate', -7])
+	>>> c1.router == c2.router
+	True
+	>>> c1.write_json(c2.interface, "hello")
+	Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [u'udp', [u'127.0.0.1', 555], u'c1']: '"hello"'
+	>>> c2.write_json(c1.interface, "goodbye")
+	Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: '"goodbye"'
+	'''
+	from router import Router
+	r  = Router()
+	c1 = Client(r, ['udp', ['127.0.0.1', 555], name1], make_jack = False)
+	c2 = Client(r, ['udp', ['127.0.0.1', 555], name2], make_jack = False)
+	return (c1, c2)
