@@ -46,15 +46,13 @@ class TCPJack(jack.Jack):
 		if ipv==6:
 			ifacetype = "tcp"
 			self.address = (host, port, 0, 0)
-			sockfamily = socket.AF_INET6
+			self.sockfamily = socket.AF_INET6
 		else: 
 			ifacetype = "tcp4"
 			self.address = (host, port)
-			sockfamily = socket.AF_INET
+			self.sockfamily = socket.AF_INET
 
 		jack.Jack.__init__(self, router, (ifacetype, (host, port)))
-		self.server = socket.socket(sockfamily, socket.SOCK_STREAM)
-		self.server.bind(self.address)
 		self.sockets = {}
 		self.streams = {}
 		self.threads = {}
@@ -82,10 +80,16 @@ class TCPJack(jack.Jack):
 		self.initlock.acquire()
 		self.initlock.release()
 		self.closed = False
+		self.server = socket.socket(self.sockfamily, socket.SOCK_STREAM)
+		self.server.bind(self.address)
 		self.server.listen(5)
 		while not self.closed:
 			conn, addr = self.server.accept()
 			self.socket([0, addr[:2]], conn)
+		print "Clean up after ourselves"
+		kill_socket(self.server)
+		for sockaddr in self.sockets:
+			self.socket_remove(sockaddr)
 
 	def close(self):
 		self.closed = True
@@ -108,6 +112,12 @@ class TCPJack(jack.Jack):
 			self.streams[sockaddr] = ''
 			self.threads[sockaddr] = self.sockthread(sockaddr)
 			return conn
+
+	def socket_remove(self, sockaddr):
+		kill_socket(self.sockets[sockaddr])
+		del self.sockets[sockaddr]
+		del self.streams[sockaddr]
+		del self.threads[sockaddr]
 
 	def sockthread(self, address):
 		def thread_contents():
@@ -132,3 +142,7 @@ class TCPJack(jack.Jack):
 		self.recv(content[:size])
 		self.streams[streamname] = content[size:]
 		self.process_stream(streamname)
+
+def kill_socket(sock):
+	sock.shutdown(socket.SHUT_RDWR)
+	sock.close()
