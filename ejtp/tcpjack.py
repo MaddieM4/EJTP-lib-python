@@ -58,10 +58,11 @@ class TCPJack(jack.Jack):
 		self.streams = {}
 		self.threads = {}
 		self.closed = True
-		self.initlock.release()
+		self.lock_init.release()
 
 	def route(self, msg, retries = 3):
 		# Send frame to somewhere
+		with self.lock_ready: pass # Make sure we're running
 		sock = self.socket(msg.addr)
 		addr = sock.getsockname()
 		strmsg = str(msg)
@@ -78,28 +79,29 @@ class TCPJack(jack.Jack):
 				print "No retries left."
 
 	def run(self):
-		self.initlock.acquire()
-		self.initlock.release()
+		with self.lock_init: pass # Make sure init is done, and ready to run
 		self.closed = False
 		self.server = socket.socket(self.sockfamily, socket.SOCK_STREAM)
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind(self.address)
+		self.lock_ready.release()
 		self.server.listen(5)
-		while not self.closed:
-			try:
-				conn, addr = self.server.accept()
-				self.socket([0, addr[:2]], conn)
-			except socket.error:
-				pass
-		for sockaddr in list(self.sockets.keys()):
-			self.socket_remove(sockaddr)
-		self.initlock.release()
+		try:
+			while not self.closed:
+				try:
+					conn, addr = self.server.accept()
+					self.socket([0, addr[:2]], conn)
+				except socket.error, e:
+					pass
+			for sockaddr in list(self.sockets.keys()):
+				self.socket_remove(sockaddr)
+		finally:
+			self.lock_close.release()
 
 	def close(self):
-		self.initlock.acquire()
 		self.closed = True
 		kill_socket(self.server)
-		self.initlock.acquire()
+		with self.lock_close: pass # Wait for run function to end
 
 	def socket(self, address, conn=None):
 		sockaddr = tuple(address[1])

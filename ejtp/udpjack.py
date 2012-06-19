@@ -62,10 +62,11 @@ class UDPJack(jack.Jack):
 		self.sock = socket.socket(sockfamily, socket.SOCK_DGRAM)
 		self.sock.bind(self.address)
 		self.closed = True
-		self.initlock.release()
+		self.lock_init.release()
 
 	def route(self, msg):
 		# Send frame to somewhere
+		with self.lock_ready: pass # Make sure socket is ready
 		location = msg.addr[1]
 		if self.ifacetype == 'udp':
 			addr = (location[0], location[1], 0,0)
@@ -73,15 +74,15 @@ class UDPJack(jack.Jack):
 			addr = (location[0], location[1])
 		print "UDPJack out:", len(str(msg)), "/", self.sock.sendto(str(msg), addr), \
 			self.address, "->", addr
-		#print repr(str(msg))
 
 	def run(self):
-		self.initlock.acquire()
-		self.initlock.release()
+		with self.lock_init: pass # Make sure init is done, and ready to run
 		self.closed = False
+		self.lock_ready.release()
 		while not self.closed:
 			data = self.sock.recv(frame.PACKET_SIZE)
 			self.recv(data)
 
 	def close(self):
 		self.closed = True
+		self.lock_close.release()

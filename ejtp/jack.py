@@ -27,8 +27,12 @@ import threading
 
 class Jack(object):
 	def __init__(self, router, interface):
-		self.initlock = threading.Lock()
-		self.initlock.acquire()
+		self.lock_init  = threading.Lock() # Acquirable if init is finished and ready to run
+		self.lock_ready = threading.Lock() # Acquirable if running and ready to route/recv
+		self.lock_close = threading.Lock() # Acquirable if closed and cleaned up
+		self.lock_init.acquire()
+		self.lock_ready.acquire()
+		self.lock_close.acquire()
 		self.router = router
 		self.interface = interface
 		self.router._loadjack(self)
@@ -108,6 +112,8 @@ def test_jacks(ifaceA, ifaceB):
 		transfer_condition.release()
 	clientA.rcv_callback = rcv_callback
 	clientB.rcv_callback = rcv_callback
+	for r in (routerA, routerB):
+		with r._jacks.values()[0].lock_ready: pass
 
 	# Do the test
 	timeout = 0.5
