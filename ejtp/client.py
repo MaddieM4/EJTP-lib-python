@@ -113,6 +113,32 @@ class Client(object):
 		address = str_address(address)
 		self.encryptor_cache[address] = list(encryptor)
 
+	def sign(self, obj):
+		'''
+		Make a signature with this client's interface.
+		
+		>>> c = Client(None, ['demo_interface'])
+		>>> c.encryptor_set(c.interface, ['rotate',41])
+		>>> original = ['catamaran']
+		>>> c.sign(original)
+		'2\\xf9:8K8D8I8E\\xf94'
+		'''
+		strdata = strict(obj)
+		return self.encryptor_get(self.interface).flip().encrypt(strdata)
+
+	def sig_verify(self, obj, signer, sig):
+		'''
+		Verify a signature.
+		
+		>>> c = Client(None, ['demo_interface'])
+		>>> c.encryptor_set(c.interface, ['rotate',41])
+		>>> original = ['catamaran']
+		>>> c.sig_verify(original, c.interface, c.sign(original))
+		True
+		'''
+		strdata = strict(obj)
+		return self.encryptor_get(signer).flip().decrypt(sig) == strdata
+
 def mock_client():
 	return Client(None, None, make_jack=False)
 
