@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.crypto import make
-from ejtp.util.hasher import strict
+from ejtp.util.hasher import strict, make as hashfunc
 
 from address import *
 import frame
@@ -121,9 +121,9 @@ class Client(object):
 		>>> c.encryptor_set(c.interface, ['rotate',41])
 		>>> original = ['catamaran']
 		>>> c.sign(original)
-		'2\\xf9:8K8D8I8E\\xf94'
+		':\\n\\x0e;<9\\x10\\x0e\\x0f=:8\\x0b\\x0c\\r\\x08\\x079\\x0f\\x0f\\x0c9\\x0e\\x0e\\x08=:8::\\x0b\\x109=\\x0b\\t\\x0c:\\n\\x0b'
 		'''
-		strdata = strict(obj)
+		strdata = hashfunc(strict(obj))
 		return self.encryptor_get(self.interface).flip().encrypt(strdata)
 
 	def sig_verify(self, obj, signer, sig):
@@ -136,7 +136,7 @@ class Client(object):
 		>>> c.sig_verify(original, c.interface, c.sign(original))
 		True
 		'''
-		strdata = strict(obj)
+		strdata = hashfunc(strict(obj))
 		return self.encryptor_get(signer).flip().decrypt(sig) == strdata
 
 def mock_client():
