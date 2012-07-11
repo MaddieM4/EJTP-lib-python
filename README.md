@@ -34,6 +34,7 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
+ * For testing, install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
 
 
 Usage
@@ -50,9 +51,12 @@ Testing
 
 The "install_and_test.sh" script is a one-liner that I use to quickly
 install updated code and run it through the test suite while I work.
+It depends on having [DoctestAll](https://github.com/campadrenalin/DoctestAll)
+installed, so you want to do that first of all, before testing EJTP.
 If you want to know whether this EJTP implementation has any problems
 on your system, run this script, and it should spit out something like
 
+    name@machine$ ./install_and_test.sh
     0 failures, 32 tests.
 
 at the end. If there are failures, be sure to copy the entire output
