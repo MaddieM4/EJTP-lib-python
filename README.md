@@ -161,3 +161,20 @@ removed from the codebase since it was not being used (or rather, split
 messages could be sent but not decoded) and it seemed better to temporarily
 remove the functionality entirely, rather than have it break in edge
 cases where you send a message long enough to split.
+
+
+EJTP Ecosystem
+==============
+
+EJTP boasts a fair number of projects that are based on it. Many of these
+are micro-libraries and micro-protocols that serve higher-level systems,
+following the maxim "Do one thing and do it well."
+
+The following is an attempt to graph those relationships:
+
+    EJTP
+    |
+    |- EJIdent   \
+    |- EJForward --|- EJMail
+                   |- DEJE
+                   |- MCP
