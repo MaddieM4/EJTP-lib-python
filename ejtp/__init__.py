@@ -20,6 +20,7 @@ along with the Python EJTP library.  If not, see
 __all__ = [
 	'address',
 	'client',
+	'crypto',
 	'frame',
 	'interactive',
 	'jack',
