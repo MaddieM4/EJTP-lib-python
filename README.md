@@ -20,10 +20,11 @@ Python libraries, and is how this one works as well.
 
 The latest stable version (really, really recommended you don't try
 to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.8.1](
+demolition and reconstruction) is [Version 0.8.2](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.8.x),
-which is fairly lean and debuggable, and has the new TCP Jack. If
-you have issues, be sure to [submit the issue](
+which is fairly lean and debuggable, and has the new alias module
+for ejtp.crypto, and uses [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
 ideally, send patches. These don't have to fix the underlying problem,
 as long as they expose it to the unit testing mechanism, which allows
