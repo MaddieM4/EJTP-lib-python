@@ -16,10 +16,10 @@ def message(i):
 
 # Wrapper functions
 def encode(msg, sender, reciever):
-	return reciever.encrypt(sender.decrypt(msg))
+	return reciever.encrypt(sender.encrypt(msg))
 
 def decode(msg, sender, reciever):
-	return encode(msg, reciever, sender)
+	return sender.decrypt(reciever.decrypt(msg))
 
 def test_run(sender, reciever):
 	for i in range(0, TEST_COUNT):
