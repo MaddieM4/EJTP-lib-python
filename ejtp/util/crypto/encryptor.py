@@ -33,6 +33,18 @@ class Encryptor(object):
 		# where your public key and private key are different.
 		return self.proto()
 
+	def hash_obj(self, plaintext):
+		'''
+		Produces a Crypto.Hash object.
+
+		>>> re = make(['rotate', 38])
+		>>> re.hash_obj('hello, world') #doctest: +ELLIPSIS
+		<Crypto.Hash.SHA256.SHA256Hash instance at ...>
+		'''
+		h = hashclass.new()
+		h.update(plaintext)
+		return h
+
 	def hash(self, plaintext):
 		'''
 		Produces a binary SHA-256 hash.
@@ -43,9 +55,7 @@ class Encryptor(object):
 		>>> re.hash('a'*300)
 		'\\x985\\xfak\\xf4\\xe2\\n\\x9b\\x9e\\xa8\\x12Pc\\x02\\xe9\\x89\\x82r\\x1al\\xf8\\xd2\\xca\\xe6z\\xf5q)\\xbf!\\xae\\x90'
 		'''
-		h = hashclass.new()
-		h.update(plaintext)
-		return h.digest()
+		return self.hash_obj(plaintext).digest()
 
 	def sign(self, plaintext):
 		'''
