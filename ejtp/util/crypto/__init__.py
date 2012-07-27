@@ -18,9 +18,10 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
+	'aes',
+    'encryptor',
 	'rsa',
 	'rotate',
-	'aes',
 ]
 
 from encryptor import make

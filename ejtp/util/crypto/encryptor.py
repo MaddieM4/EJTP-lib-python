@@ -18,6 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 from ejtp.util.hasher import strict
+from Crypto.Hash import SHA256 as hashclass
 
 class Encryptor(object):
 	def encrypt(self, s):
@@ -31,6 +32,52 @@ class Encryptor(object):
 		# Assumes shared key = your key, overwrite for key types
 		# where your public key and private key are different.
 		return self.proto()
+
+	def hash(self, plaintext):
+		'''
+		Produces a binary SHA-256 hash.
+
+		>>> re = make(['rotate', 38])
+		>>> re.hash('hello, world')
+		'\\t\\xca~N\\xaan\\x8a\\xe9\\xc7\\xd2a\\x16q)\\x18H\\x83dM\\x07\\xdf\\xba|\\xbf\\xbcL\\x8a.\\x086\\r['
+		>>> re.hash('a'*300)
+		'\\x985\\xfak\\xf4\\xe2\\n\\x9b\\x9e\\xa8\\x12Pc\\x02\\xe9\\x89\\x82r\\x1al\\xf8\\xd2\\xca\\xe6z\\xf5q)\\xbf!\\xae\\x90'
+		'''
+		h = hashclass.new()
+		h.update(plaintext)
+		return h.digest()
+
+	def sign(self, plaintext):
+		'''
+		Override in subclasses where you can't decrypt plaintext
+
+		>>> plaintext = 'hello, world'
+		>>> re  = make(['rotate', 38])
+		>>> sig = re.sign(plaintext)
+		>>> sig
+		'\\xe3\\xa4X(\\x84Hd\\xc3\\xa1\\xac;\\xf0K\\x03\\xf2"]>\\'\\xe1\\xb9\\x94V\\x99\\x96&d\\x08\\xe2\\x10\\xe75'
+		>>> re.encrypt(sig)
+		'\\t\\xca~N\\xaan\\x8a\\xe9\\xc7\\xd2a\\x16q)\\x18H\\x83dM\\x07\\xdf\\xba|\\xbf\\xbcL\\x8a.\\x086\\r['
+		>>> re.encrypt(sig) == re.hash(plaintext)
+		True
+		'''
+		h = self.hash(plaintext)
+		return self.decrypt(h)
+
+	def sig_verify(self, plaintext, signature):
+		'''
+		Verify a signature, by comparing it against a new signature
+		of the same source data.
+
+		>>> plaintext = 'hello, world'
+		>>> re  = make(['rotate', 38])
+		>>> sig = re.sign(plaintext)
+		>>> re.sig_verify(plaintext, sig)
+		True
+		>>> re.sig_verify("other text", sig)
+		False
+		'''
+		return signature == self.sign(plaintext)
 
 	def flip(self):
 		return Flip(self)
