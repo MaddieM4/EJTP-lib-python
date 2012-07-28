@@ -63,8 +63,6 @@ class Client(object):
 		if encryptor == None:
 			msg.raw_decode()
 		else:
-			if msg.type == "s":
-				encryptor = encryptor.flip()
 			msg.decode(encryptor)
 		result = frame.Frame(msg.content)
 		if result.addr == None:
@@ -89,7 +87,7 @@ class Client(object):
 
 	def wrap_sender(self, msg):
 		# Encapsulate a message within a sender frame
-		sig_s = self.encryptor_get(self.interface).flip()
+		sig_s = self.encryptor_get(self.interface)
 		msg   = frame.make('s', self.interface, sig_s, msg)
 		self.router.log_add(msg)
 		return msg
