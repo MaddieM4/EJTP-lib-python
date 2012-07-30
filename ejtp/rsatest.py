@@ -11,22 +11,22 @@ key2 = make(['rsa', None])
 TEST_COUNT = 103
 
 def message(i):
-	result = hasher.make(str(i))
-	return result, result*10
+    result = hasher.make(str(i))
+    return result, result*10
 
 # Wrapper functions
 def encode(msg, sender, reciever):
-	return reciever.encrypt(sender.encrypt(msg))
+    return reciever.encrypt(sender.encrypt(msg))
 
 def decode(msg, sender, reciever):
-	return sender.decrypt(reciever.decrypt(msg))
+    return sender.decrypt(reciever.decrypt(msg))
 
 def test_run(sender, reciever):
-	for i in range(0, TEST_COUNT):
-		desc, plaintext = message(i)
-		ciphertext = encode(plaintext, key1, key2)
-		if plaintext != decode(ciphertext, key1, key2):
-			print "%r\n" % desc
+    for i in range(0, TEST_COUNT):
+        desc, plaintext = message(i)
+        ciphertext = encode(plaintext, key1, key2)
+        if plaintext != decode(ciphertext, key1, key2):
+            print "%r\n" % desc
 
 # Actual test:
 print "key1 >> key2"
