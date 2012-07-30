@@ -21,7 +21,7 @@ from ejtp.util.hasher import strict, make as hashfunc
 
 from address import *
 import frame
-import jack
+import jacks
 
 class Client(object):
 	def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
@@ -35,7 +35,7 @@ class Client(object):
 			self.router._loadclient(self)
 		self.encryptor_cache = encryptor_cache or dict()
 		if make_jack:
-			jack.make(router, interface)
+			jacks.make(router, interface)
 
 	def send(self, msg):
 		# Send frame to router

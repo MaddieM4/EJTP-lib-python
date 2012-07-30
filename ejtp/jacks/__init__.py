@@ -16,14 +16,4 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-
-__all__ = [
-	'address',
-	'client',
-	'crypto',
-	'frame',
-	'interactive',
-	'jacks',
-	'router',
-	'util',
-]
+from core import *
