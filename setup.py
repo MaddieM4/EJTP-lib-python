@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
 	name = 'ejtp',
-	version = '0.8.2',
+	version = '0.9.0',
 	description = 'Encrypted JSON Transport Protocol library',
 	author = 'Philip Horger',
 	author_email = 'philip.horger@gmail.com',
