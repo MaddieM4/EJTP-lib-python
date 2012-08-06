@@ -25,7 +25,6 @@ along with the Python EJTP library.  If not, see
 
 import core as jack
 import socket
-import frame
 
 class UDPJack(jack.Jack):
     '''
@@ -80,7 +79,7 @@ class UDPJack(jack.Jack):
         self.closed = False
         self.lock_ready.release()
         while not self.closed:
-            data = self.sock.recv(frame.PACKET_SIZE)
+            data = self.sock.recv(4096)
             self.recv(data)
 
     def close(self):

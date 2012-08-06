@@ -78,18 +78,18 @@ def make(router, iface):
 
 	# TCP Jack
 	elif t == "tcp":
-		import tcpjack
+		import tcp
 		host, port = iface[1]
-		return tcpjack.TCPJack(router, host=host, port=port)
+		return tcp.TCPJack(router, host=host, port=port)
 	elif t == "tcp4":
-		import tcpjack
+		import tcp
 		host, port = iface[1]
-		return tcpjack.TCPJack(router, host=host, port=port, ipv=4)
+		return tcp.TCPJack(router, host=host, port=port, ipv=4)
 
 def test_jacks(ifaceA, ifaceB):
 	# Tests client communication across distinct routers.
 	# The printed output can be used for unit testing.
-	import router, client
+	from ejtp import router, client
 	routerA = router.Router()
 	routerB = router.Router()
 	clientA = client.Client(routerA, ifaceA)

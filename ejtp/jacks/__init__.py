@@ -17,3 +17,11 @@ along with the Python EJTP library.  If not, see
 '''
 
 from core import *
+
+__all__ = [
+    'core',
+    'streamjack',
+    'tcp',
+    'tcpjack',
+    'udpjack',
+]
