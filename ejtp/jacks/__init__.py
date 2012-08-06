@@ -22,6 +22,5 @@ __all__ = [
     'core',
     'streamjack',
     'tcp',
-    'tcpjack',
     'udpjack',
 ]
