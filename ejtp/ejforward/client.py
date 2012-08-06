@@ -16,15 +16,25 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.client import Client
 
-__all__ = [
-	'address',
-	'client',
-	'crypto',
-	'forward',
-	'frame',
-	'interactive',
-	'jacks',
-	'router',
-	'util',
-]
+class ForwardClient(Client):
+    def __init__(self, serveraddr):
+        self.serveraddr = serveraddr
+        self._status = {}
+
+	def rcv_callback(self, msg, client_obj):
+        pass
+
+    def ack(self, messageid):
+        pass
+
+    def retrieve(self, hashes=None):
+        pass
+
+    def get_status(self, callback=None):
+        pass
+
+    @property
+    def status(self):
+        return self._status

@@ -18,13 +18,9 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
-	'address',
 	'client',
-	'crypto',
-	'forward',
-	'frame',
-	'interactive',
-	'jacks',
-	'router',
-	'util',
+	'server',
 ]
+
+from client import ForwardClient
+from server import ForwardServer
