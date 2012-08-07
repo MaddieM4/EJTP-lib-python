@@ -17,23 +17,58 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.client import Client
+from ejtp import frame
 
 class ForwardClient(Client):
     def __init__(self, serveraddr):
         self.serveraddr = serveraddr
         self._status = {}
+        self._status_callbacks = []
 
 	def rcv_callback(self, msg, client_obj):
-        pass
+        data = msg.jsoncontent
+        mtype = data['type']
+        if mtype=='ejforward-notify':
+            self._status = data
+            for callback in self._status_callbacks:
+                callback(self)
+            self._status_callbacks = []
+        elif mtype=='ejforward-message':
+            internal = data['data']
+            self.send(frame(internal)) # forward to router
+        else:
+            print "Unknown message type, %r" % mtype
 
-    def ack(self, messageid):
-        pass
+    def ack(self, hashes):
+        self.upload(
+            'ejforward-ack',
+            {
+                'hashes': list(hashes),
+            },
+        )
 
     def retrieve(self, hashes=None):
-        pass
+        self.upload(
+            'ejforward-retrieve',
+            {
+                'hashes': list(hashes),
+            },
+        )
 
     def get_status(self, callback=None):
-        pass
+        if callback:
+            self._status_callbacks.append(callback)
+        self.upload(
+            'ejforward-get-status',
+            {},
+        )
+
+    def upload(self, dtype, data):
+        '''
+        Send a message to the server.
+        '''
+        data['type'] = dtype
+        self.write_json(self.serveraddr, data)
 
     @property
     def status(self):

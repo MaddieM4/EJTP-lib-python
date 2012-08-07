@@ -70,6 +70,13 @@ class Frame(object):
 		self.content = self.ciphercontent
 
 	@property
+	def jsoncontent(self):
+        if self.type == "j":
+            return json.loads(self.content)
+        else:
+            raise TypeError("Cannot get jsoncontent of frame with type %r" % self.type)
+
+	@property
 	def decoded(self):
 		return hasattr(self, "content")
 
