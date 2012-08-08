@@ -21,11 +21,13 @@ from ejtp import frame
 
 class ForwardClient(Client):
     def __init__(self, serveraddr):
+        # TODO : Test me
         self.serveraddr = serveraddr
         self._status = {}
         self._status_callbacks = []
 
     def rcv_callback(self, msg, client_obj):
+        # TODO : Test me
         data = msg.jsoncontent
         mtype = data['type']
         if mtype=='ejforward-notify':
@@ -40,6 +42,7 @@ class ForwardClient(Client):
             print "Unknown message type, %r" % mtype
 
     def ack(self, hashes):
+        # TODO : Test me
         self.upload(
             'ejforward-ack',
             {
@@ -48,6 +51,7 @@ class ForwardClient(Client):
         )
 
     def retrieve(self, hashes=None):
+        # TODO : Test me
         self.upload(
             'ejforward-retrieve',
             {
@@ -56,6 +60,7 @@ class ForwardClient(Client):
         )
 
     def get_status(self, callback=None):
+        # TODO : Test me
         if callback:
             self._status_callbacks.append(callback)
         self.upload(
@@ -64,6 +69,7 @@ class ForwardClient(Client):
         )
 
     def upload(self, dtype, data):
+        # TODO : Test me
         '''
         Send a message to the server.
         '''
@@ -72,4 +78,5 @@ class ForwardClient(Client):
 
     @property
     def status(self):
+        # TODO : Test me
         return self._status
