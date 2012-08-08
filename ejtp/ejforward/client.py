@@ -25,7 +25,7 @@ class ForwardClient(Client):
         self._status = {}
         self._status_callbacks = []
 
-	def rcv_callback(self, msg, client_obj):
+    def rcv_callback(self, msg, client_obj):
         data = msg.jsoncontent
         mtype = data['type']
         if mtype=='ejforward-notify':

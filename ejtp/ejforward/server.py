@@ -22,7 +22,7 @@ class ForwardServer(Client):
     def __init__(self, data={}):
         self.client_data = data
 
-	def rcv_callback(self, msg, client_obj):
+    def rcv_callback(self, msg, client_obj):
         pass
 
     def notify(self, target):

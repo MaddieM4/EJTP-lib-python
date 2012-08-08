@@ -21,7 +21,7 @@ __all__ = [
 	'address',
 	'client',
 	'crypto',
-	'forward',
+	'ejforward',
 	'frame',
 	'interactive',
 	'jacks',
