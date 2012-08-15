@@ -25,3 +25,13 @@ __all__ = [
 ]
 
 from encryptor import make
+
+def bin_unicode(string):
+    '''
+    Turn binary data into serialized unicode.
+
+    >>> evilstr = chr(186) + chr(129) + chr(200)
+    >>> bin_unicode(evilstr)
+    u'\\xba\\x81\\xc8'
+    '''
+    return unicode().join(unichr(ord(x)) for x in string)

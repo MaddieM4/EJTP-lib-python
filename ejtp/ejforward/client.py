@@ -18,6 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.client import Client
 from ejtp import frame
+from ejtp.util.hasher import make as hashfunc
 
 _demo_client_addr = ['local', None, 'client']
 _demo_server_addr = ['local', None, 'server']
@@ -42,12 +43,15 @@ class ForwardClient(Client):
             self._status_callbacks = []
         elif mtype=='ejforward-message':
             internal = data['data']
-            self.send(frame(internal)) # forward to router
+            self.ack([hashfunc(internal)])
+            try:
+                self.send(frame.Frame(internal)) # forward to router
+            except ValueError:
+                print "Invalid frame, discarding"
         else:
             print "Unknown message type, %r" % mtype
 
     def ack(self, hashes):
-        # TODO : Test me
         self.upload(
             'ejforward-ack',
             {
@@ -56,7 +60,31 @@ class ForwardClient(Client):
         )
 
     def retrieve(self, hashes=None):
-        # TODO : Test me
+        '''
+        Get the current status according to the server.
+
+        >>> from ejtp.util.hasher import strict
+        >>> client, server = test_setup()
+        >>> def on_status(client):
+        ...     print "Status is: ", strict(client.status)
+        >>> client.get_status(on_status)
+        Status is:  {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
+
+        >>> len("fakey message")
+        13
+        >>> mhash = server.store_message(client.interface, "fakey message")
+        >>> server.client(client.interface)['messages']
+        {'4fc5bbbfefe38b84b935fee015c192e397b6eac3': 'fakey message'}
+        >>> client.get_status(on_status)
+        Status is:  {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
+
+        >>> client.retrieve(hashes=[mhash])
+        Invalid frame, discarding
+        >>> server.client(client.interface)['messages']
+        {}
+        >>> client.get_status(on_status)
+        Status is:  {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
+        '''
         self.upload(
             'ejforward-retrieve',
             {

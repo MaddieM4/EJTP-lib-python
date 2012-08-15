@@ -18,6 +18,8 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.client import Client
 from ejtp.address import *
+from ejtp.util.hasher import make as hashfunc
+from ejtp.crypto import bin_unicode
 
 class ForwardServer(Client):
     def __init__(self, router, interface, **kwargs):
@@ -26,7 +28,6 @@ class ForwardServer(Client):
         self.default_data = {
             'messages':{},
             'chopping_block':[],
-            'prefix':'',
             'status':{
                 'total_count': 1000,
                 'total_space': 32*1024, # 32kb of space default
@@ -35,17 +36,58 @@ class ForwardServer(Client):
             },
         }
 
+    def relay(self, msg):
+        '''
+        To send a message through EJForward, simply onion route through the 
+        server, client, and destination, in that order.
+
+        >>> from ejtp.ejforward.client import test_setup
+        >>> from ejtp.client import Client
+        >>> client, server = test_setup()
+        >>> dest   = Client(client.router, ['local', None, 'destination'])
+        >>> sender = Client(client.router, ['local', None, 'sender'])
+        >>> client.encryptor_set(sender.interface, ['rotate', 23])
+        >>> client.encryptor_set(dest.interface, ['aes', 'brazil'])
+        >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
+
+        >>> def rcv_callback(msg, client):
+        ...     print msg
+        >>> message = {'type':'example'}
+        >>> print message
+        {'type': 'example'}
+        >>> dest.rcv_callback = rcv_callback
+        >>> sender.owrite_json(
+        ...     [server.interface, client.interface, dest.interface],
+        ...     message
+        ... )
+        {'type': 'example'}
+        '''
+        address = str_address(msg.addr)
+        if address in self.client_data:
+            mhash = self.store_message(address, bin_unicode(str(msg)))
+            self.message(address, mhash)
+        else:
+            self.send(msg)
+
     def rcv_callback(self, msg, client_obj):
         data   = msg.jsoncontent
         mtype  = data['type']
         target = msg.addr
         if mtype=='ejforward-get-status':
             self.notify(target)
+        elif mtype=='ejforward-retrieve':
+            client = self.client(target)
+            hashes = data['hashes'] or client['messages'].keys()[:5]
+            for mhash in hashes:
+                self.message(target, mhash)
+        elif mtype=='ejforward-ack':
+            hashes = data['hashes']
+            for mhash in hashes:
+                self.delete_message(target, mhash)
         else:
             print "Unknown message type, %r" % mtype
 
     def notify(self, target):
-        # TODO : Test me
         client = self.client(target)
         status = client['status']
         status['type'] = 'ejforward-notify'
@@ -55,9 +97,42 @@ class ForwardServer(Client):
             status,
         )
 
-    def message(self, target, messageid):
-        # TODO : Test me
-        pass
+    def message(self, target, mhash):
+        self.write_json(
+            target,
+            {
+                'type':'ejforward-message',
+                'target':target,
+                'data':self.client(target)['messages'][mhash]
+            },
+        )
+
+    def store_message(self, target, content):
+        mhash = hashfunc(content)
+        client = self.client(target)
+
+        client['messages'][mhash] = content
+        client['chopping_block'].append(mhash)
+        client['status']['used_count'] += 1
+        client['status']['used_space'] += len(content)
+        self.trim(target)
+        return mhash
+
+    def delete_message(self, target, chophash):
+        client = self.client(target)
+        client['chopping_block'].remove(chophash)
+        chopsize = len(client['messages'][chophash])
+        del client['messages'][chophash]
+        client['status']['used_count'] -= 1
+        client['status']['used_space'] -= chopsize
+
+    def trim(self, target):
+        client = self.client(target)
+        while (
+                client['status']['used_count'] > client['status']['total_count']
+            or  client['status']['used_space'] > client['status']['total_space']
+              ):
+            self.delete_message(target, client['chopping_block'][0])
 
     def client(self, address):
         '''
@@ -100,6 +175,6 @@ class ForwardServer(Client):
         >>> server.setup_client(address)
         >>> from ejtp.util.hasher import strict
         >>> strict(server.client(address))
-        '{"chopping_block":[],"messages":{},"prefix":"","status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}'
+        '{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}'
         '''
         self.create_client(address, self.default_data)
