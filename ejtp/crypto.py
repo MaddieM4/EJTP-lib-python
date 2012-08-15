@@ -7,7 +7,7 @@ existing code, of course, because nothing is using the alias yet.
 
 >>> import ejtp.crypto
 >>> dir(ejtp.crypto)
-['__builtins__', '__doc__', '__file__', '__name__', '__package__', 'aes', 'bin_unicode', 'encryptor', 'make', 'rotate', 'rsa']
+['__builtins__', '__doc__', '__file__', '__name__', '__package__', 'aes', 'bin_string', 'bin_unicode', 'encryptor', 'make', 'rotate', 'rsa']
 >>> from ejtp.crypto import aes
 
 And here's where we hit our limits. The alias is a module, not a package - it
@@ -24,5 +24,5 @@ Traceback (most recent call last):
 ImportError: No module named rotate
 '''
 
-from ejtp.util.crypto import encryptor, make, bin_unicode
+from ejtp.util.crypto import encryptor, make, bin_unicode, bin_string
 from ejtp.util.crypto import *

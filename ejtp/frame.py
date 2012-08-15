@@ -24,6 +24,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util import hasher
+from ejtp.address import *
 import json
 
 PACKET_SIZE = 8192
@@ -98,7 +99,7 @@ def onion(msg, hops=[]):
     '''
     hops.reverse()
     for (addr, encryptor) in hops:
-        msg = str(make('r', addr, encryptor, str(msg)))
+        msg = str(make('r', py_address(addr), encryptor, str(msg)))
     return msg
 
 def make(type, addr, encryptor, content):

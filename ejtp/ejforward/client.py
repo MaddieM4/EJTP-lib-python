@@ -19,6 +19,7 @@ along with the Python EJTP library.  If not, see
 from ejtp.client import Client
 from ejtp import frame
 from ejtp.util.hasher import make as hashfunc
+from ejtp.crypto import bin_string
 
 _demo_client_addr = ['local', None, 'client']
 _demo_server_addr = ['local', None, 'server']
@@ -42,12 +43,12 @@ class ForwardClient(Client):
                 callback(self)
             self._status_callbacks = []
         elif mtype=='ejforward-message':
-            internal = data['data']
+            internal = bin_string(data['data'])
             self.ack([hashfunc(internal)])
             try:
                 self.send(frame.Frame(internal)) # forward to router
             except ValueError:
-                print "Invalid frame, discarding"
+                print "ejforward client: Invalid frame, discarding"
         else:
             print "Unknown message type, %r" % mtype
 
@@ -79,7 +80,7 @@ class ForwardClient(Client):
         Status is:  {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
 
         >>> client.retrieve(hashes=[mhash])
-        Invalid frame, discarding
+        ejforward client: Invalid frame, discarding
         >>> server.client(client.interface)['messages']
         {}
         >>> client.get_status(on_status)

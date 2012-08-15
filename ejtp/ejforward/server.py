@@ -51,7 +51,7 @@ class ForwardServer(Client):
         >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
 
         >>> def rcv_callback(msg, client):
-        ...     print msg
+        ...     print msg.jsoncontent
         >>> message = {'type':'example'}
         >>> print message
         {'type': 'example'}
@@ -60,11 +60,11 @@ class ForwardServer(Client):
         ...     [server.interface, client.interface, dest.interface],
         ...     message
         ... )
-        {'type': 'example'}
+        {u'type': u'example'}
         '''
         address = str_address(msg.addr)
         if address in self.client_data:
-            mhash = self.store_message(address, bin_unicode(str(msg)))
+            mhash = self.store_message(address, str(msg))
             self.message(address, mhash)
         else:
             self.send(msg)
@@ -103,7 +103,7 @@ class ForwardServer(Client):
             {
                 'type':'ejforward-message',
                 'target':target,
-                'data':self.client(target)['messages'][mhash]
+                'data':bin_unicode(self.client(target)['messages'][mhash])
             },
         )
 
