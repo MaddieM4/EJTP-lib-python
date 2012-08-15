@@ -19,6 +19,5 @@ along with the Python EJTP library.  If not, see
 
 __all__ = [
 	'crashnicely',
-	'crypto',
 	'hasher',
 ]

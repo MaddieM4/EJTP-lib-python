@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.crypto import make
+from ejtp.crypto import make
 from ejtp.util.hasher import strict, make as hashfunc
 
 from address import *
@@ -115,7 +115,7 @@ class Client(object):
         >>> client.encryptor_set(["x", ["y", 8], "z"], ['rotate', 4])
         >>> e = client.encryptor_get('["x",["y",8],"z"]')
         >>> e #doctest: +ELLIPSIS
-        <ejtp.util.crypto.rotate.RotateEncryptor object ...>
+        <ejtp.crypto.rotate.RotateEncryptor object ...>
         >>> e.encrypt("Aquaboogie")
         'Euyefsskmi'
         '''
