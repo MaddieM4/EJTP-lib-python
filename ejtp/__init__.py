@@ -18,6 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
+	'log_verbosely',
 	'address',
 	'client',
 	'crypto',
