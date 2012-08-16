@@ -16,16 +16,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+# Importing this file sets up some logging properties.
 
-__all__ = [
-	'logging',
-	'address',
-	'client',
-	'crypto',
-	'ejforward',
-	'frame',
-	'interactive',
-	'jacks',
-	'router',
-	'util',
-]
+import ejtp.logging
+
+ejtp.logging.configure(loud=True)

@@ -16,6 +16,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp import logging
+
 from ejtp.client import Client
 from ejtp import frame
 from ejtp.util.hasher import make as hashfunc
@@ -28,6 +30,12 @@ class ForwardClient(Client):
     def __init__(self, router, interface, serveraddr, **kwargs):
         '''
         Client side for EJForward protocol. Takes server address as constructor arg.
+
+        >>> logging.configured
+        'loud'
+        >>> logging.debug('bullshit')
+        >>> logging.configured
+        'loud'
         '''
         Client.__init__(self, router, interface, **kwargs)
         self.serveraddr = serveraddr
@@ -48,9 +56,9 @@ class ForwardClient(Client):
             try:
                 self.send(frame.Frame(internal)) # forward to router
             except ValueError:
-                print "ejforward client: Invalid frame, discarding"
+                logging.warning("ejforward client: Invalid frame, discarding")
         else:
-            print "Unknown message type, %r" % mtype
+            logging.warning("Unknown message type, %r" % mtype)
 
     def ack(self, hashes):
         self.upload(

@@ -14,6 +14,7 @@ setup(
 		'ejtp.crypto',
 		'ejtp.ejforward',
 		'ejtp.jacks',
+		'ejtp.logging',
 		'ejtp.util',
 	],
 )
