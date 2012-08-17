@@ -20,10 +20,13 @@ Python libraries, and is how this one works as well.
 
 The latest stable version (really, really recommended you don't try
 to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.8.2](
-https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.8.x),
-which is fairly lean and debuggable, and has the new alias module
-for ejtp.crypto, and uses [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+demolition and reconstruction) is [Version 0.9.0](
+https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
+which has new, better logging with the logging module, better
+packaging structure/code architecture, fixed RSA processing, a
+protocol change that allows for a more wide range of encryption
+schemes, and an implementation of the EJForward protocol.
+
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
 ideally, send patches. These don't have to fix the underlying problem,
@@ -58,7 +61,7 @@ If you want to know whether this EJTP implementation has any problems
 on your system, run this script, and it should spit out something like
 
     name@machine$ ./install_and_test.sh
-    0 failures, 32 tests.
+    0 failures, 138 tests.
 
 at the end. If there are failures, be sure to copy the entire output
 of the command and put that in a [Github Issue](
@@ -145,10 +148,9 @@ are "nesting frames", and their payloads should be processed as frames.
 To get across the network, a J frame has to be wrapped inside an S frame,
 to indicate the Sender, which is then wrapped in an R frame, which indicates
 the Recipient (or, in the case of nested R frames, "Relay"). S frames have
-an encrypted payload that can be decrypted by anyone who knows the sender's
-public key (essentially functioning as a signature and obfuscation). Its 
-address is that of the sending client. An R frame's payload is encrypted
-such that only the client given in the address can open it. 
+an encrypted signature that ensures that the sender is who she says she is.
+Its address is that of the sending client. An R frame's payload is 
+encrypted such that only the client given in the address can open it. 
 
 If you decrypt a frame only to find that its payload is another R frame,
 you must send that frame back out to the Router for further processing.
