@@ -16,6 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 from ejtp.crypto import make
 from ejtp.util.hasher import strict, make as hashfunc
 
@@ -50,7 +53,7 @@ class Client(object):
 
     def route(self, msg):
         # Recieve frame from router (will be type 'r' or 's', which contains message)
-        self.router.log_add(msg)
+        logger.debug("Client routing frame: %s", repr(msg))
         if msg.type == 'r':
             if msg.addr != self.interface:
                 self.relay(msg)
@@ -62,7 +65,7 @@ class Client(object):
             self.rcv_callback(msg, self)
 
     def rcv_callback(self, msg, client_obj):
-        print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
+        logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.addr, msg.content)
 
     def unpack(self, msg):
         # Return the frame inside a Type R or S
@@ -83,7 +86,6 @@ class Client(object):
     def owrite(self, hoplist, msg, wrap_sender=True):
         # Write a frame and send through a list of addresses
         # The "o" is for onion routing
-        self.router.log_add(">>> "+msg)
         if wrap_sender:
             msg = self.wrap_sender(msg)
         hoplist = [(a, self.encryptor_get(a)) for a in hoplist]
@@ -100,7 +102,6 @@ class Client(object):
         # Encapsulate a message within a sender frame
         sig_s = self.encryptor_get(self.interface)
         msg   = frame.make('s', self.interface, sig_s, msg)
-        self.router.log_add(msg)
         return msg
 
     # Encryption
@@ -161,9 +162,9 @@ def mock_locals(name1="c1", name2="c2"):
     >>> c1.router == c2.router
     True
     >>> c1.write_json(c2.interface, "hello")
-    Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [u'udp', [u'127.0.0.1', 555], u'c1']: '"hello"'
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [u'udp', [u'127.0.0.1', 555], u'c1']: '"hello"'
     >>> c2.write_json(c1.interface, "goodbye")
-    Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: '"goodbye"'
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: '"goodbye"'
     '''
     from router import Router
     r  = Router()

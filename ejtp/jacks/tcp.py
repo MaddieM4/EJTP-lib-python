@@ -16,6 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 import socket
 import streamjack
 
@@ -27,18 +30,18 @@ class TCPJack(streamjack.StreamJack):
     ...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
     ... ) #doctest: +ELLIPSIS
     Router equality (should be false): False
-    TCPJack out: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 19999)
+    INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 19999)
     Client ['tcp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'tcp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
-    TCPJack out: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 18999)
+    INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 18999)
     Client ['tcp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'tcp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
     >>> jack.test_jacks(
     ...     ['tcp', ['::1', 8999], 'charlie'],
     ...     ['tcp', ['::1', 9999], 'stacy']
     ... ) #doctest: +ELLIPSIS
     Router equality (should be false): False
-    TCPJack out: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 9999, 0, 0)
+    INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 9999, 0, 0)
     Client ['tcp', ['::1', 9999], 'stacy'] recieved from [u'tcp', [u'::1', 8999], u'charlie']: '"A => B"'
-    TCPJack out: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 8999, 0, 0)
+    INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 8999, 0, 0)
     Client ['tcp', ['::1', 8999], 'charlie'] recieved from [u'tcp', [u'::1', 9999], u'stacy']: '"B => A"'
     '''
     def __init__(self, router, host='::', port=3972, ipv=6):
@@ -68,7 +71,6 @@ class TCPJack(streamjack.StreamJack):
                 try:
                     conn, addr = self.server.accept()
                     interface = [self.interface[0], addr[:2]]
-                    #print "New incoming connection to %r: %r %r" % (self.interface, addr, interface)
                     self.add_connection(interface, 
                         TCPConnection(self, interface, connection=conn)
                     )
@@ -128,7 +130,13 @@ class TCPConnection(streamjack.Connection):
         kill_socket(self.connection)
 
     def _send(self, frame):
-        print "TCPJack out:", self.connection.send(frame), "/", len(frame), self.connection.getsockname(), "->", self.connection.getpeername()
+        sent = self.connection.send(frame)
+        logger.info("%d / %d %r -> %r", 
+            sent, 
+            len(frame), 
+            self.connection.getsockname(), 
+            self.connection.getpeername()
+        )
 
     def _recv(self):
         return self.connection.recv(4096)

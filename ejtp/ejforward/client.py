@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp import logging
+logger = logging.getLogger(__name__)
 
 from ejtp.client import Client
 from ejtp import frame
@@ -30,12 +31,6 @@ class ForwardClient(Client):
     def __init__(self, router, interface, serveraddr, **kwargs):
         '''
         Client side for EJForward protocol. Takes server address as constructor arg.
-
-        >>> logging.configured
-        'loud'
-        >>> logging.debug('bullshit')
-        >>> logging.configured
-        'loud'
         '''
         Client.__init__(self, router, interface, **kwargs)
         self.serveraddr = serveraddr
@@ -56,9 +51,9 @@ class ForwardClient(Client):
             try:
                 self.send(frame.Frame(internal)) # forward to router
             except ValueError:
-                logging.warning("ejforward client: Invalid frame, discarding")
+                logger.warning("Invalid frame, discarding")
         else:
-            logging.warning("Unknown message type, %r" % mtype)
+            logger.warning("Unknown message type, %r" % mtype)
 
     def ack(self, hashes):
         self.upload(
@@ -88,7 +83,7 @@ class ForwardClient(Client):
         Status is:  {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
 
         >>> client.retrieve(hashes=[mhash])
-        ejforward client: Invalid frame, discarding
+        WARNING:ejtp.ejforward.client: Invalid frame, discarding
         >>> server.client(client.interface)['messages']
         {}
         >>> client.get_status(on_status)
@@ -125,7 +120,7 @@ class ForwardClient(Client):
 
         >>> client, server = test_setup()
         >>> client.upload("farfagnugen", {}) # Silly message type for testing purposes
-        Unknown message type, u'farfagnugen'
+        WARNING:ejtp.ejforward.server: Unknown message type, u'farfagnugen'
         '''
         data['type'] = dtype
         self.write_json(self.serveraddr, data)

@@ -40,14 +40,14 @@ class StreamWrapper(object):
 configured = False
 
 loudlogger = (
-    'ejtp.loudlogger',
-    '%(levelname)s:%(module)s: %(message)s',
+    'ejtp',
+    '%(levelname)s:%(name)s: %(message)s',
     StreamWrapper(),
-    logging.DEBUG,
+    logging.INFO,
 )
 
 normlogger = (
-    'ejtp.normlogger',
+    'ejtp',
     '%(levelname)s:%(module)s: %(message)s',
     sys.stderr,
     logging.WARNING,
@@ -62,7 +62,11 @@ def configure(loud=False):
 
     >>> import verbose
     >>> debug('I am the greatest! - Bender "Bending" Rodriguez') 
-    DEBUG:__init__: I am the greatest! - Bender "Bending" Rodriguez
+    >>> info('I am the greatest! - Bender "Bending" Rodriguez') 
+    INFO:ejtp: I am the greatest! - Bender "Bending" Rodriguez
+    >>> named_logger = getLogger(__name__)
+    >>> named_logger.info('For your information, Amy is way hotter than Bender.')
+    INFO:ejtp.logging: For your information, Amy is way hotter than Bender.
     '''
     global configured, logger
     if not configured:
@@ -73,9 +77,9 @@ def configure(loud=False):
             configured = "norm"
             logger = makeLogger(*normlogger)
 
-def getLogger():
+def getLogger(name='ejtp'):
     configure()
-    return logger
+    return logging.getLogger(name)
 
 def debug(msg, *args, **kwargs):
     getLogger().debug(msg, *args, **kwargs)

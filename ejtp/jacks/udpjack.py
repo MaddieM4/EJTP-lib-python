@@ -23,6 +23,9 @@ along with the Python EJTP library.  If not, see
     IPv6 UDP jack, currently programmed quick and dirty to serve forever.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 import core as jack
 import socket
 
@@ -33,18 +36,18 @@ class UDPJack(jack.Jack):
     ...     ['udp4', ['127.0.0.1', 19999], 'stacy']
     ... )
     Router equality (should be false): False
-    UDPJack out: 122 / 122 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
+    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
     Client ['udp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'udp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
-    UDPJack out: 122 / 122 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
     Client ['udp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'udp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
     >>> jack.test_jacks(
     ...     ['udp', ['::1', 8999], 'charlie'],
     ...     ['udp', ['::1', 9999], 'stacy']
     ... )
     Router equality (should be false): False
-    UDPJack out: 106 / 106 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
+    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
     Client ['udp', ['::1', 9999], 'stacy'] recieved from [u'udp', [u'::1', 8999], u'charlie']: '"A => B"'
-    UDPJack out: 106 / 106 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
+    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
     Client ['udp', ['::1', 8999], 'charlie'] recieved from [u'udp', [u'::1', 9999], u'stacy']: '"B => A"'
     '''
     def __init__(self, router, host='::', port=3972, ipv=6):
@@ -71,8 +74,14 @@ class UDPJack(jack.Jack):
             addr = (location[0], location[1], 0,0)
         else:
             addr = (location[0], location[1])
-        print "UDPJack out:", len(str(msg)), "/", self.sock.sendto(str(msg), addr), \
-            self.address, "->", addr
+        msg = str(msg)
+        sent = self.sock.sendto(msg, addr)
+        logger.info("%d / %d %r -> %r", 
+            sent, 
+            len(msg), 
+            self.address,
+            addr,
+        )
 
     def run(self):
         with self.lock_init: pass # Make sure init is done, and ready to run

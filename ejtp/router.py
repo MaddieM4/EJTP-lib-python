@@ -24,6 +24,9 @@ along with the Python EJTP library.  If not, see
     and clients on the other side for internal frame routing.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 from frame import Frame
 from ejtp.util.crashnicely import Guard
 
@@ -34,18 +37,34 @@ class Router(object):
         self._clients = {}
         self._loadjacks(jacks)
         self._loadclients(clients)
-        self.logging = True
-        self.log = []
         self.run()
 
     def recv(self, msg):
-        # Accepts string or frame.Frame
-        self.log_add(msg)
+        '''
+        Accepts string or frame.Frame
+
+        >>> r = Router()
+        >>> # Test gibberish errors
+        >>> r.recv("kdfj;alfjl;")
+        INFO:ejtp.router: Router could not parse frame: 'kdfj;alfjl;'
+
+        >>> # Undeliverable message, client doesn't exist
+        >>> r.recv('r["local",null,"example"]\\x00Jam and cookies')
+        INFO:ejtp.router: Router could not deliver frame: [u'local', None, u'example']
+
+        >>> # Frame with no destination
+        >>> r.recv('s["local",null,"example"]\\x00Jam and cookies')
+        INFO:ejtp.router: Frame recieved directly from [u'local', None, u'example']
+
+        >>> # Frame with weird type
+        >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')
+        INFO:ejtp.router: Frame has a type that the router does not understand (x)
+        '''
+        logger.debug("Handling frame: %s", repr(msg))
         try:
             msg = Frame(msg)
         except Exception as e:
-            print "Router could not parse frame:", repr(msg)
-            print e
+            logger.info("Router could not parse frame: %s", repr(msg))
             return
         if msg.type == "r":
             recvr = self.client(msg.addr) or self.jack(msg.addr)
@@ -53,9 +72,11 @@ class Router(object):
                 with Guard():
                     recvr.route(msg)
             else:
-                print "Router could not deliver frame:", str(msg.addr)
+                logger.info("Router could not deliver frame: %s", str(msg.addr))
         elif msg.type == "s":
-            print "frame recieved directly from "+str(msg.addr)
+            logger.info("Frame recieved directly from %s", str(msg.addr))
+        else:
+            logger.info("Frame has a type that the router does not understand (%s)", msg.type)
 
     def jack(self, addr):
         # Return jack registered at addr, or None
@@ -71,15 +92,6 @@ class Router(object):
             return self._clients[addr]
         else:
             return None
-
-    def log_add(self, msg):
-        if self.logging:
-            self.log.append(str(msg))
-
-    def log_dump(self):
-        print "["
-        print ",\n".join([" "*4+repr(x) for x in self.log])
-        print "]"
 
     def thread_all(self):
         # Run all Jack threads

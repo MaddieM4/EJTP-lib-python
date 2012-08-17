@@ -16,6 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 from ejtp.client import Client
 from ejtp.address import *
 from ejtp.util.hasher import make as hashfunc
@@ -85,7 +88,7 @@ class ForwardServer(Client):
             for mhash in hashes:
                 self.delete_message(target, mhash)
         else:
-            print "Unknown message type, %r" % mtype
+            logger.warning("Unknown message type, %r" % mtype)
 
     def notify(self, target):
         client = self.client(target)
