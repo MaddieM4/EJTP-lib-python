@@ -9,6 +9,9 @@ setup(
 	author = 'Philip Horger',
 	author_email = 'philip.horger@gmail.com',
 	url = 'https://github.com/campadrenalin/EJTP-lib-python/',
+    scripts = [
+        'ejtpd/ejtpd'
+    ],
 	packages = [
 		'ejtp',
 		'ejtp.crypto',
@@ -16,5 +19,6 @@ setup(
 		'ejtp.jacks',
 		'ejtp.logging',
 		'ejtp.util',
+		'ejtp.vendor',
 	],
 )
