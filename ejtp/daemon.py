@@ -29,7 +29,7 @@ errorcodes = {
 
 class DaemonClient(Client):
     def __init__(self, router, interface, controller, filter='.*', encryptor_cache = None, make_jack = True):
-        Client.__init__(router, interface, encryptor_cache, make_jack)
+        Client.__init__(self, router, interface, encryptor_cache, make_jack)
         self.controller = controller
         self.set_filter(filter)
 

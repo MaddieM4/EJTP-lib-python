@@ -38,17 +38,18 @@ class StreamWrapper(object):
         return getattr(sys.stdout, name)
 
 configured = False
+logformat = '%(levelname)s:%(name)s: %(message)s'
 
 loudlogger = (
     'ejtp',
-    '%(levelname)s:%(name)s: %(message)s',
+    logformat,
     StreamWrapper(),
     logging.INFO,
 )
 
 normlogger = (
     'ejtp',
-    '%(levelname)s:%(module)s: %(message)s',
+    logformat,
     sys.stderr,
     logging.WARNING,
 )
