@@ -23,7 +23,7 @@ This utility runs as a daemon, allowing a priveleged EJTP client to add
 and remove client services from the process.
 
 Usage:
-    ejtpd start [-f <sourcefile>] [-i <interface>]
+    ejtpd start [-f <sourcefile>] [-i <interface>] [-C <controller>]
     ejtpd stop
     ejtpd client launch
     ejtpd client destroy
@@ -52,6 +52,7 @@ logger = logging.makeLogger(*logger_parameters)
 DEFAULT_INTERFACE  = ('udp4', ('localhost', 9630), 'EJTPD-DAEMON')
 DEFAULT_CONTROLLER = ('udp4', ('localhost', 9631), 'EJTPD-CONTROL')
 
+# Parsing and configuration utility functions ---------------------------------
 
 def conf_load(filename):
     fp = None
@@ -68,13 +69,10 @@ def conf_load(filename):
             logging.warning("Failed to parse JSON from conf file '%s'", filename)
     return {}
 
-def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=True):
-    from ejtp.router import Router
-    from ejtp.daemon import DaemonClient
-    import os
-    r = Router()
-    c = DaemonClient(r, interface, controller, filtertext, ecache, make_jack)
-    return (r, c, os.getpid())
+def conf_load_from_args(args):
+    return conf_load(
+         getarg(args, '-f', {}, '', '/etc/ejtpd/daemon.conf', False)
+    )
 
 def getarg(arguments, index, conf, conf_id, default, is_json=True):
     if index in arguments:
@@ -91,23 +89,36 @@ def getarg(arguments, index, conf, conf_id, default, is_json=True):
         return conf[conf_id]
     return default
 
+# Daemon utility functions ----------------------------------------------------
+
+def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=True):
+    from ejtp.router import Router
+    from ejtp.daemon import DaemonClient
+    import os
+    r = Router()
+    c = DaemonClient(r, interface, controller, filtertext, ecache, make_jack)
+    return (r, c, os.getpid())
+
+# CLI actions -----------------------------------------------------------------
+
+def cli_start(args):
+    conf       = conf_load_from_args(args)
+    interface  = getarg(args, '-i', conf, 'dc_interface', DEFAULT_INTERFACE)
+    controller = getarg(args, '-C', conf, 'controller',   DEFAULT_CONTROLLER)
+
+    router, dc, pid = daemon_start(interface, controller)
+    logger.info("Starting EJTP daemon with PID %d listening on interface %r...", pid, interface)
+    logger.info("Daemon listening for commands from controller interface %r", controller)
+    try:
+        import time
+        while True:
+            time.sleep(3)
+    except KeyboardInterrupt:
+            logger.info("Shutting down EJTP daemon...")
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ejtpd 0.9.0')
     if arguments['start']:
-        conf = conf_load(
-                     getarg(arguments, '-f',   {},             '', '/etc/ejtpd/daemon.conf', False)
-        )
-        interface  = getarg(arguments, '-i', conf, 'dc_interface', DEFAULT_INTERFACE)
-        controller = getarg(arguments, '-C', conf, 'controller',   DEFAULT_CONTROLLER)
-
-        router, dc, pid = daemon_start(interface, controller)
-        logger.info("Starting EJTP daemon with PID %d listening on interface %r...", pid, interface)
-        logger.info("Daemon listening for commands from controller interface %r", controller)
-        try:
-            import time
-            while True:
-                time.sleep(3)
-        except KeyboardInterrupt:
-            logger.info("Shutting down EJTP daemon...")
+        cli_start(arguments)
     else:
         print(arguments)
