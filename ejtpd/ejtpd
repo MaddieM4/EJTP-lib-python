@@ -59,14 +59,14 @@ def conf_load(filename):
     try:
         fp = open(filename, 'r')
     except:
-        logging.warning("Couldn't load conf from path '%s'", filename)
+        logger.warning("Couldn't load conf from path '%s'", filename)
     if fp:
         try:
             result = json.load(fp)
-            logging.info("Successfully loaded conf data from '%s'", filename)
+            logger.info("Successfully loaded conf data from '%s'", filename)
             return result
         except:
-            logging.warning("Failed to parse JSON from conf file '%s'", filename)
+            logger.warning("Failed to parse JSON from conf file '%s'", filename)
     return {}
 
 def conf_load_from_args(args):
