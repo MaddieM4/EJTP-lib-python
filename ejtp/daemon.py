@@ -16,6 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp import logging
+logger = logging.getLogger(__name__)
+
 from ejtp.client import Client
 from ejtp.util.hasher import strict
 import re
@@ -27,6 +30,10 @@ errorcodes = {
     401:"Malformed content (JSON data was not a {})",
     402:"Malformed content (No type argument given)",
     403:"Malformed content (Unrecognized command)",
+    404:"Malformed content (Missing required argument)",
+    500:"Command error (Could not import module)",
+    501:"Command error (Class not found in module)",
+    502:"Command error (Class initialization error)",
 }
 
 class DaemonClient(Client):
@@ -60,17 +67,66 @@ class DaemonClient(Client):
         else:
             return self.error(sender,403,command)
 
+    def get_args(self, data, *args):
+        result = []
+        for name in args:
+            if name in data:
+                result.append(data[name])
+            else:
+                self.error(self.controller, 404, name)
+                raise KeyError(name)
+        return tuple(result)
+
     def client_init(self, data):
-        print "Initializing client " + strict(data)
+        logger.info("Initializing client...")
+
+        # Unpack data from remote
+        modname, classname, args, kwargs = (None,)*4
+        try:
+            modname,    classname, args,  kwargs = self.get_args(data, 
+                'module', 'class','args','kwargs')
+        except KeyError:
+            return # Error already handled
+
+        # Import module
+        client_module, client_class = None, None
+        try:
+            client_module = __import__(modname, fromlist=[''])
+        except ImportError:
+            return self.error(self.controller, 500, data)
+
+        # Get class object
+        try:
+            client_class = getattr(client_module, classname)
+        except:
+            return self.error(self.controller, 501, data)
+
+        # Create class instance
+        client = None
+        try:
+            client = client_class(self.router, *args, **kwargs)
+        except:
+            return self.error(self.controller, 502, data)
+
+        self.success(data)
 
     def client_destroy(self, data):
-        print "Destroying client " + strict(data)
+        logger.info("Destroying client %s", strict(data))
+
+    def success(self, data):
+        logger.info("SUCCESFUL COMMAND %s", strict(data))
+        self.write_json(self.controller, {
+            'type':'ejtpd-success',
+            'command': data,
+        })
 
     def error(self, target, code, details=None):
+        msg = errorcodes[code]
+        logger.error("CLIENT ERROR #%d %s %r", code, msg, details or "")
         self.write_json(target, {
             'type':'ejtpd-error',
             'code': code,
-            'msg':  errorcodes[code],
+            'msg':  msg,
             'details': details,
         })
 
@@ -82,7 +138,7 @@ class ControllerClient(Client):
     def client_init(self, module, classname, *args, **kwargs):
         self.transmit('ejtpd-client-init', {
             'module':module,
-            'classname': classname,
+            'class': classname,
             'args': args,
             'kwargs':kwargs,
         })
@@ -107,11 +163,15 @@ def mock_locals(name1='c1', name2='c2'):
     '''
     Returns two clients that talk locally through a router.
     >>> daemon, control = mock_locals()
-    >>> modname, classname, interface = "mod", "class", ["local", None, "Exampley"]
+    >>> modname, classname, interface = "ejtp.client", "Client", ["local", None, "Exampley"]
     >>> control.client_init(modname, classname, interface)
-    Initializing client {"args":[["local",null,"Exampley"]],"classname":"class","kwargs":{},"module":"mod","type":"ejtpd-client-init"}
+    INFO:ejtp.daemon: Initializing client...
+    INFO:ejtp.daemon: SUCCESFUL COMMAND {"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
+    INFO:ejtp.client: Client ['local', None, 'c2'] recieved from [u'local', None, u'c1']: '{"command":{"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"},"type":"ejtpd-success"}'
+    >>> daemon.router.client(interface) #doctest: +ELLIPSIS
+    <ejtp.client.Client object at ...>
     >>> control.client_destroy(interface)
-    Destroying client {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
+    INFO:ejtp.daemon: Destroying client {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
     '''
     from router import Router
     r  = Router()
