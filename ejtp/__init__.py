@@ -22,6 +22,7 @@ __all__ = [
 	'address',
 	'client',
 	'crypto',
+	'daemon',
 	'ejforward',
 	'frame',
 	'interactive',
