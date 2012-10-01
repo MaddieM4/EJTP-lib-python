@@ -24,6 +24,7 @@ from ejtp.util.hasher import strict
 import re
 
 errorcodes = {
+    100:"Internal error (Reason unknown or unspecified)",
     300:"Not authorized (Your client is not the controller)",
     301:"Not authorized (This path is filtered)",
     400:"Malformed content (Could not parse JSON)",
@@ -34,6 +35,7 @@ errorcodes = {
     500:"Command error (Could not import module)",
     501:"Command error (Class not found in module)",
     502:"Command error (Class initialization error)",
+    503:"Command error (Could not find client with that interface)",
 }
 
 class DaemonClient(Client):
@@ -60,12 +62,16 @@ class DaemonClient(Client):
         if not "type" in data:
             return self.error(sender,402)
         mtype = data["type"]
-        if   mtype == "ejtpd-client-init":
-            self.client_init(data)
-        elif mtype == "ejtpd-client-destroy":
-            self.client_destroy(data)
-        else:
-            return self.error(sender,403,command)
+        try:
+            if   mtype == "ejtpd-client-init":
+                self.client_init(data)
+            elif mtype == "ejtpd-client-destroy":
+                self.client_destroy(data)
+            else:
+                return self.error(sender,403,command)
+        except Exception as e:
+            logger.error(e)
+            return self.error(sender, 100, data)
 
     def get_args(self, data, *args):
         result = []
@@ -111,7 +117,22 @@ class DaemonClient(Client):
         self.success(data)
 
     def client_destroy(self, data):
-        logger.info("Destroying client %s", strict(data))
+        logger.info("Destroying client...")
+
+        # Unpack data from remote
+        interface = None
+        try:
+            interface = self.get_args(data, 'interface')[0]
+        except KeyError:
+            return # Error already handled
+
+        # Find and destroy client holding that interface
+        if self.router.client(interface) != None:
+            self.router.kill_client(interface)
+        else:
+            return self.error(self.controller, 503, data)
+
+        self.success(data)
 
     def success(self, data):
         logger.info("SUCCESFUL COMMAND %s", strict(data))
@@ -122,7 +143,7 @@ class DaemonClient(Client):
 
     def error(self, target, code, details=None):
         msg = errorcodes[code]
-        logger.error("CLIENT ERROR #%d %s %r", code, msg, details or "")
+        logger.error("CLIENT ERROR #%d %s %s", code, msg, (details and strict(details) or ""))
         self.write_json(target, {
             'type':'ejtpd-error',
             'code': code,
@@ -170,8 +191,14 @@ def mock_locals(name1='c1', name2='c2'):
     INFO:ejtp.client: Client ['local', None, 'c2'] recieved from [u'local', None, u'c1']: '{"command":{"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"},"type":"ejtpd-success"}'
     >>> daemon.router.client(interface) #doctest: +ELLIPSIS
     <ejtp.client.Client object at ...>
+    >>> daemon.router.client(interface).interface
+    [u'local', None, u'Exampley']
     >>> control.client_destroy(interface)
-    INFO:ejtp.daemon: Destroying client {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
+    INFO:ejtp.daemon: Destroying client...
+    INFO:ejtp.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
+    INFO:ejtp.client: Client ['local', None, 'c2'] recieved from [u'local', None, u'c1']: '{"command":{"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"},"type":"ejtpd-success"}'
+    >>> repr(daemon.router.client(interface))
+    'None'
     '''
     from router import Router
     r  = Router()

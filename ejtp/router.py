@@ -93,6 +93,10 @@ class Router(object):
         else:
             return None
 
+    def kill_client(self, addr):
+        addr = rtuple(addr[:3])
+        del self._clients[addr] # Bubble exception up if client does not exist
+
     def thread_all(self):
         # Run all Jack threads
         for i in self._jacks:
