@@ -27,6 +27,7 @@ errorcodes = {
     100:"Internal error (Reason unknown or unspecified)",
     300:"Not authorized (Your client is not the controller)",
     301:"Not authorized (This path is filtered)",
+    302:"Not authorized (Your client is not the daemon)",
     400:"Malformed content (Could not parse JSON)",
     401:"Malformed content (JSON data was not a {})",
     402:"Malformed content (No type argument given)",
@@ -156,6 +157,32 @@ class ControllerClient(Client):
         Client.__init__(self, router, interface, encryptor_cache, make_jack)
         self.target = target
 
+    def rcv_callback(self, msg, client_obj):
+        sender = msg.addr
+        if sender != self.target:
+            # Not the daemon, reject it
+            return self.error(sender, 300)
+        data = None
+        try:
+            data = msg.jsoncontent
+        except:
+            return self.error(sender,400)
+        if type(data) != dict:
+            return self.error(sender,401)
+        if not "type" in data:
+            return self.error(sender,402)
+        mtype = data["type"]
+        try:
+            if   mtype == "ejtpd-success":
+                self.success(data)
+            elif mtype == "ejtpd-error":
+                logger.error("Remote error %d %s %s", data['code'], data['msg'], strict(data['details']))
+            else:
+                return self.error(sender,403,command)
+        except Exception as e:
+            logger.error(e)
+            return self.error(sender, 100, data)
+
     def client_init(self, module, classname, *args, **kwargs):
         self.transmit('ejtpd-client-init', {
             'module':module,
@@ -173,6 +200,27 @@ class ControllerClient(Client):
         data['type'] = type
         self.write_json(self.target, data)
 
+    def success(self, data):
+        if 'command' in data:
+            command = data['command']
+            command_type = None
+            if 'type' in command:
+                command_type = command['type']
+
+            if   command_type == 'ejtpd-client-init':
+                modname   = ("module" in command and command["module"]) or ''
+                classname = ("class"  in command and command["class"])  or ''
+                args      = ("args"   in command and command["args"])   or []
+                kwargs    = ("kwargs" in command and command["kwargs"]) or {}
+                logger.info("Remote client succesfully initialized (%s.%s, %s, %s)", modname, classname, strict(args), strict(kwargs))
+            elif command_type == 'ejtpd-client-destroy':
+                interface = ("interface" in command and command["interface"]) or ''
+                logger.info("Remote client succesfully destroyed (%s)", strict(interface))
+            else:
+                logger.info("Remote command succesful (Unrecognized command - %r)", command)
+        else:
+            logger.info("Remote command succesful (daemon did not report details)")
+
     def error(self, target, code, details=None):
         self.transmit("ejtpd-error", {
             'code': code,
@@ -188,7 +236,7 @@ def mock_locals(name1='c1', name2='c2'):
     >>> control.client_init(modname, classname, interface)
     INFO:ejtp.daemon: Initializing client...
     INFO:ejtp.daemon: SUCCESFUL COMMAND {"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
-    INFO:ejtp.client: Client ['local', None, 'c2'] recieved from [u'local', None, u'c1']: '{"command":{"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"},"type":"ejtpd-success"}'
+    INFO:ejtp.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})
     >>> daemon.router.client(interface) #doctest: +ELLIPSIS
     <ejtp.client.Client object at ...>
     >>> daemon.router.client(interface).interface
@@ -196,7 +244,7 @@ def mock_locals(name1='c1', name2='c2'):
     >>> control.client_destroy(interface)
     INFO:ejtp.daemon: Destroying client...
     INFO:ejtp.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
-    INFO:ejtp.client: Client ['local', None, 'c2'] recieved from [u'local', None, u'c1']: '{"command":{"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"},"type":"ejtpd-success"}'
+    INFO:ejtp.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])
     >>> repr(daemon.router.client(interface))
     'None'
     '''
