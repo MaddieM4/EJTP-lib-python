@@ -20,27 +20,31 @@ from ejtp.util.hasher import strict
 from json import loads
 
 def str_address(address):
-	'''
-		Converts address to string, only if it isn't already
-		>>> str_address([0,9])
-		'[0,9]'
-		>>> str_address("[0,9]")
-		'[0,9]'
-	'''
-	if type(address) in (str, unicode):
-		return address
-	else:
-		return strict(address)
+    '''
+        Converts address to string, only if it isn't already
+        >>> str_address([0,9])
+        '[0,9]'
+        >>> str_address("[0,9]")
+        '[0,9]'
+    '''
+    if type(address) in (str, unicode):
+        return address
+    else:
+        return strict(address)
 
 def py_address(address):
-	'''
-		Converts address to non-string, only if it isn't already
-		>>> py_address([0,9])
-		[0, 9]
-		>>> py_address("[0,9]")
-		[0, 9]
-	'''
-	if type(address) in (str, unicode):
-		return loads(address)
-	else:
-		return address
+    '''
+        Converts address to non-string, only if it isn't already
+        >>> py_address([0,9])
+        [0, 9]
+        >>> py_address("[0,9]")
+        [0, 9]
+    '''
+    if type(address) in (str, unicode):
+        return loads(address)
+    elif type(address) == list:
+        return address
+    elif type(address) == tuple:
+        return loads(strict(address))
+    else:
+        raise ValueError("Can not convert to py_address: %r", address)

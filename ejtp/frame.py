@@ -52,6 +52,9 @@ class Frame(object):
     def __str__(self):
         return self.type+self.straddr+'\x00'+self.ciphercontent
 
+    def __repr__(self):
+        return repr(str(self))
+
     def decode(self, encryptor):
         if not self.decoded:
             if self.type == "r":

@@ -32,7 +32,7 @@ class Client(object):
             encryptor_get should be a function that accepts an argument "iface"
             and returns an encryptor prototype (2-element list, like ["rotate", 5]).
         '''
-        self.interface = interface
+        self.interface = (interface and py_address(interface)) or interface
         self.router = router
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
@@ -56,6 +56,7 @@ class Client(object):
         logger.debug("Client routing frame: %s", repr(msg))
         if msg.type == 'r':
             if msg.addr != self.interface:
+                logger.info("Passing back (%r vs %r)", msg.addr, self.interface)
                 self.relay(msg)
             else:
                 self.route(self.unpack(msg))
