@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 from ejtp.client import Client
 from ejtp.util.hasher import strict
+from ejtp.address import *
 import re
 
 errorcodes = {
@@ -42,7 +43,7 @@ errorcodes = {
 class DaemonClient(Client):
     def __init__(self, router, interface, controller, filter='.*', encryptor_cache = None, make_jack = True):
         Client.__init__(self, router, interface, encryptor_cache, make_jack)
-        self.controller = controller
+        self.controller = py_address(controller)
         self.set_filter(filter)
 
     def set_filter(self, filter_text):
@@ -52,7 +53,7 @@ class DaemonClient(Client):
         sender = msg.addr
         if sender != self.controller:
             # Not the controller, reject it
-            return self.error(sender, 300)
+            return self.error(sender, 300, {'controller':self.controller, 'sender':sender})
         data = None
         try:
             data = msg.jsoncontent
@@ -155,13 +156,13 @@ class DaemonClient(Client):
 class ControllerClient(Client):
     def __init__(self, router, interface, target, encryptor_cache = None, make_jack = True):
         Client.__init__(self, router, interface, encryptor_cache, make_jack)
-        self.target = target
+        self.target = py_address(target)
 
     def rcv_callback(self, msg, client_obj):
         sender = msg.addr
         if sender != self.target:
-            # Not the daemon, reject it
-            return self.error(sender, 300)
+            # Not the daemon, drop it
+            return
         data = None
         try:
             data = msg.jsoncontent
@@ -177,6 +178,7 @@ class ControllerClient(Client):
                 self.success(data)
             elif mtype == "ejtpd-error":
                 logger.error("Remote error %d %s %s", data['code'], data['msg'], strict(data['details']))
+                self.response_callback(False, data)
             else:
                 return self.error(sender,403,command)
         except Exception as e:
@@ -200,6 +202,9 @@ class ControllerClient(Client):
         data['type'] = type
         self.write_json(self.target, data)
 
+    def response_callback(self, success, data):
+        pass
+
     def success(self, data):
         if 'command' in data:
             command = data['command']
@@ -220,6 +225,7 @@ class ControllerClient(Client):
                 logger.info("Remote command succesful (Unrecognized command - %r)", command)
         else:
             logger.info("Remote command succesful (daemon did not report details)")
+        self.response_callback(True, data)
 
     def error(self, target, code, details=None):
         self.transmit("ejtpd-error", {
@@ -233,6 +239,10 @@ def mock_locals(name1='c1', name2='c2'):
     Returns two clients that talk locally through a router.
     >>> daemon, control = mock_locals()
     >>> modname, classname, interface = "ejtp.client", "Client", ["local", None, "Exampley"]
+    >>> control.client_init(modname, classname)
+    INFO:ejtp.daemon: Initializing client...
+    ERROR:ejtp.daemon: CLIENT ERROR #502 Command error (Class initialization error) {"args":[],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
+    ERROR:ejtp.daemon: Remote error 502 Command error (Class initialization error) {"args":[],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
     >>> control.client_init(modname, classname, interface)
     INFO:ejtp.daemon: Initializing client...
     INFO:ejtp.daemon: SUCCESFUL COMMAND {"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}

@@ -23,10 +23,10 @@ This utility runs as a daemon, allowing a priveleged EJTP client to add
 and remove client services from the process.
 
 Usage:
-    ejtpd start [-f <sourcefile>] [-i <interface>] [-C <controller>]
+    ejtpd start [-f <sourcefile>] [-i <interface>] [-r <remote>]
     ejtpd stop
-    ejtpd client launch
-    ejtpd client destroy
+    ejtpd client launch <module> <class> [<args>] [<kwargs>]
+    ejtpd client destroy <victim>
     ejtpd -h | --help
     ejtpd --version
 
@@ -35,7 +35,7 @@ Options:
     -i <interface>     Specify client interface
     -c <crypto>        Literal encryptor cache
     -F <filter>        Filter regex (for ejtpd DaemonClient)
-    -C <controller>    Controller interface
+    -r <remote>        Remote interface
     -j                 Make a jack for this client
     -J                 Don't make a jack for this client
     -h --help          Show this help message
@@ -44,6 +44,7 @@ Options:
 import json
 from ejtp.vendor.docopt import docopt
 
+from ejtp.logging import verbose
 from ejtp import logging
 logger_parameters = list(logging.loudlogger)
 logger_parameters[0] = 'ejtpd'
@@ -51,6 +52,11 @@ logger = logging.makeLogger(*logger_parameters)
 
 DEFAULT_INTERFACE  = ('udp4', ('localhost', 9630), 'EJTPD-DAEMON')
 DEFAULT_CONTROLLER = ('udp4', ('localhost', 9631), 'EJTPD-CONTROL')
+DEFAULT_TIMEOUT    = 5
+DEFAULT_ENCRYPTOR_CACHE = {
+    '["udp4",["localhost",9630],"EJTPD-DAEMON"]':  ['rotate', 60],
+    '["udp4",["localhost",9631],"EJTPD-CONTROL"]': ['rotate', 95],
+}
 
 # Parsing and configuration utility functions ---------------------------------
 
@@ -89,6 +95,19 @@ def getarg(arguments, index, conf, conf_id, default, is_json=True):
         return conf[conf_id]
     return default
 
+def compile_enc_cache(args, conf):
+    cache = DEFAULT_ENCRYPTOR_CACHE.copy()
+    if "encryptor_cache" in conf and type(conf['encryptor_cache']) == dict:
+        cache.update(conf['encryptor_cache'])
+    arg_index = '-e'
+    if arg_index in args:
+        try:
+            arg_cache = json.loads(args[arg_index])
+            cache.update(arg_cache)
+        except:
+            logging.error("Couldn't parse JSON for argument %r", arg_index)
+    return cache
+
 # Daemon utility functions ----------------------------------------------------
 
 def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=True):
@@ -99,26 +118,90 @@ def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=
     c = DaemonClient(r, interface, controller, filtertext, ecache, make_jack)
     return (r, c, os.getpid())
 
+def controller_do(interface, target, on_create, on_response, ecache=None, make_jack=True):
+    from ejtp.router import Router
+    from ejtp.daemon import ControllerClient
+    r = Router()
+    c = ControllerClient(r, interface, target, ecache, make_jack)
+    c.response_callback = on_response
+    on_create(c)
+
+def controller_init(modname, classname, *args, **kwargs):
+    def on_create(client):
+        print "on_create"
+        client.client_init(modname, classname, *args, **kwargs)
+        print "on_create finished"
+    return on_create
+
+def controller_destroy(interface):
+    def on_create(client):
+        print "on_create"
+        client.client_destroy(interface)
+    return on_create
+
 # CLI actions -----------------------------------------------------------------
 
 def cli_start(args):
     conf       = conf_load_from_args(args)
+    enc_cache  = compile_enc_cache(args, conf)
     interface  = getarg(args, '-i', conf, 'dc_interface', DEFAULT_INTERFACE)
-    controller = getarg(args, '-C', conf, 'controller',   DEFAULT_CONTROLLER)
+    controller = getarg(args, '-r', conf, 'controller',   DEFAULT_CONTROLLER)
 
-    router, dc, pid = daemon_start(interface, controller)
+    router, dc, pid = daemon_start(interface, controller, ecache=enc_cache)
     logger.info("Starting EJTP daemon with PID %d listening on interface %r...", pid, interface)
     logger.info("Daemon listening for commands from controller interface %r", controller)
     try:
         import time
         while True:
             time.sleep(3)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
             logger.info("Shutting down EJTP daemon...")
+
+def cli_client(args):
+    conf       = conf_load_from_args(args)
+    enc_cache  = compile_enc_cache(args, conf)
+    interface  = getarg(args, '-i', conf, 'controller',   DEFAULT_CONTROLLER)
+    target     = getarg(args, '-r', conf, 'dc_interface', DEFAULT_INTERFACE)
+    timeout    = getarg(args, '-t', conf, 'timeout',      DEFAULT_TIMEOUT)
+
+    on_create = None
+    if args['launch']:
+        on_create = controller_init(args['<module>'], args['<class>'])
+    elif args['destroy']:
+        on_create = controller_destroy(args['<victim>'])
+
+    response = []
+    def on_response(success, data):
+        print "on_response"
+        if success:
+            print "Action completed successfully."
+        else:
+            print "Action failed."
+        print json.dumps(data, indent=4)
+        response.append([success, data])
+
+    controller_do(interface, target, on_create, on_response, enc_cache)
+    try:
+        import time
+        waited = 0
+        timeslice = 0.2
+        while waited <= timeout and not response:
+            time.sleep(timeslice)
+            if waited:
+                print "... waiting for remote response..."
+            waited += timeslice
+    except (KeyboardInterrupt, SystemExit):
+            logger.info("Tearing down controller...")
+    if not response or not response[0]:
+        quit(1)
+    else:
+        quit(0)
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ejtpd 0.9.0')
     if arguments['start']:
         cli_start(arguments)
+    elif arguments['client']:
+        cli_client(arguments)
     else:
         print(arguments)
