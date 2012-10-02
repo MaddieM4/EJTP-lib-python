@@ -65,6 +65,9 @@ class Jack(object):
         return self.interface[0]
 
 def make(router, iface):
+    existing_jack = router.jack(iface)
+    if existing_jack:
+        return existing_jack
     t = iface[0]
     # UDP Jack
     if t == "udp":

@@ -113,7 +113,8 @@ class DaemonClient(Client):
         client = None
         try:
             client = client_class(self.router, *args, **kwargs)
-        except:
+        except Exception as e:
+            logger.error(e)
             return self.error(self.controller, 502, data)
 
         self.success(data)

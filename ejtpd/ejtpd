@@ -36,8 +36,6 @@ Options:
     -c <crypto>        Literal encryptor cache
     -F <filter>        Filter regex (for ejtpd DaemonClient)
     -r <remote>        Remote interface
-    -j                 Make a jack for this client
-    -J                 Don't make a jack for this client
     -h --help          Show this help message
 '''
 
@@ -166,9 +164,13 @@ def cli_client(args):
 
     on_create = None
     if args['launch']:
-        on_create = controller_init(args['<module>'], args['<class>'])
+        modname      = args['<module>']
+        classname    = args['<class>']
+        class_args   = eval(args['<args>'] or '[]')
+        class_kwargs = eval(args['<kwargs>'] or '{}')
+        on_create = controller_init(modname, classname, *class_args, **class_kwargs)
     elif args['destroy']:
-        on_create = controller_destroy(args['<victim>'])
+        on_create = controller_destroy(eval(args['<victim>']))
 
     response = []
     def on_response(success, data):

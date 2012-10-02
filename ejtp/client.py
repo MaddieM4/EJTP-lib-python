@@ -56,7 +56,6 @@ class Client(object):
         logger.debug("Client routing frame: %s", repr(msg))
         if msg.type == 'r':
             if msg.addr != self.interface:
-                logger.info("Passing back (%r vs %r)", msg.addr, self.interface)
                 self.relay(msg)
             else:
                 self.route(self.unpack(msg))
