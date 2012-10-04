@@ -115,6 +115,7 @@ class DaemonClient(Client):
             client = client_class(self.router, *args, **kwargs)
         except Exception as e:
             logger.error(e)
+            data['exception'] = repr(e)
             return self.error(self.controller, 502, data)
 
         self.success(data)
@@ -242,8 +243,9 @@ def mock_locals(name1='c1', name2='c2'):
     >>> modname, classname, interface = "ejtp.client", "Client", ["local", None, "Exampley"]
     >>> control.client_init(modname, classname)
     INFO:ejtp.daemon: Initializing client...
-    ERROR:ejtp.daemon: CLIENT ERROR #502 Command error (Class initialization error) {"args":[],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
-    ERROR:ejtp.daemon: Remote error 502 Command error (Class initialization error) {"args":[],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
+    ERROR:ejtp.daemon: __init__() takes at least 3 arguments (2 given)
+    ERROR:ejtp.daemon: CLIENT ERROR #502 Command error (Class initialization error) {"args":[],"class":"Client","exception":"TypeError('__init__() takes at least 3 arguments (2 given)',)","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
+    ERROR:ejtp.daemon: Remote error 502 Command error (Class initialization error) {"args":[],"class":"Client","exception":"TypeError('__init__() takes at least 3 arguments (2 given)',)","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
     >>> control.client_init(modname, classname, interface)
     INFO:ejtp.daemon: Initializing client...
     INFO:ejtp.daemon: SUCCESFUL COMMAND {"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
