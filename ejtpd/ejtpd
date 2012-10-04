@@ -205,5 +205,11 @@ if __name__ == '__main__':
         cli_start(arguments)
     elif arguments['client']:
         cli_client(arguments)
+    elif arguments['stop']:
+        print "Because the developer has not decided how to store PIDs in a"
+        print "situation where you may have any number of daemons on a single"
+        print "machine, there's no way to look up that data and use it to kill"
+        print "the appropriate processes."
+        print "\nIn the meantime, just use 'killall ejtpd' or a similar command."
     else:
         print(arguments)
