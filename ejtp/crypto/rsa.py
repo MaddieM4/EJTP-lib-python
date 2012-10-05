@@ -18,54 +18,19 @@ along with the Python EJTP library.  If not, see
 
 
 import thread
-import encryptor
+import stream
 
 from   Crypto.PublicKey import RSA as rsalib
-from   Crypto.Cipher import PKCS1_OAEP as Cipher
-from   Crypto.Signature import PKCS1_PSS as Signer
 import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
-class RSA(encryptor.Encryptor):
-    def __init__(self, keystr):
-        self.keystr = keystr
-        self._key = None
-        self.genlock = thread.allocate()
-        if keystr == None:
-            self.generate()
-        else:
-            self.set_key(rsalib.importKey(keystr))
-
-    def encrypt(self, value):
-        # Process in blocks
-        value  = str(value)
-        length = len(value)
-        split  = self.input_blocksize
-        if length > split:
-            return self.encrypt(value[:split]) + self.encrypt(value[split:])
-        else:
-            return self.cipher.encrypt(value)
-
-    def decrypt(self, value):
-        value  = str(value)
-        length = len(value)
-        split  = self.output_blocksize
-        if length > split:
-            return self.decrypt(value[:split]) + self.decrypt(value[split:])
-        elif length == split:
-            return self.cipher.decrypt(value)
-        else:
-            raise ValueError("Wrong size for ciphertext, expected %d and got %d" % (split, length))
-
-    def sign(self, plaintext):
+class RSA(stream.StreamEncryptor):
+    def __init__(self, keystr, keybits=1024):
         '''
-        Override version using PKCS1_PSS signing to sign (and randomly salt) plaintext.
-        '''
-        return self.signer.sign(self.hash_obj(plaintext))
+        keystr  - The key contents as PEM data, or None (if you want to generate a new key)
+        keybits - Only used if keystr is None. Default 1024.
 
-    def sig_verify(self, plaintext, signature):
-        '''
-        Override version using PKCS1_PSS signing to verify a signature.
+        Testing based on signatures:
 
         >>> myrsa = RSA(SAMPLE_KEY_PRIVATE)
         >>> plaintext = 'hello world'
@@ -86,25 +51,14 @@ class RSA(encryptor.Encryptor):
         >>> public.sign(plaintext)
         Traceback (most recent call last):
         TypeError: No private key
+
         '''
-        return self.signer.verify(self.hash_obj(plaintext), signature)
-
-    # Locking properties
-
-    @property
-    def key(self):
-        with self.genlock:
-            return self._key
-
-    @property
-    def cipher(self):
-        with self.genlock:
-            return self._cipher
-
-    @property
-    def signer(self):
-        with self.genlock:
-            return self._signer
+        self.keystr = keystr
+        if keystr == None:
+            stream.StreamEncryptor.__init__(self, None)
+            self.generate(keybits)
+        else:
+            stream.StreamEncryptor.__init__(self, rsalib.importKey(keystr))
 
     # Cryptographic properties
 
@@ -129,20 +83,15 @@ class RSA(encryptor.Encryptor):
         # Size to split strings into while decrypting.
         return self.keysize
 
-    def set_key(self, key):
-        self._key = key
-        self._cipher = Cipher.new(self._key)
-        self._signer = Signer.new(self._key)
+    # Asynchronous key generation
 
     def generate(self, bits=1024):
-        self.genlock.acquire()
         thread.start_new_thread(self._generate, (bits,))
 
     def _generate(self, bits):
-        try:
-            self.set_key(rsalib.generate(bits))
-        finally:
-            self.genlock.release()
+        self.set_key(rsalib.generate(bits))
+
+    # Protocol data
 
     def proto(self):
         return ['rsa', self.key.exportKey()]

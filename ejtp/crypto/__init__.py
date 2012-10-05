@@ -22,6 +22,7 @@ __all__ = [
     'encryptor',
 	'rsa',
 	'rotate',
+	'stream',
 ]
 
 from encryptor import make
