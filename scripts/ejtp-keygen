@@ -32,6 +32,7 @@ Options:
 '''
 
 from ejtp.vendor.docopt import docopt
+from ejtp.util.hasher import strict
 
 def output(notes, key):
     print notes + "\n";
@@ -40,9 +41,9 @@ def output(notes, key):
 
     if public != private:
         print "\tPublic key:\n"
-        print public
+        print strict(public)
     print "\n\tPrivate key:\n"
-    print private
+    print strict(private)
 
 def get_bits(args):
     bits = args['--bits']
