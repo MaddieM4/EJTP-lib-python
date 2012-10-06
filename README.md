@@ -20,7 +20,7 @@ Python libraries, and is how this one works as well.
 
 The latest stable version (really, really recommended you don't try
 to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.9.01(
+demolition and reconstruction) is [Version 0.9.1](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
 which has new command-line scripts, ejtpd and ejtp-keygen, for
 setting up and controlling long-running system infrastructure. These
