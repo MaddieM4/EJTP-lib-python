@@ -21,6 +21,8 @@ import thread
 import stream
 
 from   Crypto.PublicKey import RSA as rsalib
+from   Crypto.Cipher import PKCS1_OAEP as Cipher
+from   Crypto.Signature import PKCS1_PSS as Signer
 import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
@@ -82,6 +84,12 @@ class RSA(stream.StreamEncryptor):
     def output_blocksize(self):
         # Size to split strings into while decrypting.
         return self.keysize
+
+    def derive(self, key):
+        '''
+        Return (key, cipher, signer)
+        '''
+        return key, Cipher.new(key), Signer.new(key)
 
     # Asynchronous key generation
 

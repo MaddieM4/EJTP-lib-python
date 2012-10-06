@@ -50,7 +50,7 @@ class ForwardServer(Client):
         >>> dest   = Client(client.router, ['local', None, 'destination'])
         >>> sender = Client(client.router, ['local', None, 'sender'])
         >>> client.encryptor_set(sender.interface, ['rotate', 23])
-        >>> client.encryptor_set(dest.interface, ['aes', 'brazil'])
+        >>> client.encryptor_set(dest.interface, ['aes', 'brazil0123456789'])
         >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
 
         >>> def rcv_callback(msg, client):

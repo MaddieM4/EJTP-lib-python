@@ -17,8 +17,6 @@ along with the Python EJTP library.  If not, see
 '''
 
 import thread
-from Crypto.Cipher import PKCS1_OAEP as Cipher
-from Crypto.Signature import PKCS1_PSS as Signer
 
 import encryptor
 
@@ -29,17 +27,16 @@ class StreamEncryptor(encryptor.Encryptor):
     Provides support for generating keys asynchronously and block encryption.
     '''
 
-    def __init__(self, key_obj=None):
+    def __init__(self, key_obj=None, needs_padding=False):
         self._key_wait = thread.allocate()
         self._key_wait.acquire()
+        self.needs_padding = needs_padding
         self.set_key(key_obj)
 
     def set_key(self, key_obj):
         if key_obj:
             try:
-                self._key    = key_obj
-                self._cipher = Cipher.new(self._key)
-                self._signer = Signer.new(self._key)
+                self._key, self._cipher, self._signer = self.derive(key_obj)
             finally:
                 if self._key_wait.locked():
                     self._key_wait.release()
@@ -69,13 +66,13 @@ class StreamEncryptor(encryptor.Encryptor):
 
     def sign(self, plaintext):
         '''
-        Override version using PKCS1_PSS signing to sign (and randomly salt) plaintext.
+        Override version using PKCS1_PSS signing or similar algorithm to sign (and randomly salt) plaintext.
         '''
         return self.signer.sign(self.hash_obj(plaintext))
 
     def sig_verify(self, plaintext, signature):
         '''
-        Override version using PKCS1_PSS signing to verify a signature.
+        Override version using PKCS1_PSS signing or similar algorithm to verify a signature.
         '''
         return self.signer.verify(self.hash_obj(plaintext), signature)
 
@@ -88,6 +85,12 @@ class StreamEncryptor(encryptor.Encryptor):
     @property
     def output_blocksize(self):
         raise NotImplementedError("Subclass of StreamEncryptor should provide output_blocksize")
+
+    def derive(self, key):
+        '''
+        Return (key, cipher, signer)
+        '''
+        raise NotImplementedError("Subclass of StreamEncryptor should provide derive function")
 
     # Core functions
 

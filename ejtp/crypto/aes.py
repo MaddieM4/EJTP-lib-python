@@ -17,29 +17,57 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-import encryptor
+from stream import StreamEncryptor
 
-from Crypto.Hash import SHA
 from Crypto.Cipher import AES
+from Crypto import Random
 
-class AESEncryptor(encryptor.Encryptor):
-    def __init__(self, password):
-        self.password = password
-        hash = SHA.new(password).digest()
-        self.cipher = AES.new(hash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
+class AESEncryptor(StreamEncryptor):
+    def __init__(self, keystr):
+        '''
+        keystr - string with a length that is a multiple of 16
+
+        >>> keystr = make_keystr("kitty")
+        >>> len(keystr)
+        32
+        >>> aes = AESEncryptor(keystr)
+        '''
+        StreamEncryptor.__init__(self, keystr)
+
+    # Cryptographic properties
+
+    @property
+    def input_blocksize(self):
+        return AES.block_size
+
+    @property
+    def output_blocksize(self):
+        return AES.block_size
+
+    def derive(self, key):
+        iv = Random.new().read(AES.block_size)
+        return key, AES.new(key, AES.MODE_CFB, iv), None
+
+    # Core functions
 
     def encrypt(self, value):
-        # Uses custom format to encrypt arbitrary length strings with padding
-        code = str(len(value)) + "\x00" + value
-        code += (16 - len(code) % 16) * "\x00"
-        return self.cipher.encrypt(code)
+        self.derive(self.key)
+        return StreamEncryptor.encrypt(self, value)
 
     def decrypt(self, value):
-        code = self.cipher.decrypt(value)
-        split = code.index('\x00')
-        length = int(code[:split])
-        code = code[split+1:]
-        return code[:length]
+        self.derive(self.key)
+        return StreamEncryptor.decrypt(self, value)
+
+    # Protocol data
 
     def proto(self):
-        return ['aes', self.password]
+        return ['aes', self.keystr]
+
+def make_keystr(password):
+    '''
+    Returns 32 bit digest from SHA256-ing the password.
+
+    Password may be any length, longer = more entropy = better.
+    '''
+    from Crypto.Hash import SHA256
+    return SHA256.new(password).digest()
