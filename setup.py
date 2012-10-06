@@ -10,7 +10,8 @@ setup(
 	author_email = 'philip.horger@gmail.com',
 	url = 'https://github.com/campadrenalin/EJTP-lib-python/',
     scripts = [
-        'scripts/ejtpd'
+        'scripts/ejtpd',
+        'scripts/ejtp-keygen'
     ],
 	packages = [
 		'ejtp',

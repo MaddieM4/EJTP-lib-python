@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+'''
+This file is part of the Python EJTP library.
+
+The Python EJTP library is free software: you can redistribute it 
+and/or modify it under the terms of the GNU Lesser Public License as
+published by the Free Software Foundation, either version 3 of the 
+License, or (at your option) any later version.
+
+the Python EJTP library is distributed in the hope that it will be 
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser Public License for more details.
+
+You should have received a copy of the GNU Lesser Public License
+along with the Python EJTP library.  If not, see 
+<http://www.gnu.org/licenses/>.
+'''
+
+__doc__ = '''ejtp-keygen
+
+A simple little script for generating EJTP encryptors from the command line.
+
+Usage:
+    ejtp-keygen ( rsa | aes | rotate ) [options]
+    ejtp-keygen -h | --help
+    ejtp-keygen --version
+
+Options:
+    -b, --bits B    Number of bits to use, where applicable
+    -h --help       Show this help message
+'''
+
+from ejtp.vendor.docopt import docopt
+
+def output(notes, key):
+    print notes + "\n";
+    print "\tPublic key:\n"
+    print key.public()
+    print "\n\tPrivate key:\n"
+    print key.proto()
+
+def make_rsa(args):
+    from ejtp.crypto.rsa import RSA
+    bits = args['--bits']
+    if bits != None:
+        bits = int(bits)
+    key = RSA(None, bits)
+    output(
+        'RSA is an asymmetric protocol. It may take awhile to generate enough randomness'+
+        '\nfor a keypair (default is 1024 bits), so wiggle your mouse around or something'+
+        '\nand give your os some driver data to work with.',
+        key
+    )
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='ejtp-keygen 0.9.0')
+    if arguments['rsa']:
+        make_rsa(arguments)
