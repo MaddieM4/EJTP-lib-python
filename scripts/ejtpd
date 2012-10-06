@@ -200,7 +200,7 @@ def cli_client(args):
         quit(0)
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='ejtpd 0.9.0')
+    arguments = docopt(__doc__, version='ejtpd 0.9.1')
     if arguments['start']:
         cli_start(arguments)
     elif arguments['client']:
