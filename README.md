@@ -20,12 +20,13 @@ Python libraries, and is how this one works as well.
 
 The latest stable version (really, really recommended you don't try
 to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.9.0](
+demolition and reconstruction) is [Version 0.9.01(
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has new, better logging with the logging module, better
-packaging structure/code architecture, fixed RSA processing, a
-protocol change that allows for a more wide range of encryption
-schemes, and an implementation of the EJForward protocol.
+which has new command-line scripts, ejtpd and ejtp-keygen, for
+setting up and controlling long-running system infrastructure. These
+tools are still a bit rough, especially ejtpd, and will be the primary
+focus of the next few minor versions, as well as some fixes for issues
+discovered in the AES encryption code.
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
