@@ -35,17 +35,25 @@ from ejtp.vendor.docopt import docopt
 
 def output(notes, key):
     print notes + "\n";
-    print "\tPublic key:\n"
-    print key.public()
-    print "\n\tPrivate key:\n"
-    print key.proto()
+    print "Generating key, please wait...\n"
+    public, private = key.public(), key.proto()
 
-def make_rsa(args):
-    from ejtp.crypto.rsa import RSA
+    if public != private:
+        print "\tPublic key:\n"
+        print public
+    print "\n\tPrivate key:\n"
+    print private
+
+def get_bits(args):
     bits = args['--bits']
     if bits != None:
         bits = int(bits)
-    key = RSA(None, bits)
+    return bits
+
+def make_rsa(args):
+    from ejtp.crypto.rsa import RSA
+    bits = get_bits(args)
+    key  = RSA(None, bits)
     output(
         'RSA is an asymmetric protocol. It may take awhile to generate enough randomness'+
         '\nfor a keypair (default is 1024 bits), so wiggle your mouse around or something'+
@@ -53,7 +61,29 @@ def make_rsa(args):
         key
     )
 
+def make_aes(args):
+    #from ejtp.crypto import aes
+    #bits = get_bits(args)
+    #key  = aes.AESEncryptor(None, bits)
+    print "AES random generation is not currently supported."
+    print "The necessary changes to support it would conflict with renovations in other development."
+
+def make_rotate(args):
+    import os
+    from ejtp.crypto import make
+    secret = ord(os.urandom(1))
+    output(
+        'Rotation encryption (ASCII Caesar cipher) is comedically weak, and should never'+
+        '\nbe used in a real production environment. It can be used for testing other parts'+
+        '\nand systems without the overhead of actual encryption.',
+        make(['rotate',secret])
+    )
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ejtp-keygen 0.9.0')
     if arguments['rsa']:
         make_rsa(arguments)
+    elif arguments['aes']:
+        make_aes(arguments)
+    elif arguments['rotate']:
+        make_rotate(arguments)
