@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+'''
+This file is part of the Python EJTP library.
+
+The Python EJTP library is free software: you can redistribute it 
+and/or modify it under the terms of the GNU Lesser Public License as
+published by the Free Software Foundation, either version 3 of the 
+License, or (at your option) any later version.
+
+the Python EJTP library is distributed in the hope that it will be 
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser Public License for more details.
+
+You should have received a copy of the GNU Lesser Public License
+along with the Python EJTP library.  If not, see 
+<http://www.gnu.org/licenses/>.
+'''
+
+__doc__ = '''ejtp-test
+
+A suite of tools for testing your EJTP setup.
+
+Usage:
+    ejtp-test motd <interface> <remote>
+    ejtp-test -h | --help
+    ejtp-test --version
+
+Options:
+    -h --help       Show this help message
+'''
+
+from ejtp.vendor.docopt import docopt
+from ejtp.address import *
+
+def test_motd(args):
+    from ejtp.router import Router
+    from ejtp.motd import MOTDClient
+    local  = py_address(args['<interface>'])
+    remote = py_address(args['<remote>'])
+    client = MOTDClient(Router(), local)
+    response = {}
+    def get_response(msg, c):
+        print "Received response from %r:\n" % msg.addr
+        print msg.jsoncontent['content']
+        response['received'] = True
+    client.request(remote, get_response)
+    while not response:
+        import time
+        time.wait(0.2)
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='ejtp-test 0.9.1')
+    if arguments['motd']:
+        test_motd(arguments)

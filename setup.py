@@ -11,7 +11,8 @@ setup(
 	url = 'https://github.com/campadrenalin/EJTP-lib-python/',
     scripts = [
         'scripts/ejtpd',
-        'scripts/ejtp-keygen'
+        'scripts/ejtp-keygen',
+        'scripts/ejtp-test',
     ],
 	packages = [
 		'ejtp',
