@@ -23,10 +23,10 @@ This utility runs as a daemon, allowing a priveleged EJTP client to add
 and remove client services from the process.
 
 Usage:
-    ejtpd start [-f <sourcefile>] [-i <interface>] [-r <remote>]
+    ejtpd start [options]
     ejtpd stop
-    ejtpd client launch <module> <class> [<args>] [<kwargs>]
-    ejtpd client destroy <victim>
+    ejtpd client launch [options] <module> <class> [<args>] [<kwargs>]
+    ejtpd client destroy [options] <victim>
     ejtpd -h | --help
     ejtpd --version
 
