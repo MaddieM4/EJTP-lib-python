@@ -27,6 +27,7 @@ __all__ = [
 	'frame',
 	'interactive',
 	'jacks',
+	'motd',
 	'router',
 	'util',
 ]
