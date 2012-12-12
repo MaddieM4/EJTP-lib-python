@@ -25,17 +25,22 @@ from Crypto.Cipher import AES
 class AESEncryptor(encryptor.Encryptor):
     def __init__(self, password):
         self.password = password
-        hash = SHA.new(password).digest()
-        self.cipher = AES.new(hash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
+        self.pwhash = SHA.new(password).digest()
+        #self.cipher = AES.new(hash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
 
     def encrypt(self, value):
-        # Uses custom format to encrypt arbitrary length strings with padding
+        'Uses custom format to encrypt arbitrary length strings with padding'
+        # PyCrypto AES objects are stateful, and don't like to be re-used,
+        # so "cipher" is instantiated at encrypt/decrypt time.
+        cipher = AES.new(self.pwhash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
         code = str(len(value)) + "\x00" + value
         code += (16 - len(code) % 16) * "\x00"
-        return self.cipher.encrypt(code)
+        return cipher.encrypt(code)
 
     def decrypt(self, value):
-        code = self.cipher.decrypt(value)
+        "Decrypts ciphertext in the format produced by this object's 'encrypt' method."
+        cipher = AES.new(self.pwhash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
+        code = cipher.decrypt(value)
         split = code.index('\x00')
         length = int(code[:split])
         code = code[split+1:]
