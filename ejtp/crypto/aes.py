@@ -30,11 +30,26 @@ class AESEncryptor(encryptor.Encryptor):
 
     def encrypt(self, value):
         # Uses custom format to encrypt arbitrary length strings with padding
+        '''
+        >>> enc = AESEncryptor("somepassword")
+        >>> enc.encrypt("Cool beans")
+        '\\x1e_\\x14\\x0c>)\\x9a\\xc4\\x9a\\x1cPD#o\\x85>'
+        >>> enc.encrypt("Cool beans")
+        '\\x1e_\\x14\\x0c>)\\x9a\\xc4\\x9a\\x1cPD#o\\x85>'
+        '''
         code = str(len(value)) + "\x00" + value
         code += (16 - len(code) % 16) * "\x00"
         return self.cipher.encrypt(code)
 
     def decrypt(self, value):
+        '''
+        >>> enc = AESEncryptor("somepassword")
+        >>> beans = enc.encrypt("Cool beans")
+        >>> enc.decrypt(beans)
+        'Cool beans'
+        >>> enc.decrypt(beans)
+        'Cool beans'
+        '''
         code = self.cipher.decrypt(value)
         split = code.index('\x00')
         length = int(code[:split])
