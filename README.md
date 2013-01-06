@@ -1,4 +1,4 @@
-![EJTP Logo](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/ejtp_logo.svg)
+![EJTP Logo](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/ejtp_logo.png)
 
 EJTP-lib-python
 ===============
@@ -14,7 +14,7 @@ can be engineered to carry EJTP frames.
 The project's mascot is a charming, many-tentacled younger god
 who goes by the name of Bluethulu.
 
-![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/bluethulu.svg)
+![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/bluethulu.png)
 
 
 Installation
