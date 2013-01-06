@@ -1,3 +1,5 @@
+![EJTP Logo](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/ejtp_logo.svg)
+
 EJTP-lib-python
 ===============
 
@@ -8,6 +10,11 @@ very wide and infinitely extensible set of underlying transports.
 UDP, TCP, IRC, email, XMPP, HTTP, Telnet, Carrier pigeons, web
 forums, Twitter, Socket.IO... almost any protocol you could name
 can be engineered to carry EJTP frames.
+
+The project's mascot is a charming, many-tentacled younger god
+who goes by the name of Bluethulu.
+
+![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/bluethulu.svg)
 
 
 Installation
