@@ -102,7 +102,7 @@ def test_jacks(ifaceA, ifaceB):
     routerB = router.Router()
     clientA = client.Client(routerA, ifaceA)
     clientB = client.Client(routerB, ifaceB)
-    print "Router equality (should be false):", clientA.router == clientB.router
+    print("Router equality (should be false): %s" % (clientA.router == clientB.router))
 
     # Share encryptor data
     clientA.encryptor_cache = clientB.encryptor_cache
@@ -115,7 +115,7 @@ def test_jacks(ifaceA, ifaceB):
     def rcv_callback(msg, client_obj):
         transfer_condition.acquire()
         with print_lock:
-            print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
+            print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content))
         transfer_condition.notify_all()
         transfer_condition.release()
     clientA.rcv_callback = rcv_callback

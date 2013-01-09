@@ -54,9 +54,9 @@ class ForwardServer(Client):
         >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
 
         >>> def rcv_callback(msg, client):
-        ...     print msg.jsoncontent
+        ...     print(msg.jsoncontent)
         >>> message = {'type':'example'}
-        >>> print message
+        >>> print(message)
         {'type': 'example'}
         >>> dest.rcv_callback = rcv_callback
         >>> sender.owrite_json(
@@ -181,3 +181,4 @@ class ForwardServer(Client):
         '{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}'
         '''
         self.create_client(address, self.default_data)
+

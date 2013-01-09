@@ -70,9 +70,9 @@ class ForwardClient(Client):
         >>> from ejtp.util.hasher import strict
         >>> client, server = test_setup()
         >>> def on_status(client):
-        ...     print "Status is: ", strict(client.status)
+        ...     print("Status is: " + strict(client.status))
         >>> client.get_status(on_status)
-        Status is:  {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
+        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
 
         >>> len("fakey message")
         13
@@ -80,14 +80,14 @@ class ForwardClient(Client):
         >>> server.client(client.interface)['messages']
         {'4fc5bbbfefe38b84b935fee015c192e397b6eac3': 'fakey message'}
         >>> client.get_status(on_status)
-        Status is:  {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
+        Status is: {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
 
         >>> client.retrieve(hashes=[mhash])
         WARNING:ejtp.ejforward.client: Invalid frame, discarding
         >>> server.client(client.interface)['messages']
         {}
         >>> client.get_status(on_status)
-        Status is:  {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
+        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
         '''
         self.upload(
             'ejforward-retrieve',
@@ -103,9 +103,9 @@ class ForwardClient(Client):
         >>> from ejtp.util.hasher import strict
         >>> client, server = test_setup()
         >>> def on_status(client):
-        ...     print "Status is: ", strict(client.status)
+        ...     print("Status is: " + strict(client.status))
         >>> client.get_status(on_status)
-        Status is:  {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
+        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
         '''
         if callback:
             self._status_callbacks.append(callback)
@@ -141,3 +141,4 @@ def test_setup():
     server.encryptor_cache = client.encryptor_cache
     server.setup_client(client.interface)
     return (client, server)
+

@@ -62,12 +62,12 @@ class Interactive(object):
              or (read == False and self.unread) \
              or []
         if not len(messages):
-            print "    No messages."
+            print("    No messages.")
             return
-        print "    "+self.read_type(read).capitalize()+" messages:"
+        print("    "+self.read_type(read).capitalize()+" messages:")
         for message in messages:
-            print "-"*80
-            print message
+            print("-"*80)
+            print(message)
 
     def receive(self, *args, **kwargs):
         self.messages.append(ReceiveEvent(*args, **kwargs))
@@ -136,7 +136,7 @@ class Interactive(object):
             except KeyboardInterrupt:
                 quit(1)
             except:
-                print failmsg
+                print(failmsg)
 
     def repl(self):
         self.scan_client()
@@ -161,14 +161,14 @@ class Interactive(object):
             elif command == "set client":
                 self.scan_client()
             elif command == "log":
-                print "    Router log:\n"+"-"*80
+                print("    Router log:\n"+"-"*80)
                 self.router.log_dump()
             elif command == "clear log":
-                print "    Clearing router log..."
+                print("    Clearing router log...")
                 del self.router.log[:]
-                print "    Done."
+                print("    Done.")
             elif command == "eval":
-                print eval(raw_input("\n"))
+                print(eval(raw_input("\n")))
             elif command == "quit":
                 quit()
 
