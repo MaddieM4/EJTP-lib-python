@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-
+from ejtp.util.py2and3 import is_string
 from hashlib import new
 import json
 
@@ -39,12 +39,11 @@ def maken(string, n):
 
 def strict(obj):
 	''' Convert an object into a strict JSON string '''
-	t = type(obj)
-	if t==bool or obj==None or t==str or t==int or t==unicode:
+	if isinstance(obj, bool) or obj==None or is_string(obj) or isinstance(obj, int):
 		return json.dumps(obj)
-	if t==list or t==tuple:
+	if isinstance(obj, list) or isinstance(obj, tuple):
 		return "[%s]" % ",".join([strict(x) for x in obj])
-	if t==dict:
+	if isinstance(obj, dict):
 		strdict = {}
 		for key in obj:
 			strdict[str(key)] = obj[key]

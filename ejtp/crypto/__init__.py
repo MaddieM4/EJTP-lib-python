@@ -24,6 +24,7 @@ __all__ = [
 	'rotate',
 ]
 
+from ejtp.util.py2and3 import get_unicode
 from encryptor import make
 
 def bin_unicode(string):
@@ -34,7 +35,7 @@ def bin_unicode(string):
     >>> bin_unicode(evilstr)
     u'\\xba\\x81\\xc8'
     '''
-    return unicode().join(unichr(ord(x)) for x in string)
+    return get_unicode()().join(unichr(ord(x)) for x in string)
 
 def bin_string(ustring):
     '''
@@ -54,4 +55,6 @@ def bin_string(ustring):
     >>> bin_string(unicorn) == evilstr
     True
     '''
-    return str().join(chr(ord(x)) for x in ustring)
+    # Using bytes here , because in python 2.x that's just a synonym for str but
+    # in python 3.x str is an unicode string rather than bytes
+    return bytes().join(chr(ord(x)) for x in ustring)

@@ -24,6 +24,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util import hasher
+from ejtp.util.py2and3 import is_string
 from ejtp.address import *
 import json
 
@@ -31,7 +32,7 @@ PACKET_SIZE = 8192
 
 class Frame(object):
     def __init__(self, data):
-        if type(data) in (str, unicode, Frame):
+        if is_string(data) or isinstance(data, Frame):
             data = str(data)
             self._load(data)
 
