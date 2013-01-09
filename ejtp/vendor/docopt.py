@@ -47,9 +47,9 @@ class Pattern(object):
         either = [list(c.children) for c in self.either.children]
         for case in either:
             for e in [c for c in case if case.count(c) > 1]:
-                if type(e) is Argument or type(e) is Option and e.argcount:
+                if isinstance(e, Argument) or isinstance(e, Option) and e.argcount:
                     e.value = []
-                if type(e) is Command or type(e) is Option and e.argcount == 0:
+                if isinstance(e, Command) or isinstance(e, Option) and e.argcount == 0:
                     e.value = 0
         return self
 
@@ -105,8 +105,8 @@ class ChildPattern(Pattern):
             return False, left, collected
         left_ = left[:pos] + left[pos+1:]
         same_name = [a for a in collected if a.name == self.name]
-        if type(self.value) in (int, list):
-            increment = 1 if type(self.value) is int else [match.value]
+        if isinstance(self.value, int) or isinstance(self.value, list):
+            increment = 1 if isinstance(self.value, int) else [match.value]
             if not same_name:
                 match.value = increment
                 return True, left_, collected + [match]
@@ -133,7 +133,7 @@ class Argument(ChildPattern):
 
     def single_match(self, left):
         for n, p in enumerate(left):
-            if type(p) is Argument:
+            if isinstance(p, Argument):
                 return n, Argument(self.name, p.value)
         return None, None
 
@@ -146,7 +146,7 @@ class Command(Argument):
 
     def single_match(self, left):
         for n, p in enumerate(left):
-            if type(p) is Argument:
+            if isinstance(p, Argument):
                 if p.value == self.name:
                     return n, Command(self.name, True)
                 else:

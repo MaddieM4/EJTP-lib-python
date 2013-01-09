@@ -45,7 +45,7 @@ class Frame(object):
             self.raw_decode()
         if self.straddr:
             self.addr = json.loads(self.straddr)
-            if (type(self.addr) != list or len(self.addr)<3):
+            if (not isinstance(self.addr, list) or len(self.addr)<3):
                 raise ValueError("Bad address: "+repr(self.addr))
         else:
             self.addr = None
