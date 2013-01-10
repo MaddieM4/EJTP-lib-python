@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-import encryptor
+from . import encryptor
 
 class RotateEncryptor(encryptor.Encryptor):
     def __init__(self, offset):

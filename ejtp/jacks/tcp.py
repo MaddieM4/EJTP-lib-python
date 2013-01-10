@@ -74,9 +74,9 @@ class TCPJack(streamjack.StreamJack):
                     self.add_connection(interface, 
                         TCPConnection(self, interface, connection=conn)
                     )
-                except socket.error, e:
+                except socket.error as e:
                     pass
-            for conn in self.connections.values():
+            for conn in list(self.connections.values()):
                 conn.close()
         finally:
             self.lock_close.release()

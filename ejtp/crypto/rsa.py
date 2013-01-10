@@ -17,7 +17,10 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-import thread
+try:
+    import thread
+except ImportError: # in python3.x it's renamed to _thread
+    import _thread as thread
 import encryptor
 
 from   Crypto.PublicKey import RSA as rsalib

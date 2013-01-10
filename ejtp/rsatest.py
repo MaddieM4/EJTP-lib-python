@@ -26,10 +26,10 @@ def test_run(sender, reciever):
         desc, plaintext = message(i)
         ciphertext = encode(plaintext, key1, key2)
         if plaintext != decode(ciphertext, key1, key2):
-            print "%r\n" % desc
+            print("%r\n" % desc)
 
 # Actual test:
-print "key1 >> key2"
+print("key1 >> key2")
 test_run(key1, key2)
-print "key2 >> key1"
+print("key2 >> key1")
 test_run(key2, key1)

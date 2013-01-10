@@ -54,9 +54,9 @@ class ForwardServer(Client):
         >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
 
         >>> def rcv_callback(msg, client):
-        ...     print msg.jsoncontent
+        ...     print(msg.jsoncontent)
         >>> message = {'type':'example'}
-        >>> print message
+        >>> print(message)
         {'type': 'example'}
         >>> dest.rcv_callback = rcv_callback
         >>> sender.owrite_json(
@@ -80,7 +80,7 @@ class ForwardServer(Client):
             self.notify(target)
         elif mtype=='ejforward-retrieve':
             client = self.client(target)
-            hashes = data['hashes'] or client['messages'].keys()[:5]
+            hashes = data['hashes'] or list(client['messages'].keys())[:5]
             for mhash in hashes:
                 self.message(target, mhash)
         elif mtype=='ejforward-ack':
@@ -94,7 +94,7 @@ class ForwardServer(Client):
         client = self.client(target)
         status = client['status']
         status['type'] = 'ejforward-notify'
-        status['hashes'] = client['messages'].keys()[:5]
+        status['hashes'] = list(client['messages'].keys())[:5]
         self.write_json(
             target,
             status,
@@ -181,3 +181,4 @@ class ForwardServer(Client):
         '{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}'
         '''
         self.create_client(address, self.default_data)
+

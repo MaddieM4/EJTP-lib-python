@@ -59,7 +59,7 @@ class DaemonClient(Client):
             data = msg.jsoncontent
         except:
             return self.error(sender,400)
-        if type(data) != dict:
+        if not isinstance(data, dict):
             return self.error(sender,401)
         if not "type" in data:
             return self.error(sender,402)
@@ -170,7 +170,7 @@ class ControllerClient(Client):
             data = msg.jsoncontent
         except:
             return self.error(sender,400)
-        if type(data) != dict:
+        if not isinstance(data, dict):
             return self.error(sender,401)
         if not "type" in data:
             return self.error(sender,402)
