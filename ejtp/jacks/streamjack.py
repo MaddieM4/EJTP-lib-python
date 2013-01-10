@@ -19,7 +19,10 @@ along with the Python EJTP library.  If not, see
 import core as jack
 
 import threading
-import Queue
+try:
+    import Queue
+except ImportError: # in python3.x it's renamed to lowercase queue
+    import queue as Queue
 
 class StreamJack(jack.Jack):
     def __init__(self, router, interface):

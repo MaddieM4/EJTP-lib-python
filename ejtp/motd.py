@@ -52,7 +52,7 @@ class MOTDClient(Client):
 
         >>> client, server = mock_locals()
         >>> def printresponse(msg, c):
-        ...     print msg.jsoncontent['content']
+        ...     print(msg.jsoncontent['content'])
         >>> client.request(server.interface, printresponse)
         Example message
         '''
@@ -79,3 +79,4 @@ def mock_locals():
     client.encryptor_set(server_interface, ['rotate', 143])
     client.encryptor_set(client_interface, ['rotate', 222])
     return (client, server)
+

@@ -27,7 +27,7 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from frame import Frame
+from .frame import Frame
 from ejtp.util.crashnicely import Guard
 
 class Router(object):
@@ -136,7 +136,7 @@ class Router(object):
 
 def rtuple(obj):
     # Convert lists into tuples recursively
-    if type(obj) in (list, tuple):
+    if isinstance(obj, list) or isinstance(obj, tuple):
         return tuple([rtuple(i) for i in obj])
     else:
         return obj

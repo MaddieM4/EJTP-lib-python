@@ -18,6 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 from ejtp.util.hasher import strict
+from ejtp.util.py2and3 import is_string
 from Crypto.Hash import SHA256 as hashclass
 
 class Encryptor(object):
@@ -101,19 +102,19 @@ class Flip(Encryptor):
         self.decrypt = parent.encrypt
 
 def make(data):
-    if type(data) in (str, unicode):
+    if is_string(data):
         import json
         data = json.loads(data)
     t = data[0]
     args = data[1:]
     if t=="rotate":
-        import rotate
+        from . import rotate
         return rotate.RotateEncryptor(*args)
     elif t=="aes":
-        import aes
+        from . import aes
         return aes.AESEncryptor(*args)
     elif t=="rsa":
-        import rsa
+        from . import rsa
         return rsa.RSA(*args)
     else:
         raise TypeError("Unsupported encryption type: %r"%data)
