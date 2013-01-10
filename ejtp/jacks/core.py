@@ -57,7 +57,10 @@ class Jack(object):
         if hasattr(self, "closed") and self.closed==False:
             # Already running
             return None
-        import thread
+        try:
+            import thread
+        except ImportError:
+            import _thread as thread
         self.thread = thread.start_new_thread(self.run, ())
 
     @property

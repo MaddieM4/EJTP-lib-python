@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 from ejtp.crypto import make
 from ejtp.util.hasher import strict, make as hashfunc
 
-from address import *
-import frame
-import jacks
+from ejtp.address import *
+from ejtp import frame
+from ejtp import jacks
 
 class Client(object):
     def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
@@ -166,7 +166,7 @@ def mock_locals(name1="c1", name2="c2"):
     >>> c2.write_json(c1.interface, "goodbye")
     INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: '"goodbye"'
     '''
-    from router import Router
+    from .router import Router
     r  = Router()
     c1 = Client(r, ['udp', ['127.0.0.1', 555], name1], make_jack = False)
     c2 = Client(r, ['udp', ['127.0.0.1', 555], name2], make_jack = False)

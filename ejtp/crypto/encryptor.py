@@ -108,13 +108,13 @@ def make(data):
     t = data[0]
     args = data[1:]
     if t=="rotate":
-        import rotate
+        from . import rotate
         return rotate.RotateEncryptor(*args)
     elif t=="aes":
-        import aes
+        from . import aes
         return aes.AESEncryptor(*args)
     elif t=="rsa":
-        import rsa
+        from . import rsa
         return rsa.RSA(*args)
     else:
         raise TypeError("Unsupported encryption type: %r"%data)

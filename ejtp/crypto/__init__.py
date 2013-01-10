@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 from ejtp.util.py2and3 import get_unicode
-from encryptor import make
+from .encryptor import make
 
 def bin_unicode(string):
     '''
