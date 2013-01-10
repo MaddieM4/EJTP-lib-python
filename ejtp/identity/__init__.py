@@ -16,19 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-
 __all__ = [
-	'logging',
-	'address',
-	'client',
-	'crypto',
-	'daemon',
-	'ejforward',
-	'frame',
-	'identity',
-	'interactive',
-	'jacks',
-	'motd',
-	'router',
-	'util',
+    'core',
+    'cache',
 ]
