@@ -80,7 +80,7 @@ class ForwardServer(Client):
             self.notify(target)
         elif mtype=='ejforward-retrieve':
             client = self.client(target)
-            hashes = data['hashes'] or client['messages'].keys()[:5]
+            hashes = data['hashes'] or list(client['messages'].keys())[:5]
             for mhash in hashes:
                 self.message(target, mhash)
         elif mtype=='ejforward-ack':
@@ -94,7 +94,7 @@ class ForwardServer(Client):
         client = self.client(target)
         status = client['status']
         status['type'] = 'ejforward-notify'
-        status['hashes'] = client['messages'].keys()[:5]
+        status['hashes'] = list(client['messages'].keys())[:5]
         self.write_json(
             target,
             status,

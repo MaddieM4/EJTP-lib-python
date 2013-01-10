@@ -124,7 +124,7 @@ def test_jacks(ifaceA, ifaceB):
     clientA.rcv_callback = rcv_callback
     clientB.rcv_callback = rcv_callback
     for r in (routerA, routerB):
-        with r._jacks.values()[0].lock_ready: pass
+        with list(r._jacks.values())[0].lock_ready: pass
 
     # Do the test
     timeout = 0.5

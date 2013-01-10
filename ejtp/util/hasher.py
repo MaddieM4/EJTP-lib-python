@@ -47,8 +47,7 @@ def strict(obj):
 		strdict = {}
 		for key in obj:
 			strdict[str(key)] = obj[key]
-		keys = strdict.keys()
-		keys.sort()
+		keys = sorted(strdict.keys())
 		return "{%s}" % ",".join([strict(key)+":"+strict(strdict[key]) for key in keys])
 	else:
 		raise TypeError("Not JSONable: "+str(t))
