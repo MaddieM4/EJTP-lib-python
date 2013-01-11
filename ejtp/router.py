@@ -125,13 +125,38 @@ class Router(object):
             self._loadclient(c)
 
     def _loadjack(self, jack):
+        '''
+            >>> from ejtp.jacks import Jack
+            >>> class DummyJack(Jack):
+            ...     def run(self, *args):
+            ...         return
+            ... 
+            >>> r = Router()
+            >>> j = DummyJack(r, (1, 2, 3))
+            >>> r._loadjack(j)
+            Traceback (most recent call last):
+            ValueError: jack already loaded
+        '''
         key = rtuple(jack.interface[:2])
+        if key in self._jacks:
+            raise ValueError('jack already loaded')
         self._jacks[key] = jack
         if self.runstate == "threaded":
             jack.run_threaded()
 
     def _loadclient(self, client):
+        '''
+        >>> from ejtp.client import Client
+        >>> c = Client(None, (4, 5, 6), make_jack = False)
+        >>> r = Router()
+        >>> r._loadclient(c)
+        >>> r._loadclient(c)
+        Traceback (most recent call last):
+        ValueError: client already loaded
+        '''
         key = rtuple(client.interface[:3])
+        if key in self._clients:
+            raise ValueError('client already loaded')
         self._clients[key] = client
 
 def rtuple(obj):
