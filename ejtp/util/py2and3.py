@@ -52,11 +52,9 @@ class RawData(object):
         Takes an iterable value that should contain either integers in range(256)
         or corresponding characters.
 
-        >>> repr(RawData((1, 2, 3))) == '010203'
+        >>> repr(RawData((1, 2, 3))) == 'RawData(010203)'
         True
-        >>> repr(RawData(('a', 'b', 'c'))) == '616263'
-        True
-        >>> RawData((70, 71, 72)).to_string() == 'FGH'
+        >>> repr(RawData(('a', 'b', 'c'))) == 'RawData(616263)'
         True
         '''
         try:
@@ -79,32 +77,160 @@ class RawData(object):
                 raise TypeError('value must contain integers in range(256) or corresponding characters')
             
     def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self._data == other._data
-        return False
+        '''
+        >>> RawData(('a', 'b', 'c')) == RawData((97, 98, 99))
+        True
+        >>> RawData(('a', 'b', 'c')) == 'abc'
+        False
+        '''
+        if isinstance(other, self.__class__):
+            return self._data.__eq__(other._data)
+        return NotImplemented
 
     def __add__(self, other):
-        if isinstance(other, type(self)):
-            return type(self)(self._data + other._data)
-        if isinstance(other, int):
-            return type(self)(self._data + (other,))
-        raise NotImplemented
+        '''
+        >>> RawData(('a', 'b')) + RawData(('c',)) == RawData(('a', 'b')) + (99,) == RawData(('a', 'b', 'c'))
+        True
+        >>> RawData(('a', 'b')) + object() # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        TypeError: unsupported operand type(s) for +: 'RawData' and 'object'
+        '''
+        if not isinstance(other, self.__class__):        
+            try:
+                other = self.__class__(other)
+            except (TypeError, ValueError):
+                return NotImplemented
+        return self.__class__(self._data.__add__(other._data))
     
     def __len__(self):
-        return len(self._data)
+        '''
+        >>> len(RawData(('a', 'b'))) == 2
+        True
+        '''
+        return self._data.__len__()
 
     def __getitem__(self, key):
+        '''
+        >>> RawData(('a', 'b'))[1] == 98
+        True
+        '''
         return self._data.__getitem__(key)
 
     def __iter__(self):
+        '''
+        >>> for c in RawData(('a', 'b', 'c')):
+        ...     print(c)
+        ...
+        97
+        98
+        99
+        '''
         return self._data.__iter__()
 
     def __repr__(self):
-        return get_unicode()().join([format(c, '02x') for c in self._data])
+        '''
+        >>> repr(RawData(('a', 'b', 'c'))) == 'RawData(616263)'
+        True
+        '''
+        return 'RawData(' + str().join([format(c, '02x') for c in self._data]) + ')'
     
-    def to_string(self):
+    def toString(self):
+        '''
+        >>> RawData(('a', 'b', 'c')).toString() == String('abc')
+        True
+        '''
         if bytes == str:
-            return get_unicode()().join([unichr(c) for c in self._data])
-        return get_unicode()().join([chr(c) for c in self._data])
+            return String(unicode().join([unichr(c) for c in self._data]))
+        return String(str().join([chr(c) for c in self._data]))
 
-String = get_unicode()
+class String(object):
+    '''
+    This class stores unicode strings and treats them depending on the python
+    version.
+    '''
+    def __init__(self, string):
+        '''
+        Takes an string or RawData and converts it to unicode.
+        '''
+
+        if isinstance(string, RawData):
+            string = string.toString()._data
+        if isinstance(string, bytes):
+            string = RawData(string).toString()._data
+        elif (bytes == str):
+            # python2 only here
+            if not isinstance(string, unicode):
+                raise TypeError('string must be of type str, unicode or RawData')
+        elif not isinstance(string, str):
+            # python3 only here
+            raise TypeError('string must be of type bytes, str or RawData')
+        self._data = string
+
+    def __eq__(self, other):
+        '''
+        >>> String('abc') == String(RawData((97, 98, 99)))
+        True
+        >>> String('abc') == 'abc'
+        False
+        '''
+        if isinstance(other, self.__class__):
+            return self._data.__eq__(other._data)
+        return NotImplemented
+
+    def __add__(self, other):
+        '''
+        >>> String('a') + String('b') == String('ab')
+        True
+        >>> String('a') + 'b' == String('ab')
+        True
+        >>> String('a') + RawData((98,)) == String('ab')
+        True
+        >>> String('abc') + object() # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        TypeError: unsupported operand type(s) for +: 'RawData' and 'object'
+        '''
+        if not isinstance(other, self.__class__):
+            try:
+                other = self.__class__(other)
+            except TypeError:
+                return NotImplemented
+        return self.__class__(self._data.__add__(other._data))
+
+    def __len__(self):
+        '''
+        >>> len(String('abc')) == 3
+        True
+        '''
+        return self._data.__len__()
+    
+    def __getitem__(self, key):
+        '''
+        >>> String('abc')[1] == 'b'
+        True
+        '''
+        return self._data.__getitem__(key)
+    
+    def __iter__(self):
+        '''
+        >>> val = True
+        >>> for c in String('aaa'):
+        ...     val &= (c == 'a')
+        ...
+        >>> val
+        True
+        '''
+        # in python2 unicode somehow only iterates with iter()
+        if hasattr(self._data, '__iter__'):
+            return self._data.__iter__()
+        return iter(self._data)
+    
+    def __repr__(self):
+        '''
+        >>> repr(String('abc')) == "String('abc')"
+        True
+        '''
+        rep = self._data.__repr__()
+        if rep[0] == 'u':
+            # in python2 for unicode
+            rep = rep[1:]
+        return 'String(' + rep + ')'
