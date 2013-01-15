@@ -54,33 +54,47 @@ class RawData(object):
 
         >>> repr(RawData((1, 2, 3))) == 'RawData(010203)'
         True
-        >>> repr(RawData(('a', 'b', 'c'))) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData(616263)'
+        True
+        >>> repr(RawData(String('abc'))) == 'RawData(616263)'
         True
         '''
+        if isinstance(value, int):
+            value = (value,)
         try:
             iter(value)
         except TypeError:
             raise TypeError('value must be iterable')
-        try:
-            for c in value:
-                if ord(c) > 255:
-                    raise ValueError('values not in range(256)')
-            self._data = tuple([ord(c) for c in value])
-        except TypeError:
-            # value may be an iterable of ints
+        if isinstance(value, bytes):
+            # this makes sure that iterating over value gives one byte at a time
+            # in python 2 and 3
+            if bytes == str:
+                # in python 2 iterating over bytes gives characters instead of integers
+                value = (ord(c) for c in value)
+            value = tuple(value)
+        elif isinstance(value, str) or (bytes==str and isinstance(value, unicode)):
+            # only unicode strings will get here
+            value = tuple(value.encode('utf-8'))
+        elif isinstance(value, String):
+            value = value.toRawData()._data
+        else:
+            # maybe a list of ints?
             try:
-                for i in value:
-                    if i < 0 or i > 255:
-                        raise ValueError('values not in range(256)')
-                self._data = tuple(value)
-            except TypeError:
-                raise TypeError('value must contain integers in range(256) or corresponding characters')
-            
+                value = tuple((int(i) for i in value))
+            except ValueError:
+                raise ValueError('values must be ints')
+
+            for i in value:
+                if i < 0 or i > 255:
+                    raise ValueError('values not in range(256)')
+
+        self._data = value
+
     def __eq__(self, other):
         '''
-        >>> RawData(('a', 'b', 'c')) == RawData((97, 98, 99))
+        >>> RawData('abc') == RawData((97, 98, 99))
         True
-        >>> RawData(('a', 'b', 'c')) == 'abc'
+        >>> RawData('abc') == 'abc'
         False
         '''
         if isinstance(other, self.__class__):
@@ -89,9 +103,9 @@ class RawData(object):
 
     def __add__(self, other):
         '''
-        >>> RawData(('a', 'b')) + RawData(('c',)) == RawData(('a', 'b')) + (99,) == RawData(('a', 'b', 'c'))
+        >>> RawData('ab') + RawData('c') == RawData('ab') + 99 == RawData('abc')
         True
-        >>> RawData(('a', 'b')) + object() # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> RawData('ab') + object() # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         TypeError: unsupported operand type(s) for +: 'RawData' and 'object'
         '''
@@ -104,21 +118,21 @@ class RawData(object):
     
     def __len__(self):
         '''
-        >>> len(RawData(('a', 'b'))) == 2
+        >>> len(RawData('ab')) == 2
         True
         '''
         return self._data.__len__()
 
     def __getitem__(self, key):
         '''
-        >>> RawData(('a', 'b'))[1] == 98
+        >>> RawData('ab')[1] == 98
         True
         '''
         return self._data.__getitem__(key)
 
     def __iter__(self):
         '''
-        >>> for c in RawData(('a', 'b', 'c')):
+        >>> for c in RawData('abc'):
         ...     print(c)
         ...
         97
@@ -129,19 +143,19 @@ class RawData(object):
 
     def __repr__(self):
         '''
-        >>> repr(RawData(('a', 'b', 'c'))) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData(616263)'
         True
         '''
         return 'RawData(' + str().join([format(c, '02x') for c in self._data]) + ')'
     
     def toString(self):
         '''
-        >>> RawData(('a', 'b', 'c')).toString() == String('abc')
+        >>> RawData('abc').toString() == String('abc')
         True
         '''
         if bytes == str:
-            return String(unicode().join([unichr(c) for c in self._data]))
-        return String(str().join([chr(c) for c in self._data]))
+            return String(bytes().join(chr(c) for c in self._data).decode('utf-8'))
+        return String(bytes(self._data).decode('utf-8'))
 
 class String(object):
     '''
@@ -183,7 +197,7 @@ class String(object):
         True
         >>> String('a') + 'b' == String('ab')
         True
-        >>> String('a') + RawData((98,)) == String('ab')
+        >>> String('a') + RawData(98) == String('ab')
         True
         >>> String('abc') + object() # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
@@ -234,3 +248,10 @@ class String(object):
             # in python2 for unicode
             rep = rep[1:]
         return 'String(' + rep + ')'
+
+    def toRawData(self):
+        '''
+        >>> String('abc').toRawData() == RawData('abc')
+        True
+        '''
+        return RawData(self._data.encode('utf-8'))
