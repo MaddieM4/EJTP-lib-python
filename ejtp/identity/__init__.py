@@ -20,3 +20,6 @@ __all__ = [
     'core',
     'cache',
 ]
+
+from cache import IdentityCache
+from core import Identity

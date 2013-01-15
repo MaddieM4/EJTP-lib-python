@@ -16,7 +16,6 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from   ejtp.address import *
 import ejtp.crypto
 
 class Identity(object):

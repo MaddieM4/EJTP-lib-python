@@ -16,14 +16,15 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-class EncryptorCache(object):
+from   ejtp.address import *
+
+class IdentityCache(object):
     def __init__(self, source={}):
         self.cache = {}
         self.cache.update(source)
 
     def __getitem__(self, location):
-        location = str_address(location)
-        return self.cache[location].encryptor.proto()
+        return self.find_by_location(location)
 
     def __setitem__(self, location, value):
         location = str_address(location)
@@ -47,7 +48,7 @@ class EncryptorCache(object):
         return self.cache[location]
 
     def __repr__(self):
-        return "<EncryptorCache %r>" % repr(self.cache)
+        return "<IdentityCache %r>" % repr(self.cache)
 
 def sync_caches(*caches):
     sync = {}

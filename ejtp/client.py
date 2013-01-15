@@ -25,6 +25,7 @@ from ejtp.util.hasher import strict, make as hashfunc
 from address import *
 import frame
 import jacks
+import identity
 
 class Client(object):
     def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
@@ -36,7 +37,7 @@ class Client(object):
         self.router = router
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
-        self.encryptor_cache = encryptor_cache or dict()
+        self.encryptor_cache = encryptor_cache or identity.IdentityCache()
         if make_jack:
             jacks.make(router, interface)
 
