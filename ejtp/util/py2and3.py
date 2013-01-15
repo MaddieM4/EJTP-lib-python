@@ -153,9 +153,19 @@ class RawData(object):
         >>> RawData('abc').toString() == String('abc')
         True
         '''
+        return String(self.export().decode('utf-8'))
+    
+    def export(self):
+        '''
+        Returns the data as bytes() so that you can use it for methods that
+        expect bytes. Don't use this for comparison!
+
+        >>> RawData(RawData('abc').export()) == RawData('abc')
+        True
+        '''
         if bytes == str:
-            return String(bytes().join(chr(c) for c in self._data).decode('utf-8'))
-        return String(bytes(self._data).decode('utf-8'))
+            return bytes().join(chr(c) for c in self._data)
+        return bytes(self._data)
 
 class String(object):
     '''
@@ -255,3 +265,14 @@ class String(object):
         True
         '''
         return RawData(self._data.encode('utf-8'))
+    
+    def export(self):
+        '''
+        Returns unicode representation of the String. Don't use this for
+        comparison since it depends on the python version how unicode strings
+        are handled!
+
+        >>> String(String('abc').export()) == String('abc')
+        True
+        '''
+        return self._data
