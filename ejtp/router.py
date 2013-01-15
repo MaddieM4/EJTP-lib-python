@@ -30,9 +30,12 @@ logger = logging.getLogger(__name__)
 from .frame import Frame
 from ejtp.util.crashnicely import Guard
 
+STOPPED = 0
+THREADED = 1
+
 class Router(object):
     def __init__(self, jacks=[], clients=[]):
-        self.runstate = "stopped"
+        self.runstate = STOPPED
         self._jacks = {}
         self._clients = {}
         self._loadjacks(jacks)
@@ -107,11 +110,11 @@ class Router(object):
         for i in self._jacks:
             self._jacks[i].close()
 
-    def run(self, level="threaded"):
-        if level=="threaded":
-            if self.runstate == "stopped":
+    def run(self, level=THREADED):
+        if level==THREADED:
+            if self.runstate == STOPPED:
                 self.thread_all()
-        elif level=="stopped":
+        elif level==STOPPED:
             # stop all jacks
             self.stop_all()
         self.runstate = level
@@ -141,7 +144,7 @@ class Router(object):
         if key in self._jacks:
             raise ValueError('jack already loaded')
         self._jacks[key] = jack
-        if self.runstate == "threaded":
+        if self.runstate == THREADED:
             jack.run_threaded()
 
     def _loadclient(self, client):
