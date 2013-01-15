@@ -16,7 +16,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from   ejtp.address import *
+from ejtp.address import *
+from core import Identity
 
 class IdentityCache(object):
     def __init__(self, source={}):
@@ -27,6 +28,23 @@ class IdentityCache(object):
         return self.find_by_location(location)
 
     def __setitem__(self, location, value):
+        '''
+        Set an identity in the cache using dict syntax.
+
+        >>> cache = IdentityCache()
+        >>> ident = Identity("joe", ['rotate',3], ['local', None, 'joe'])
+        >>> cache[ident.location] = []
+        >>> cache[ident.location.reverse()] = ident
+        >>> cache[ident.location] = ident
+        >>> cache[ident.location] == ident
+        True
+        '''
+        if not isinstance(value, Identity):
+            raise TypeError(
+                "Expected ejtp.identity.core.Identity, got %r" % value
+            )
+        if location != value.location:
+            raise ValueError('Trying to cache ident in the wrong location')
         location = str_address(location)
         self.cache[location] = value
 
