@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-from . import encryptor
+from ejtp.crypto import encryptor
 
 from Crypto.Hash import SHA
 from Crypto.Cipher import AES
