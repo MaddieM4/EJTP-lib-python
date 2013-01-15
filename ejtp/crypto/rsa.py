@@ -61,7 +61,11 @@ class RSA(encryptor.Encryptor):
         '''
         Override version using PKCS1_PSS signing to sign (and randomly salt) plaintext.
         '''
-        return self.signer.sign(self.hash_obj(plaintext))
+        try:
+            return self.signer.sign(self.hash_obj(plaintext))
+        except TypeError:
+            # Raise consistent error description, regardless of PyCrypto version
+            raise TypeError("RSA encryptor cannot sign without private key")
 
     def sig_verify(self, plaintext, signature):
         '''
@@ -85,7 +89,7 @@ class RSA(encryptor.Encryptor):
         But not everyone should be able to sign with it.
         >>> public.sign(plaintext)
         Traceback (most recent call last):
-        TypeError: No private key
+        TypeError: RSA encryptor cannot sign without private key
         '''
         return self.signer.verify(self.hash_obj(plaintext), signature)
 
