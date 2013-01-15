@@ -125,10 +125,10 @@ class RawData(object):
 
     def __getitem__(self, key):
         '''
-        >>> RawData('ab')[1] == 98
+        >>> RawData('ab')[1] == RawData('b')
         True
         '''
-        return self._data.__getitem__(key)
+        return self.__class__(self._data.__getitem__(key))
 
     def __iter__(self):
         '''
@@ -219,10 +219,10 @@ class String(object):
     
     def __getitem__(self, key):
         '''
-        >>> String('abc')[1] == 'b'
+        >>> String('abc')[1] == String('b')
         True
         '''
-        return self._data.__getitem__(key)
+        return self.__class__(self._data.__getitem__(key))
     
     def __iter__(self):
         '''
