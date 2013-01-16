@@ -16,32 +16,6 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-def is_string(value):
-    '''
-    Checks, if value is a string. In python 2.x it checks if value is an
-    instance of basestring. In python 3.x it checks if it is an instance of
-    str or bytes, since all strings in python 3 derivate from str rather than
-    basestring and bytes isn't a subclass of str anymore.
-
-    '''
-
-    if isinstance(value, str):
-        return True
-    if bytes == str:
-        # In python 2.x bytes is equal with str, in python 3.x not.
-        return isinstance(value, basestring)
-    return isinstance(value, bytes)
-
-def get_unicode():
-    '''
-    Returns an unicode class. In python 2.x thats unicode but in python 3.x
-    there is no uncode class anymore, because str itself is unicode.
-    '''
-
-    if bytes == str:
-        return unicode
-    return str
-
 class RawData(object):
     '''
     This class is supposed to store raw data and behaves similar to str in
