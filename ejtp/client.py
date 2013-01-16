@@ -19,8 +19,9 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.crypto import make
+from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
+from ejtp.util.py2and3 import RawDataDecorator
 
 from ejtp.address import *
 from ejtp import frame
@@ -40,6 +41,7 @@ class Client(object):
         if make_jack:
             jacks.make(router, interface)
 
+    @RawDataDecorator(strict=True)
     def send(self, msg):
         # Send frame to router
         self.router.recv(msg)

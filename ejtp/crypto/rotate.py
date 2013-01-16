@@ -24,20 +24,20 @@ class RotateEncryptor(encryptor.Encryptor):
     def __init__(self, offset):
         self.offset = offset
 
-    @RawDataEncryptor(ret=True, strict=True)
+    @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, source):
         return self.rotate(source, self.offset)
 
-    @RawDataEncryptor(ret=True, strict=True)
+    @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, source):
         return self.rotate(source, -self.offset)
     
-    @RawDataEncryptor(args=False, ret=True, strict=True)
+    @RawDataDecorator(args=False, ret=True, strict=True)
     def rotate(self, source, offset):
         # not checking args here, because offset would be converted to RawData
         result = ""
         for i in source:
-            result += (int(i)+offset) % 256)
+            result += (int(i)+offset) % 256
         return result
 
     def proto(self):

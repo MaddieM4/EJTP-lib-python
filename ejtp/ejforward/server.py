@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 from ejtp.client import Client
 from ejtp.address import *
 from ejtp.util.hasher import make as hashfunc
-from ejtp.crypto import bin_unicode
+from ejtp.util.py2and3 import String
 
 class ForwardServer(Client):
     def __init__(self, router, interface, **kwargs):
@@ -106,7 +106,7 @@ class ForwardServer(Client):
             {
                 'type':'ejforward-message',
                 'target':target,
-                'data':bin_unicode(self.client(target)['messages'][mhash])
+                'data':String(self.client(target)['messages'][mhash]).export()
             },
         )
 

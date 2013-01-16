@@ -24,7 +24,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util import hasher
-from ejtp.util.py2and3 import RawDataDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.address import *
 import json
 

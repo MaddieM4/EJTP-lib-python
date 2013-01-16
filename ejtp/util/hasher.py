@@ -16,13 +16,14 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import String, RawDataDecorator, StringDecorator
 from hashlib import new
 import json
 
 HASH_FUNCTION = 'sha1' # was md5
 
 @RawDataDecorator(strict=True)
+@StringDecorator(args=False, ret=True, strict=True)
 def make(string):
     '''
     Create a hash of a string.
@@ -30,7 +31,7 @@ def make(string):
     >>> make("Sample string")
     String('e9a47e5417686cf0ac5c8ad9ee90ba2c1d08cc14')
     '''
-    return String(new(HASH_FUNCTION, string.export()).hexdigest())
+    return new(HASH_FUNCTION, string.export()).hexdigest()
 
 def make6(string):
     return maken(string, 6)

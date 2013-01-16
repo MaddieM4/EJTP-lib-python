@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 from ejtp.client import Client
 from ejtp import frame
 from ejtp.util.hasher import make as hashfunc
-from ejtp.crypto import bin_string
+from ejtp.util.py2and3 import RawData
 
 _demo_client_addr = ['local', None, 'client']
 _demo_server_addr = ['local', None, 'server']
@@ -46,7 +46,7 @@ class ForwardClient(Client):
                 callback(self)
             self._status_callbacks = []
         elif mtype=='ejforward-message':
-            internal = bin_string(data['data'])
+            internal = RawData(data['data'])
             self.ack([hashfunc(internal)])
             try:
                 self.send(frame.Frame(internal)) # forward to router
