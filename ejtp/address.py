@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.hasher import strict
-from ejtp.util.py2and3 import is_string
+from ejtp.util.py2and3 import RawData, String
 from json import loads
 
 def str_address(address):
@@ -28,7 +28,7 @@ def str_address(address):
         >>> str_address("[0,9]")
         '[0,9]'
     '''
-    if is_string(address):
+    if isinstance(address, RawData) or isinstance(address, String):
         return address
     else:
         return strict(address)
@@ -41,8 +41,8 @@ def py_address(address):
         >>> py_address("[0,9]")
         [0, 9]
     '''
-    if is_string(address):
-        return loads(address)
+    if isinstance(address, String) or isinstance(address, RawData):
+        return loads(address.export())
     elif isinstance(address, list):
         return address
     elif isinstance(address, tuple):

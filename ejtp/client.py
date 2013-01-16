@@ -54,14 +54,14 @@ class Client(object):
     def route(self, msg):
         # Recieve frame from router (will be type 'r' or 's', which contains message)
         logger.debug("Client routing frame: %s", repr(msg))
-        if msg.type == 'r':
+        if msg.type == frame.TYPES['r']:
             if msg.addr != self.interface:
                 self.relay(msg)
             else:
                 self.route(self.unpack(msg))
-        elif msg.type == 's':
+        elif msg.type == frame.TYPES['s']:
             self.route(self.unpack(msg))
-        elif msg.type == 'j':
+        elif msg.type == frame.TYPES['j']:
             self.rcv_callback(msg, self)
 
     def rcv_callback(self, msg, client_obj):
@@ -92,7 +92,7 @@ class Client(object):
         self.send(frame.onion(msg, hoplist))
 
     def owrite_json(self, hoplist, data, wrap_sender=True):
-        msg = frame.make('j', None, None, strict(data))
+        msg = frame.make(frame.TYPES['j'], None, None, strict(data))
         self.owrite(hoplist, str(msg), wrap_sender)
 
     def write_json(self, addr, data, wrap_sender=True):
@@ -101,7 +101,7 @@ class Client(object):
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
         sig_s = self.encryptor_get(self.interface)
-        msg   = frame.make('s', self.interface, sig_s, msg)
+        msg   = frame.make(frame.TYPES['s'], self.interface, sig_s, msg)
         return msg
 
     # Encryption
