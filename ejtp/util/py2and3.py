@@ -296,18 +296,28 @@ class String(object):
 class DataDecorator(object):
     '''
     Base class for RawDataDecorator and StringDecorator.
-    dec_type is a bitwise 'or'ed mask of following values:
-    ARGS: tries to convert normal arguments
-    KWARGS: tries to convert keyword arguments
-    RETURN: tries to convert returned value
-    STRICT: raises exception if conversion fails
+    dec_args is a dictionary containing following keys with boolean values:
+    args: tries to convert normal arguments
+    kwargs: tries to convert keyword arguments
+    ret: tries to convert returned value
+    strict: raises exception if conversion fails
     '''
-    ARGS = 1
-    KWARGS = 2
-    RETURN = 4
-    STRICT = 8
-    def __init__(self, dec_type = ARGS):
-        self._dec_type = dec_type
+
+    _default_dec_args = {
+        'args': True,
+        'kwargs': False,
+        'ret': False,
+        'strict': False,
+    }
+
+    def __init__(self, **dec_args):
+        for key in dec_args:
+            if key not in self._default_dec_args:
+                raise ValueError('keyword %s is not allowed' % key)
+            if not isinstance(dec_args[key], bool):
+                raise TypeError('keyword arguments must be boolean')
+        self._dec_args = self._default_dec_args.copy()
+        self._dec_args.update(dec_args)
 
     def __call__(self, func = None, *args, **kwargs):
         if hasattr(self, '_func'):
@@ -332,7 +342,7 @@ class RawDataDecorator(DataDecorator):
     '''
     Tries to parse arguments into RawData.
 
-    >>> @RawDataDecorator(RawDataDecorator.ARGS)
+    >>> @RawDataDecorator()
     ... def test(a, b):
     ...     print(a)
     ...
@@ -340,7 +350,7 @@ class RawDataDecorator(DataDecorator):
     RawData(616263)
     >>> test(1234, 'Hello world!')
     1234
-    >>> @RawDataDecorator(RawDataDecorator.KWARGS | RawDataDecorator.STRICT)
+    >>> @RawDataDecorator(args=False, kwargs=True, strict=True)
     ... def test(a = 123, b = 'abc'):
     ...     print(b)
     ...
@@ -349,7 +359,7 @@ class RawDataDecorator(DataDecorator):
     >>> test(b = 1234) # doctest: +ELLIPSIS
     Traceback (most recent call last):
     TypeError: ...
-    >>> @RawDataDecorator(RawDataDecorator.RETURN)
+    >>> @RawDataDecorator(args=False, ret=True)
     ... def test():
     ...     return 'abc'
     ...
@@ -357,35 +367,35 @@ class RawDataDecorator(DataDecorator):
     RawData(616263)
     '''
     def _decoratedFunc(self, func, *args, **kwargs):
-        if self._dec_type & self.ARGS:
+        if self._dec_args['args']:
             newargs = []
             for arg in args:
                 if not isinstance(arg, RawData):
                     try:
                         newargs.append(RawData(arg))
                     except (TypeError, ValueError):
-                        if self._dec_type & self.STRICT:
+                        if self._dec_args['strict']:
                             raise TypeError("can't convert arg %i to RawData" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
             args = tuple(newargs)
-        if self._dec_type & self.KWARGS:
+        if self._dec_args['kwargs']:
             for key in kwargs:
                 if not isinstance(kwargs[key], RawData):
                     try:
                         kwargs[key] = RawData(kwargs[key])
                     except (TypeError, ValueError):
-                        if self._dec_type & self.STRICT:
+                        if self._dec_args['strict']:
                             raise TypeError("can't convert kwarg %s to RawData" % key)
         
-        if self._dec_type & self.RETURN:
+        if self._dec_args['ret']:
             ret = func(*args, **kwargs)
             if not isinstance(ret, RawData):
                 try:
                     ret = RawData(ret)
                 except (TypeError, ValueError):
-                    if self._dec_type & self.STRICT:
+                    if self._dec_args['strict']:
                         raise TypeError("can't convert return value to RawData")
             return ret
         return func(*args, **kwargs)
@@ -394,7 +404,7 @@ class StringDecorator(DataDecorator):
     '''
     Tries to parse arguments into String.
 
-    >>> @StringDecorator(StringDecorator.ARGS)
+    >>> @StringDecorator()
     ... def test(a, b):
     ...     print(a)
     ...
@@ -402,7 +412,7 @@ class StringDecorator(DataDecorator):
     String('Hello world!')
     >>> test(123, 'Hello world!')
     123
-    >>> @StringDecorator(StringDecorator.KWARGS | StringDecorator.STRICT)
+    >>> @StringDecorator(args=False, kwargs=True, strict=True)
     ... def test(a = 'Hello world!', b = '123'):
     ...     print(b)
     ...
@@ -411,7 +421,7 @@ class StringDecorator(DataDecorator):
     >>> test(b = 123) # doctest: +ELLIPSIS
     Traceback (most recent call last):
     TypeError: ...
-    >>> @StringDecorator(RawDataDecorator.RETURN)
+    >>> @StringDecorator(args=False, ret=True)
     ... def test():
     ...     return 'abc'
     ...
@@ -419,35 +429,35 @@ class StringDecorator(DataDecorator):
     String('abc')
     '''
     def _decoratedFunc(self, func, *args, **kwargs):
-        if self._dec_type & self.ARGS:
+        if self._dec_args['args']:
             newargs = []
             for arg in args:
                 if not isinstance(arg, String):
                     try:
                         newargs.append(String(arg))
                     except TypeError:
-                        if self._dec_type & self.STRICT:
+                        if self._dec_args['strict']:
                             raise TypeError("can't convert arg %i to String" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
             args = tuple(newargs)
-        if self._dec_type & self.KWARGS:
+        if self._dec_args['kwargs']:
             for key in kwargs:
                 if not isinstance(kwargs[key], String):
                     try:
                         kwargs[key] = String(kwargs[key])
                     except TypeError:
-                        if self._dec_type & self.STRICT:
+                        if self._dec_args['strict']:
                             raise TypeError("can't convert kwarg %s to String" % key)
 
-        if self._dec_type & self.RETURN:
+        if self._dec_args['ret']:
             ret = func(*args, **kwargs)
             if not isinstance(ret, String):
                 try:
                     ret = String(ret)
                 except TypeError:
-                    if self._dec_type & self.STRICT:
+                    if self._dec_args['strict']:
                         raise TypeError("can't convert return value to String")
             return ret
         return func(*args, **kwargs)
