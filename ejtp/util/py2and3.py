@@ -135,7 +135,35 @@ class RawData(object):
         if self.__len__() != 1:
             raise TypeError('must be of length 1')
         return self._data[0]
-     
+    
+    def index(self, byte):
+        '''
+        Returns index of byte in RawData.
+        Raises ValueError if byte is not in RawData and TypeError if can't be
+        converted RawData or its length is not 1.
+
+        >>> r = RawData('abc')
+        >>> r.index(98)
+        1
+        >>> r.index('ab')
+        Traceback (most recent call last):
+        TypeError: byte must be of length 1
+        >>> r.index(1234)
+        Traceback (most recent call last):
+        TypeError: can't convert byte to RawData
+        '''
+        if not isinstance(byte, RawData):
+            try:
+                byte = RawData(byte)
+            except (TypeError, ValueError):
+                raise TypeError("can't convert byte to RawData")
+        if len(byte) != 1:
+            raise TypeError('byte must be of length 1')
+        try:
+            return self._data.index(byte._data[0])
+        except ValueError:
+            raise ValueError('byte not in RawData')
+      
     def toString(self):
         '''
         >>> RawData('abc').toString() == String('abc')
@@ -248,6 +276,53 @@ class String(object):
             rep = rep[1:]
         return 'String(' + rep + ')'
 
+    def index(self, substr):
+        '''
+        Returns index of substr in String.
+        Raises ValueError if substr is not in String and TypeError if substr
+        can't be converted to String.
+
+        >>> s = String('abc')
+        >>> s.index('bc')
+        1
+        >>> s.index(1)
+        Traceback (most recent call last):
+        TypeError: can't convert substr to String
+        >>> s.index('d')
+        Traceback (most recent call last):
+        ValueError: substr not in String
+        '''
+        if not isinstance(substr, String):
+            try:
+                substr = String(substr)
+            except TypeError:
+                raise TypeError("can't convert substr to String")
+        try:
+            return self._data.index(substr._data)
+        except ValueError:
+            raise ValueError('substr not in String')
+    
+    def join(self, iterable):
+        '''
+        Joins the String with the iterable.
+        Raises TypeError if iterable is not iterable or values can't be
+        converted to String
+
+        >>> String(',').join(('a', 'b', 'c')) == String('a,b,c')
+        True
+        >>> String('').join(123) # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        TypeError: iterable must be ...
+        >>> String('').join((1,2,3)) # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        TypeError: iterable must be ...
+        '''
+
+        try:
+            return String(self._data.join((String(i)._data for i in iterable)))
+        except TypeError:
+            raise TypeError('iterable must be iterable of values that can be converted to String')
+ 
     def toRawData(self):
         '''
         >>> String('abc').toRawData() == RawData('abc')
