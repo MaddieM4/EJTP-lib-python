@@ -115,6 +115,13 @@ class RawData(object):
         '''
         return self._data.__iter__()
 
+    def __hash__(self):
+        '''
+        >>> hash(RawData('abc')) == hash((97,98,99))
+        True
+        '''
+        return self._data.__hash__()
+
     def __repr__(self):
         '''
         >>> repr(RawData('abc')) == 'RawData(616263)'
@@ -264,7 +271,14 @@ class String(object):
         if hasattr(self._data, '__iter__'):
             return self._data.__iter__()
         return iter(self._data)
-    
+  
+    def __hash__(self):
+        '''
+        >>> hash(String('abc'))
+        1453079729188098211
+        '''
+        return self._data.__hash__()
+      
     def __repr__(self):
         '''
         >>> repr(String('abc')) == "String('abc')"
