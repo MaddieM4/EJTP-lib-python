@@ -19,9 +19,9 @@ along with the Python EJTP library.  If not, see
 import ejtp.crypto
 
 class Identity(object):
-    def __init__(self, name, encryptor, location = None):
+    def __init__(self, name, encryptor, location):
         '''
-        >>> ident = Identity("joe", ['rotate', 8])
+        >>> ident = Identity("joe", ['rotate', 8], None)
         >>> ident.name
         'joe'
         >>> e =  ident.encryptor
@@ -56,6 +56,11 @@ class Identity(object):
         if not self._encryptor:
             self._encryptor = ejtp.crypto.make(self._encryptor_proto)
         return self._encryptor
+
+    @encryptor.setter
+    def encryptor(self, new_encryptor):
+        self._encryptor = ejtp.crypto.make(new_encryptor)
+        self._encryptor_proto = self.encryptor.proto()
 
     @property
     def location(self):

@@ -104,6 +104,8 @@ def make(data):
     if type(data) in (str, unicode):
         import json
         data = json.loads(data)
+    if isinstance(data, Encryptor):
+        return data
     t = data[0]
     args = data[1:]
     if t=="rotate":

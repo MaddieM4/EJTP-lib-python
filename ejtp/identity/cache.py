@@ -24,6 +24,10 @@ class IdentityCache(object):
         self.cache = {}
         self.cache.update(source)
 
+    def __contains__(self, location):
+        location = str_address(location)
+        return location in self.cache
+
     def __getitem__(self, location):
         return self.find_by_location(location)
 
@@ -33,8 +37,20 @@ class IdentityCache(object):
 
         >>> cache = IdentityCache()
         >>> ident = Identity("joe", ['rotate',3], ['local', None, 'joe'])
+
+        There are some failsafes - you can only set to an Identity, at
+        its location.
+
         >>> cache[ident.location] = []
+        Traceback (most recent call last):
+        TypeError: Expected ejtp.identity.core.Identity, got []
+
         >>> cache[ident.location.reverse()] = ident
+        Traceback (most recent call last):
+        ValueError: Trying to cache ident in the wrong location
+
+        But if you actually do it right...
+
         >>> cache[ident.location] = ident
         >>> cache[ident.location] == ident
         True
@@ -43,9 +59,9 @@ class IdentityCache(object):
             raise TypeError(
                 "Expected ejtp.identity.core.Identity, got %r" % value
             )
-        if location != value.location:
-            raise ValueError('Trying to cache ident in the wrong location')
         location = str_address(location)
+        if location != str_address(value.location):
+            raise ValueError('Trying to cache ident in the wrong location')
         self.cache[location] = value
 
     def __delitem__(self, location):
@@ -53,7 +69,7 @@ class IdentityCache(object):
         del self.cache[location]
 
     def update_ident(self, ident):
-        self[ident.location] = ident
+        self[str_address(ident.location)] = ident
 
     def find_by_name(self, name):
         for ident in self.cache.values():
@@ -62,8 +78,8 @@ class IdentityCache(object):
         raise KeyError(name)
 
     def find_by_location(self, location):
-        location = str_address(location)
-        return self.cache[location]
+        #location = str_address(location)
+        return self.cache[str_address(location)]
 
     def __repr__(self):
         return "<IdentityCache %r>" % repr(self.cache)

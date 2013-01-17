@@ -109,7 +109,7 @@ class Client(object):
 
     def encryptor_get(self, address):
         address = str_address(address)
-        return make(self.encryptor_cache[address])
+        return make(self.encryptor_cache[address].encryptor)
 
     def encryptor_set(self, address, encryptor):
         '''
@@ -121,8 +121,12 @@ class Client(object):
         >>> e.encrypt("Aquaboogie")
         'Euyefsskmi'
         '''
-        address = str_address(address)
-        self.encryptor_cache[address] = list(encryptor)
+        address = py_address(address)
+        if not address in self.encryptor_cache:
+            dummy_ident = identity.Identity(None, encryptor, address)
+            self.encryptor_cache.update_ident(dummy_ident)
+        else:
+            self.encryptor_cache[address].encryptor = list(encryptor)
 
     def sign(self, obj):
         '''
