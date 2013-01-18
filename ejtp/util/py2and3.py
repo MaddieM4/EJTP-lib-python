@@ -59,7 +59,7 @@ class RawData(object):
                 value = tuple(value)
             elif isinstance(value, str) or (bytes==str and isinstance(value, unicode)):
                 # only unicode strings will get here
-                value = tuple(value.encode('utf-8'))
+                value = tuple((ord(c) for c in value.encode('utf-8')))
             elif isinstance(value, String):
                 value = value.toRawData()._data
             else:
