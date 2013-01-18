@@ -30,5 +30,6 @@ __all__ = [
 	'jacks',
 	'motd',
 	'router',
+	'testing',
 	'util',
 ]

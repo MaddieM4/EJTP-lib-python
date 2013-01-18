@@ -47,6 +47,25 @@ class Identity(object):
     def verify_signature(self, signature, plaintext):
         return self.encryptor.sig_verify(plaintext, signature)
 
+    def public(self):
+        '''
+        Return a copy of this Identity with only the public component of
+        its encryptor object.
+
+        >>> from ejtp import testing
+        >>> ident = testing.identity()
+        >>> "PRIVATE" in ident.encryptor.proto()[1]
+        True
+        >>> "PUBLIC" in ident.encryptor.proto()[1]
+        False
+        >>> "PRIVATE" in ident.public().encryptor.proto()[1]
+        False
+        >>> "PUBLIC" in ident.public().encryptor.proto()[1]
+        True
+        '''
+        public_proto = self.encryptor.public()
+        return Identity(self.name, public_proto, self.location)
+
     @property
     def name(self):
         return self._name
