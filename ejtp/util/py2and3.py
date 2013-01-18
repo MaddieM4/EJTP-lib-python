@@ -26,41 +26,52 @@ class RawData(object):
         Takes an iterable value that should contain either integers in range(256)
         or corresponding characters.
 
+        >>> RawData(RawData((1, 2, 3))) == RawData((1, 2, 3))
+        True
         >>> repr(RawData((1, 2, 3))) == 'RawData(010203)'
         True
         >>> repr(RawData('abc')) == 'RawData(616263)'
         True
-        >>> repr(RawData(String('abc'))) == 'RawData(616263)'
+        >>> RawData(String('abc')) == RawData('abc')
         True
+        >>> RawData((1, 2, 'abc'))
+        Traceback (most recent call last):
+        ValueError: values must be ints
+        >>> RawData((1,2,256))
+        Traceback (most recent call last):
+        ValueError: values not in range(256)
         '''
-        if isinstance(value, int):
-            value = (value,)
-        try:
-            iter(value)
-        except TypeError:
-            raise TypeError('value must be iterable')
-        if isinstance(value, bytes):
-            # this makes sure that iterating over value gives one byte at a time
-            # in python 2 and 3
-            if bytes == str:
-                # in python 2 iterating over bytes gives characters instead of integers
-                value = (ord(c) for c in value)
-            value = tuple(value)
-        elif isinstance(value, str) or (bytes==str and isinstance(value, unicode)):
-            # only unicode strings will get here
-            value = tuple(value.encode('utf-8'))
-        elif isinstance(value, String):
-            value = value.toRawData()._data
+        if isinstance(value, RawData):
+            value = value._data
         else:
-            # maybe a list of ints?
+            if isinstance(value, int):
+                value = (value,)
             try:
-                value = tuple((int(i) for i in value))
-            except ValueError:
-                raise ValueError('values must be ints')
+                iter(value)
+            except TypeError:
+                raise TypeError('value must be iterable')
+            if isinstance(value, bytes):
+                # this makes sure that iterating over value gives one byte at a time
+                # in python 2 and 3
+                if bytes == str:
+                    # in python 2 iterating over bytes gives characters instead of integers
+                    value = (ord(c) for c in value)
+                value = tuple(value)
+            elif isinstance(value, str) or (bytes==str and isinstance(value, unicode)):
+                # only unicode strings will get here
+                value = tuple(value.encode('utf-8'))
+            elif isinstance(value, String):
+                value = value.toRawData()._data
+            else:
+                # maybe a list of ints?
+                try:
+                    value = tuple((int(i) for i in value))
+                except ValueError:
+                    raise ValueError('values must be ints')
 
-            for i in value:
-                if i < 0 or i > 255:
-                    raise ValueError('values not in range(256)')
+                for i in value:
+                    if i < 0 or i > 255:
+                        raise ValueError('values not in range(256)')
 
         self._data = value
 
@@ -195,15 +206,26 @@ class String(object):
     '''
     This class stores unicode strings and treats them depending on the python
     version.
+
+    >>> String(String('abc')) == String('abc')
+    True
+    >>> String(RawData('abc')) == String('abc')
+    True
+    >>> repr(String('abc')) == "String('abc')"
+    True
+    >>> String(123) # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    TypeError: string must be of type ...
     '''
     def __init__(self, string):
         '''
         Takes an string or RawData and converts it to unicode.
         '''
-
-        if isinstance(string, RawData):
+        if isinstance(string, String):
+            string = string._data
+        elif isinstance(string, RawData):
             string = string.toString()._data
-        if isinstance(string, bytes):
+        elif isinstance(string, bytes):
             string = RawData(string).toString()._data
         elif (bytes == str):
             # python2 only here
