@@ -42,7 +42,7 @@ class Frame(object):
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
-        if self.type == "g":
+        if self.type == "z":
             self.compressedcontent = self.ciphercontent
         if self.type == "j":
             self.raw_decode()
@@ -127,18 +127,18 @@ def make(type, addr, encryptor, content):
     return msg
 
 def compress(frame):
-    # Returns a compressed G frame
+    # Returns a compressed Z frame
     '''
     >>> f = Frame('r["local",null,"example"]\\x00Jam and cookies')
     >>> str(decompress(compress(f))) == str(f)
     True
     '''
     compressedcontent = zlib.compress(str(frame))
-    return make('g', None, None, compressedcontent)
+    return make('z', None, None, compressedcontent)
 
 def decompress(frame):
-    # Decompress a G frame
-    if frame.type == "g":
+    # Decompress a Z frame
+    if frame.type == "z":
         return Frame(zlib.decompress(frame.compressedcontent))
     else:
         raise TypeError("Cannot decompress frame with type %r" % frame.type)
