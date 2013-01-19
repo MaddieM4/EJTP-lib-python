@@ -27,7 +27,7 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from .frame import Frame
+from .frame import Frame, decompress
 from ejtp.util.crashnicely import Guard
 
 class Router(object):
