@@ -66,6 +66,8 @@ class Router(object):
         except Exception as e:
             logger.info("Router could not parse frame: %s", repr(msg))
             return
+        if msg.type == "g":
+            msg = decompress(msg)
         if msg.type == "r":
             recvr = self.client(msg.addr) or self.jack(msg.addr)
             if recvr:

@@ -27,6 +27,7 @@ from ejtp.util import hasher
 from ejtp.util.py2and3 import is_string
 from ejtp.address import *
 import json
+import zlib
 
 PACKET_SIZE = 8192
 
@@ -41,7 +42,9 @@ class Frame(object):
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
-        if self.type =="j":
+        if self.type == "g":
+            self.compressedcontent = self.ciphercontent
+        if self.type == "j":
             self.raw_decode()
         if self.straddr:
             self.addr = json.loads(self.straddr)
@@ -122,3 +125,20 @@ def make(type, addr, encryptor, content):
     msg = Frame(type +straddr+'\x00'+ciphercontent)
     msg.content = content
     return msg
+
+def compress(frame):
+    # Returns a compressed G frame
+    '''
+    >>> f = Frame('r["local",null,"example"]\\x00Jam and cookies')
+    >>> str(decompress(compress(f))) == str(f)
+    True
+    '''
+    compressedcontent = zlib.compress(str(frame))
+    return make('g', None, None, compressedcontent)
+
+def decompress(frame):
+    # Decompress a G frame
+    if frame.type == "g":
+        return Frame(zlib.decompress(frame.compressedcontent))
+    else:
+        raise TypeError("Cannot decompress frame with type %r" % frame.type)
