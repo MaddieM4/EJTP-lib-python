@@ -81,6 +81,27 @@ class IdentityCache(object):
         #location = str_address(location)
         return self.cache[str_address(location)]
 
+    def sync(self, *caches):
+        '''
+        Sync to one or more other cache objects
+
+        >>> from ejtp import testing
+        >>> mitzi_cache = IdentityCache()
+        >>> atlas_cache = IdentityCache()
+        >>> mitzi_cache.update_ident(testing.identity("mitzi"))
+        >>> atlas_cache.update_ident(testing.identity("atlas"))
+        >>> sorted(atlas_cache.cache.keys())
+        ['["local",null,"atlas"]']
+        >>> sorted(mitzi_cache.cache.keys())
+        ['["local",null,"mitzi"]']
+        >>> mitzi_cache.sync(atlas_cache)
+        >>> sorted(atlas_cache.cache.keys())
+        ['["local",null,"atlas"]', '["local",null,"mitzi"]']
+        >>> sorted(mitzi_cache.cache.keys())
+        ['["local",null,"atlas"]', '["local",null,"mitzi"]']
+        '''
+        sync_caches(self, *caches)
+
     def __repr__(self):
         return "<IdentityCache %r>" % repr(self.cache)
 
