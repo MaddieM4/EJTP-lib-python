@@ -27,7 +27,7 @@ class AESEncryptor(encryptor.Encryptor):
     @StringDecorator(strict=True)
     def __init__(self, password):
         self.password = password
-        hash = SHA.new(password.export()).digest()
+        hash = SHA.new(password.toRawData().export()).digest()
         self.cipher = AES.new(hash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
 
     @RawDataDecorator(ret=True, strict=True)

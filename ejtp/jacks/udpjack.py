@@ -41,7 +41,7 @@ class UDPJack(jack.Jack):
     Router equality (should be false): False
     INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 18999) -> (...'127.0.0.1', 19999)
     Client ['udp4', ['127.0.0.1', 19999], 'stacy'] recieved from [...'udp4', [...'127.0.0.1', 18999], ...'charlie']: String('"A => B"')
-    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
+    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 19999) -> (...'127.0.0.1', 18999)
     Client ['udp4', ['127.0.0.1', 18999], 'charlie'] recieved from [...'udp4', [...'127.0.0.1', 19999], ...'stacy']: String('"B => A"')
     >>> jack.test_jacks(
     ...     ['udp', ['::1', 8999], 'charlie'],

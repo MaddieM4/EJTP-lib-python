@@ -48,7 +48,7 @@ class Frame(object):
         if self.type == self.T_J:
             self.raw_decode()
         if self.straddr:
-            self.addr = json.loads(self.straddr.export())
+            self.addr = json.loads(self.straddr.toString().export())
             if (not isinstance(self.addr, list) or len(self.addr)<3):
                 raise ValueError("Bad address: "+repr(self.addr))
         else:
@@ -93,7 +93,7 @@ class Frame(object):
         True
         '''
         if self.type == self.T_J:
-            return json.loads(self.content.export())
+            return json.loads(self.content.toString().export())
         else:
             raise TypeError("Cannot get jsoncontent of frame with type!='j'")
 

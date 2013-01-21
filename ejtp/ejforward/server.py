@@ -60,8 +60,8 @@ class ForwardServer(Client):
         >>> sender.owrite_json(
         ...     [server.interface, client.interface, dest.interface],
         ...     message
-        ... )
-        {u'type': u'example'}
+        ... ) # doctest: +ELLIPSIS
+        {...'type': ...'example'}
         '''
         address = str_address(msg.addr)
         if address in self.client_data:

@@ -163,10 +163,10 @@ def mock_locals(name1="c1", name2="c2"):
     >>> c1.encryptor_set(c2.interface, ['rotate', -7])
     >>> c1.router == c2.router
     True
-    >>> c1.write_json(c2.interface, "hello")
-    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [u'udp', [u'127.0.0.1', 555], u'c1']: RawData(2268656c6c6f22)
-    >>> c2.write_json(c1.interface, "goodbye")
-    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: RawData(22676f6f6462796522)
+    >>> c1.write_json(c2.interface, "hello") # doctest: +ELLIPSIS
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [...'udp', [...'127.0.0.1', 555], ...'c1']: RawData(2268656c6c6f22)
+    >>> c2.write_json(c1.interface, "goodbye") # doctest: +ELLIPSIS
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [...'udp', [...'127.0.0.1', 555], ...'c2']: RawData(22676f6f6462796522)
     '''
     from ejtp.router import Router
     r  = Router()

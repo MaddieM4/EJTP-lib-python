@@ -119,8 +119,8 @@ class ForwardClient(Client):
         Send a message to the server.
 
         >>> client, server = test_setup()
-        >>> client.upload("farfagnugen", {}) # Silly message type for testing purposes
-        WARNING:ejtp.ejforward.server: Unknown message type, u'farfagnugen'
+        >>> client.upload("farfagnugen", {}) # doctest: +ELLIPSIS 
+        WARNING:ejtp.ejforward.server: Unknown message type, ...'farfagnugen'
         '''
         data['type'] = dtype
         self.write_json(self.serveraddr, data)

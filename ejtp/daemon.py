@@ -253,8 +253,8 @@ def mock_locals(name1='c1', name2='c2'):
     INFO:ejtp.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})
     >>> daemon.router.client(interface) #doctest: +ELLIPSIS
     <ejtp.client.Client object at ...>
-    >>> daemon.router.client(interface).interface
-    [u'local', None, u'Exampley']
+    >>> daemon.router.client(interface).interface # doctest: +ELLIPSIS
+    [...'local', None, ...'Exampley']
     >>> control.client_destroy(interface)
     INFO:ejtp.daemon: Destroying client...
     INFO:ejtp.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
@@ -262,7 +262,7 @@ def mock_locals(name1='c1', name2='c2'):
     >>> repr(daemon.router.client(interface))
     'None'
     '''
-    from router import Router
+    from ejtp.router import Router
     r  = Router()
     ifaces = {
         'daemon':  ['local', None, name1],

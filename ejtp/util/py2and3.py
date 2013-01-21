@@ -57,9 +57,11 @@ class RawData(object):
                     # in python 2 iterating over bytes gives characters instead of integers
                     value = (ord(c) for c in value)
                 value = tuple(value)
-            elif isinstance(value, str) or (bytes==str and isinstance(value, unicode)):
-                # only unicode strings will get here
-                value = tuple((ord(c) for c in value.encode('utf-8')))
+            elif bytes==str and isinstance(value, unicode):
+                    value = tuple((ord(c) for c in value.encode('utf-8')))
+            elif isinstance(value, str):
+                # only python3 strings here
+                value = tuple(value.encode('utf-8'))
             elif isinstance(value, String):
                 value = value.toRawData()._data
             else:

@@ -52,12 +52,12 @@ class Router(object):
         INFO:ejtp.router: Router could not parse frame: 'kdfj;alfjl;'
 
         >>> # Undeliverable message, client doesn't exist
-        >>> r.recv('r["local",null,"example"]\\x00Jam and cookies')
-        INFO:ejtp.router: Router could not deliver frame: [u'local', None, u'example']
+        >>> r.recv('r["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
+        INFO:ejtp.router: Router could not deliver frame: [...'local', None, ...'example']
 
         >>> # Frame with no destination
-        >>> r.recv('s["local",null,"example"]\\x00Jam and cookies')
-        INFO:ejtp.router: Frame recieved directly from [u'local', None, u'example']
+        >>> r.recv('s["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
+        INFO:ejtp.router: Frame recieved directly from [...'local', None, ...'example']
 
         >>> # Frame with weird type
         >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')

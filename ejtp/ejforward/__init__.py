@@ -22,5 +22,5 @@ __all__ = [
 	'server',
 ]
 
-from client import ForwardClient
-from server import ForwardServer
+from ejtp.ejforward.client import ForwardClient
+from ejtp.ejforward.server import ForwardServer
