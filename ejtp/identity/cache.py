@@ -19,6 +19,8 @@ along with the Python EJTP library.  If not, see
 from ejtp.address import *
 from core import Identity, deserialize
 
+import json
+
 class IdentityCache(object):
     def __init__(self, source={}):
         self.cache = {}
@@ -141,6 +143,48 @@ class IdentityCache(object):
         for straddr in self.cache:
             result[straddr] = self.cache[straddr].serialize()
         return result
+
+    def load_from(self, file_path = None, file_object = None):
+        '''
+        Load data from a serialization file.
+
+        >>> cache = IdentityCache()
+        >>> cache.load_from()
+        Traceback (most recent call last):
+        ValueError: Must provide either file_path or file_object
+        >>> cache.load_from("resources/examplecache.json")
+        >>> cache.find_by_name("atlas@lackadaisy.com").location
+        [u'local', None, u'atlas']
+        '''
+        if not file_object:
+            if file_path and isinstance(file_path, basestring):
+                file_object = open(file_path, 'r')
+        if not file_object:
+            raise ValueError("Must provide either file_path or file_object")
+
+        self.deserialize(json.load(file_object))
+
+    def save_to(self, file_path = None, file_object = None, **kwargs):
+        '''
+        Save data to a serialization file.
+
+        >>> from ejtp import testing
+        >>> cache = IdentityCache()
+        >>> cache.update_ident(testing.identity("mitzi"))
+        >>> cache.update_ident(testing.identity("atlas"))
+        >>> cache.update_ident(testing.identity("victor"))
+        >>> cache.save_to()
+        Traceback (most recent call last):
+        ValueError: Must provide either file_path or file_object
+        >>> cache.save_to("resources/examplecache.json", indent=4)
+        '''
+        if not file_object:
+            if file_path and isinstance(file_path, basestring):
+                file_object = open(file_path, 'w')
+        if not file_object:
+            raise ValueError("Must provide either file_path or file_object")
+
+        json.dump(self.serialize(), file_object, **kwargs)
 
     def __repr__(self):
         return "<IdentityCache %r>" % repr(self.cache)
