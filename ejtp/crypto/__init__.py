@@ -23,38 +23,3 @@ __all__ = [
 	'rsa',
 	'rotate',
 ]
-
-from ejtp.util.py2and3 import get_unicode
-from .encryptor import make
-
-def bin_unicode(string):
-    '''
-    Turn binary data into serialized unicode.
-
-    >>> evilstr = chr(186) + chr(129) + chr(200)
-    >>> bin_unicode(evilstr)
-    u'\\xba\\x81\\xc8'
-    '''
-    return get_unicode()().join(unichr(ord(x)) for x in string)
-
-def bin_string(ustring):
-    '''
-    Turn binary data into serialized str.
-
-    >>> evilstr = chr(186) + chr(129) + chr(200)
-    >>> unicorn = bin_unicode(evilstr)
-    >>> unicorn
-    u'\\xba\\x81\\xc8'
-    >>> str(unicorn)
-    Traceback (most recent call last):
-    UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
-    >>> bin_string(unicorn)
-    '\\xba\\x81\\xc8'
-    >>> evilstr
-    '\\xba\\x81\\xc8'
-    >>> bin_string(unicorn) == evilstr
-    True
-    '''
-    # Using bytes here , because in python 2.x that's just a synonym for str but
-    # in python 3.x str is an unicode string rather than bytes
-    return bytes().join(chr(ord(x)) for x in ustring)

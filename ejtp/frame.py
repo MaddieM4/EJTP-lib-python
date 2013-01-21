@@ -24,49 +24,57 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util import hasher
-from ejtp.util.py2and3 import is_string
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.address import *
 import json
 
 PACKET_SIZE = 8192
 
 class Frame(object):
+    # Frame types
+    T_J = RawData('j')
+    T_R = RawData('r')
+    T_S = RawData('s')
+
+    @RawDataDecorator(strict=True)
     def __init__(self, data):
-        if is_string(data) or isinstance(data, Frame):
-            data = str(data)
-            self._load(data)
+        self._load(data)
 
     def _load(self, data):
         self.type = data[0]
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
-        if self.type =="j":
+        if self.type == self.T_J:
             self.raw_decode()
         if self.straddr:
-            self.addr = json.loads(self.straddr)
+            self.addr = json.loads(self.straddr.toString().export())
             if (not isinstance(self.addr, list) or len(self.addr)<3):
                 raise ValueError("Bad address: "+repr(self.addr))
         else:
             self.addr = None
 
-    def __str__(self):
+    @RawDataDecorator(args=False, ret=True, strict=True)
+    def bytes(self):
         return self.type+self.straddr+'\x00'+self.ciphercontent
 
+    def __str__(self):
+        raise Exception()
+
     def __repr__(self):
-        return repr(str(self))
+        return 'Frame: ' + repr(self.bytes())
 
     def decode(self, encryptor):
         if not self.decoded:
-            if self.type == "r":
-                self.content = encryptor.decrypt(self.ciphercontent)
-            elif self.type == "s":
+            if self.type == self.T_R:
+                self.content = encryptor.decrypt(self.ciphercontent.export())
+            elif self.type == self.T_S:
                 # Extract data
-                self.sigsize   = ord(self.ciphercontent[0])*256 + ord(self.ciphercontent[1])
+                self.sigsize   = int(self.ciphercontent[0])*256 + int(self.ciphercontent[1])
                 self.signature = self.ciphercontent[2:self.sigsize+2]
                 self.content   = self.ciphercontent[self.sigsize+2:]
                 # Verify signature
-                if not encryptor.sig_verify(self.content, self.signature):
+                if not encryptor.sig_verify(self.content.export(), self.signature.export()):
                     raise ValueError("Invalid signature")
         return self.content
 
@@ -84,15 +92,16 @@ class Frame(object):
         >>> f.jsoncontent == example
         True
         '''
-        if self.type == "j":
-            return json.loads(self.content)
+        if self.type == self.T_J:
+            return json.loads(self.content.toString().export())
         else:
-            raise TypeError("Cannot get jsoncontent of frame with type %r" % self.type)
+            raise TypeError("Cannot get jsoncontent of frame with type!='j'")
 
     @property
     def decoded(self):
         return hasattr(self, "content")
 
+@RawDataDecorator()
 def onion(msg, hops=[]):
     '''
         Encrypt a frame into multiple hops.
@@ -103,22 +112,22 @@ def onion(msg, hops=[]):
     '''
     hops.reverse()
     for (addr, encryptor) in hops:
-        msg = str(make('r', py_address(addr), encryptor, str(msg)))
+        msg = make(Frame.T_R, py_address(addr), encryptor, msg.bytes())
     return msg
 
 def make(type, addr, encryptor, content):
-    straddr = ""
+    straddr = RawData()
     if addr != None:
         straddr = hasher.strict(addr)
     if encryptor:
-        if type=='s':
-            signature = encryptor.sign(content)
+        if type==Frame.T_S:
+            signature = encryptor.sign(content.export())
             siglen = len(signature)
-            ciphercontent = chr(siglen // 256) + chr(siglen % 256) + signature + content
+            ciphercontent = RawData(siglen // 256) + RawData(siglen % 256) + signature + content
         else:
-            ciphercontent = encryptor.encrypt(content)
+            ciphercontent = encryptor.encrypt(content.export())
     else:
         ciphercontent = content
-    msg = Frame(type +straddr+'\x00'+ciphercontent)
+    msg = Frame(type+straddr+'\x00'+ciphercontent)
     msg.content = content
     return msg

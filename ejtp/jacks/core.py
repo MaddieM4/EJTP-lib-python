@@ -75,21 +75,21 @@ def make(router, iface):
     t = iface[0]
     # UDP Jack
     if t == "udp":
-        import udpjack
+        from ejtp.jacks import udpjack
         host, port = iface[1]
         return udpjack.UDPJack(router, host=host, port=port)
     elif t == "udp4":
-        import udpjack
+        from ejtp.jacks import udpjack
         host, port = iface[1]
         return udpjack.UDPJack(router, host=host, port=port, ipv=4)
 
     # TCP Jack
     elif t == "tcp":
-        import tcp
+        from ejtp.jacks import tcp
         host, port = iface[1]
         return tcp.TCPJack(router, host=host, port=port)
     elif t == "tcp4":
-        import tcp
+        from ejtp.jacks import tcp
         host, port = iface[1]
         return tcp.TCPJack(router, host=host, port=port, ipv=4)
 
@@ -118,7 +118,7 @@ def test_jacks(ifaceA, ifaceB):
     def rcv_callback(msg, client_obj):
         transfer_condition.acquire()
         with print_lock:
-            print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content))
+            print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content.toString()))
         transfer_condition.notify_all()
         transfer_condition.release()
     clientA.rcv_callback = rcv_callback

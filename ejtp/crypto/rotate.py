@@ -17,22 +17,27 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-from . import encryptor
+from ejtp.crypto import encryptor
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 
 class RotateEncryptor(encryptor.Encryptor):
     def __init__(self, offset):
         self.offset = offset
 
+    @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, source):
         return self.rotate(source, self.offset)
 
+    @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, source):
         return self.rotate(source, -self.offset)
-
+    
+    @RawDataDecorator(args=False, ret=True, strict=True)
     def rotate(self, source, offset):
-        result = ""
+        # not checking args here, because offset would be converted to RawData
+        result = RawData()
         for i in source:
-            result += chr((ord(i)+offset) % 256)
+            result += (int(i)+offset) % 256
         return result
 
     def proto(self):

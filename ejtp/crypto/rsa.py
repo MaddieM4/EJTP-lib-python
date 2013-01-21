@@ -21,7 +21,8 @@ try:
     import thread
 except ImportError: # in python3.x it's renamed to _thread
     import _thread as thread
-import encryptor
+from ejtp.crypto import encryptor
+from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
 
 from   Crypto.PublicKey import RSA as rsalib
 from   Crypto.Cipher import PKCS1_OAEP as Cipher
@@ -30,6 +31,7 @@ import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
 class RSA(encryptor.Encryptor):
+    @StringDecorator()
     def __init__(self, keystr, bits=None):
         self.keystr = keystr
         self._key = None
@@ -39,27 +41,28 @@ class RSA(encryptor.Encryptor):
         else:
             self.set_key(rsalib.importKey(keystr))
 
+    @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, value):
         # Process in blocks
-        value  = str(value)
         length = len(value)
         split  = self.input_blocksize
         if length > split:
-            return self.encrypt(value[:split]) + self.encrypt(value[split:])
+            return self.encrypt(value[:split].export()) + self.encrypt(value[split:].export())
         else:
             return self.cipher.encrypt(value)
 
+    @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
-        value  = str(value)
         length = len(value)
         split  = self.output_blocksize
         if length > split:
-            return self.decrypt(value[:split]) + self.decrypt(value[split:])
+            return self.decrypt(value[:split].export()) + self.decrypt(value[split:].export())
         elif length == split:
-            return self.cipher.decrypt(value)
+            return self.cipher.decrypt(value.export())
         else:
             raise ValueError("Wrong size for ciphertext, expected %d and got %d" % (split, length))
 
+    @RawDataDecorator(ret=True, strict=True)
     def sign(self, plaintext):
         '''
         Override version using PKCS1_PSS signing to sign (and randomly salt) plaintext.
@@ -69,7 +72,8 @@ class RSA(encryptor.Encryptor):
         except TypeError:
             # Raise consistent error description, regardless of PyCrypto version
             raise TypeError("RSA encryptor cannot sign without private key")
-
+    
+    @RawDataDecorator(strict=True)
     def sig_verify(self, plaintext, signature):
         '''
         Override version using PKCS1_PSS signing to verify a signature.
@@ -94,7 +98,7 @@ class RSA(encryptor.Encryptor):
         Traceback (most recent call last):
         TypeError: RSA encryptor cannot sign without private key
         '''
-        return self.signer.verify(self.hash_obj(plaintext), signature)
+        return self.signer.verify(self.hash_obj(plaintext), signature.export())
 
     # Locking properties
 
