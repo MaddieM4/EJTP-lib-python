@@ -25,6 +25,7 @@ from ejtp.util.hasher import strict, make as hashfunc
 from ejtp.address import *
 from ejtp import frame
 from ejtp import jacks
+from ejtp import identity
 
 class Client(object):
     def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
@@ -36,7 +37,7 @@ class Client(object):
         self.router = router
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
-        self.encryptor_cache = encryptor_cache or dict()
+        self.encryptor_cache = encryptor_cache or identity.IdentityCache()
         if make_jack:
             jacks.make(router, interface)
 
@@ -108,7 +109,7 @@ class Client(object):
 
     def encryptor_get(self, address):
         address = str_address(address)
-        return make(self.encryptor_cache[address])
+        return make(self.encryptor_cache[address].encryptor)
 
     def encryptor_set(self, address, encryptor):
         '''
@@ -120,8 +121,12 @@ class Client(object):
         >>> e.encrypt("Aquaboogie")
         'Euyefsskmi'
         '''
-        address = str_address(address)
-        self.encryptor_cache[address] = list(encryptor)
+        address = py_address(address)
+        if not address in self.encryptor_cache:
+            dummy_ident = identity.Identity(None, encryptor, address)
+            self.encryptor_cache.update_ident(dummy_ident)
+        else:
+            self.encryptor_cache[address].encryptor = list(encryptor)
 
     def sign(self, obj):
         '''

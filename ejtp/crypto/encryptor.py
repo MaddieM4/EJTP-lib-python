@@ -105,6 +105,8 @@ def make(data):
     if is_string(data):
         import json
         data = json.loads(data)
+    if isinstance(data, Encryptor):
+        return data
     t = data[0]
     args = data[1:]
     if t=="rotate":
