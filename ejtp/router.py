@@ -61,22 +61,23 @@ class Router(object):
 
         >>> # Frame with weird type
         >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')
-        INFO:ejtp.router: Frame has a type that the router does not understand (x)
+        INFO:ejtp.router: Frame has a type that the router does not understand (RawData(78))
         '''
         logger.debug("Handling frame: %s", repr(msg))
-        try:
-            msg = Frame(msg)
-        except Exception as e:
-            logger.info("Router could not parse frame: %s", repr(msg))
-            return
-        if msg.type == "r":
+        if not isinstance(msg, Frame):
+            try:
+                msg = Frame(msg)
+            except Exception as e:
+                logger.info("Router could not parse frame: %s", repr(msg))
+                return
+        if msg.type == msg.T_R:
             recvr = self.client(msg.addr) or self.jack(msg.addr)
             if recvr:
                 with Guard():
                     recvr.route(msg)
             else:
                 logger.info("Router could not deliver frame: %s", str(msg.addr))
-        elif msg.type == "s":
+        elif msg.type == msg.T_S:
             logger.info("Frame recieved directly from %s", str(msg.addr))
         else:
             logger.info("Frame has a type that the router does not understand (%s)", msg.type)

@@ -30,13 +30,12 @@ import json
 
 PACKET_SIZE = 8192
 
-TYPES = {
-    'j': RawData('j'),
-    'r': RawData('r'),
-    's': RawData('s'),
-}
-
 class Frame(object):
+    # Frame types
+    T_J = RawData('j')
+    T_R = RawData('r')
+    T_S = RawData('s')
+
     @RawDataDecorator(strict=True)
     def __init__(self, data):
         self._load(data)
@@ -46,7 +45,7 @@ class Frame(object):
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
-        if self.type == TYPES['j']:
+        if self.type == self.T_J:
             self.raw_decode()
         if self.straddr:
             self.addr = json.loads(self.straddr.export())
@@ -55,17 +54,21 @@ class Frame(object):
         else:
             self.addr = None
 
+    @RawDataDecorator(args=False, ret=True, strict=True)
+    def bytes(self):
+        return self.type+self.straddr+'\x00'+self.ciphercontent
+
     def __str__(self):
-        return str(self.type+self.straddr+'\x00'+self.ciphercontent)
+        raise Exception()
 
     def __repr__(self):
-        return repr(str(self))
+        return 'Frame: ' + repr(self.bytes())
 
     def decode(self, encryptor):
         if not self.decoded:
-            if self.type == TYPES['r']:
+            if self.type == self.T_R:
                 self.content = encryptor.decrypt(self.ciphercontent.export())
-            elif self.type == TYPES['s']:
+            elif self.type == self.T_S:
                 # Extract data
                 self.sigsize   = int(self.ciphercontent[0])*256 + int(self.ciphercontent[1])
                 self.signature = self.ciphercontent[2:self.sigsize+2]
@@ -89,7 +92,7 @@ class Frame(object):
         >>> f.jsoncontent == example
         True
         '''
-        if self.type == TYPES['j']:
+        if self.type == self.T_J:
             return json.loads(self.content.export())
         else:
             raise TypeError("Cannot get jsoncontent of frame with type!='j'")
@@ -99,7 +102,6 @@ class Frame(object):
         return hasattr(self, "content")
 
 @RawDataDecorator()
-@RawDataDecorator(args=False, ret=True, strict=True)
 def onion(msg, hops=[]):
     '''
         Encrypt a frame into multiple hops.
@@ -110,22 +112,20 @@ def onion(msg, hops=[]):
     '''
     hops.reverse()
     for (addr, encryptor) in hops:
-        msg = make(TYPES['r'], py_address(addr), encryptor, msg)
+        msg = make(Frame.T_R, py_address(addr), encryptor, msg.bytes())
     return msg
 
-@RawDataDecorator()
-@RawDataDecorator(args=False, ret=True, strict=True)
 def make(type, addr, encryptor, content):
     straddr = RawData()
     if addr != None:
         straddr = hasher.strict(addr)
     if encryptor:
-        if type==TYPES['s']:
+        if type==Frame.T_S:
             signature = encryptor.sign(content.export())
             siglen = len(signature)
             ciphercontent = RawData(siglen // 256) + RawData(siglen % 256) + signature + content
         else:
-            ciphercontent = encryptor.encrypt(content)
+            ciphercontent = encryptor.encrypt(content.export())
     else:
         ciphercontent = content
     msg = Frame(type+straddr+'\x00'+ciphercontent)

@@ -43,11 +43,11 @@ def py_address(address):
         >>> py_address("[0,9]")
         [0, 9]
     '''
-    if isinstance(address, String) or isinstance(address, RawData):
+    if isinstance(address, String):
         return loads(address.export())
     elif isinstance(address, list):
         return address
     elif isinstance(address, tuple):
-        return loads(strict(address))
+        return loads(strict(address).export())
     else:
         raise ValueError("Can not convert to py_address: %r" % address)

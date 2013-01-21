@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 from ejtp.client import Client
 from ejtp.address import *
 from ejtp.util.hasher import make as hashfunc
-from ejtp.util.py2and3 import String
+from ejtp.util.py2and3 import RawData, String
 
 class ForwardServer(Client):
     def __init__(self, router, interface, **kwargs):
@@ -56,8 +56,6 @@ class ForwardServer(Client):
         >>> def rcv_callback(msg, client):
         ...     print(msg.jsoncontent)
         >>> message = {'type':'example'}
-        >>> print(message)
-        {'type': 'example'}
         >>> dest.rcv_callback = rcv_callback
         >>> sender.owrite_json(
         ...     [server.interface, client.interface, dest.interface],
@@ -67,7 +65,7 @@ class ForwardServer(Client):
         '''
         address = str_address(msg.addr)
         if address in self.client_data:
-            mhash = self.store_message(address, str(msg))
+            mhash = self.store_message(address, msg.bytes())
             self.message(address, mhash)
         else:
             self.send(msg)
@@ -106,7 +104,7 @@ class ForwardServer(Client):
             {
                 'type':'ejforward-message',
                 'target':target,
-                'data':String(self.client(target)['messages'][mhash]).export()
+                'data':RawData(self.client(target)['messages'][String(mhash)])
             },
         )
 
@@ -122,6 +120,7 @@ class ForwardServer(Client):
         return mhash
 
     def delete_message(self, target, chophash):
+        chophash = String(chophash)
         client = self.client(target)
         client['chopping_block'].remove(chophash)
         chopsize = len(client['messages'][chophash])
@@ -148,7 +147,7 @@ class ForwardServer(Client):
 
         >>> server.client(address)
         Traceback (most recent call last):
-        KeyError: '["sad thoughts","lonely eyes"]'
+        KeyError: String('["sad thoughts","lonely eyes"]')
 
         Storing and accessing data.
 
@@ -178,7 +177,7 @@ class ForwardServer(Client):
         >>> server.setup_client(address)
         >>> from ejtp.util.hasher import strict
         >>> strict(server.client(address))
-        '{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}'
+        String('{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}')
         '''
         self.create_client(address, self.default_data)
 

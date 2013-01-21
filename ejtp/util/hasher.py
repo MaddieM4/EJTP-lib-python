@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import String, RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
 from hashlib import new
 import json
 
@@ -41,22 +41,22 @@ def maken(string, n):
 
 @StringDecorator()
 @StringDecorator(args=False, ret=True, strict=True)
-def strict(obj):
+def strict(obj=None):
     ''' Convert an object into a strict JSON string '''
     if isinstance(obj, bool) or obj==None or isinstance(obj, int):
         return json.dumps(obj)
     if isinstance(obj, String):
         return json.dumps(obj.export())
+    if isinstance(obj, RawData):
+        obj = tuple(obj)
     if isinstance(obj, list) or isinstance(obj, tuple):
-        return "[%s]" % ",".join([strict(x) for x in obj])
+        return "[%s]" % ",".join([strict(x).export() for x in obj])
     if isinstance(obj, dict):
         strdict = {}
         for key in obj:
-            strdict[str(key)] = obj[key]
+            strdict[key] = obj[key]
         keys = sorted(strdict.keys())
-        return "{%s}" % ",".join([strict(key)+":"+strict(strdict[key]) for key in keys])
-    else:
-        raise TypeError("obj is not JSONable")
+        return "{%s}" % ",".join([strict(key).export()+":"+strict(strdict[key]).export() for key in keys])
 
 @StringDecorator(strict=True)
 def strictify(jsonstring):

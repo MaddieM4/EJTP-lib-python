@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 from ejtp.util.hasher import strict
-from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import String, RawDataDecorator, StringDecorator
 from Crypto.Hash import SHA256 as hashclass
 
 class Encryptor(object):

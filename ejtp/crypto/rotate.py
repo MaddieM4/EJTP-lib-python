@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawDataDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 
 class RotateEncryptor(encryptor.Encryptor):
     def __init__(self, offset):
@@ -35,7 +35,7 @@ class RotateEncryptor(encryptor.Encryptor):
     @RawDataDecorator(args=False, ret=True, strict=True)
     def rotate(self, source, offset):
         # not checking args here, because offset would be converted to RawData
-        result = ""
+        result = RawData()
         for i in source:
             result += (int(i)+offset) % 256
         return result
