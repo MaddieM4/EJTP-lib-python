@@ -19,7 +19,7 @@ along with the Python EJTP library.  If not, see
 import ejtp.crypto
 
 class Identity(object):
-    def __init__(self, name, encryptor, location):
+    def __init__(self, name, encryptor, location, **kwargs):
         '''
         >>> ident = Identity("joe", ['rotate', 8], None)
         >>> ident.name
@@ -36,10 +36,22 @@ class Identity(object):
         >>> ident.verify_signature(sig, plaintext)
         True
         '''
-        self._name = name
-        self._encryptor_proto = encryptor
+        self._contents = {
+            'name': name,
+            'encryptor': encryptor,
+            'location': location,
+        }
+        self._contents.update(kwargs)
         self._encryptor = None
-        self._location = location
+
+    def __getitem__(self, i):
+        return self._contents[i]
+
+    def __setitem__(self, i, v):
+        self._contents[i] = v
+
+    def __delitem__(self, i):
+        del self._contents[i]
 
     def sign(self, plaintext):
         return self.encryptor.sign(plaintext)
@@ -66,28 +78,97 @@ class Identity(object):
         public_proto = self.encryptor.public()
         return Identity(self.name, public_proto, self.location)
 
+    def serialize(self):
+        '''
+        Serialize Identity object to dict.
+
+        >>> from ejtp import testing
+        >>> import json
+        >>> print json.dumps(
+        ...     testing.identity().serialize(),
+        ...     indent=4,
+        ... ) #doctest: +ELLIPSIS
+        {
+            "encryptor": [
+                "rsa", 
+                "..."
+            ], 
+            "name": "mitzi@lackadaisy.com", 
+            "location": [
+                "local", 
+                null, 
+                "mitzi"
+            ]
+        }
+        '''
+        self['encryptor'] = self.encryptor.proto()
+        return self._contents
+
     @property
     def name(self):
-        return self._name
+        return self['name']
+
+    @name.setter
+    def name(self, v):
+        self['name'] = v
+
+    @property
+    def location(self):
+        return self['location']
+
+    @location.setter
+    def location(self, v):
+        self['location'] = v
 
     @property
     def encryptor(self):
         if not self._encryptor:
-            self._encryptor = ejtp.crypto.make(self._encryptor_proto)
+            self._encryptor = ejtp.crypto.make(self['encryptor'])
         return self._encryptor
 
     @encryptor.setter
     def encryptor(self, new_encryptor):
         self._encryptor = ejtp.crypto.make(new_encryptor)
-        self._encryptor_proto = self.encryptor.proto()
+        self['encryptor'] = self.encryptor.proto()
 
-    @property
-    def location(self):
-        if self._location:
-            return self._location
-        else:
-            raise AttributeError("Identity location not set")
+def deserialize(ident_dict):
+    '''
+    Deserialize a dict into an Identity.
 
-    @location.setter
-    def location(self, value):
-        self._location = value
+    >>> id_dict = {}
+    >>> ident = deserialize(id_dict)
+    Traceback (most recent call last):
+    ValueError: Missing ident property: 'name'
+    >>> id_dict['name'] = "Calvin"
+    >>> ident = deserialize(id_dict)
+    Traceback (most recent call last):
+    ValueError: Missing ident property: 'location'
+    >>> id_dict['location'] = ["local", None, "calvin-freckle-mcmurray"]
+    >>> ident = deserialize(id_dict)
+    Traceback (most recent call last):
+    ValueError: Missing ident property: 'encryptor'
+    >>> id_dict['encryptor'] = ['rotate', 4]
+    >>> id_dict['comment'] = "Lives dangerously under Rocky's \\"guidance.\\""
+    >>> ident = deserialize(id_dict)
+    >>> ident.name
+    'Calvin'
+    >>> ident.location
+    ['local', None, 'calvin-freckle-mcmurray']
+    >>> ident.encryptor #doctest: +ELLIPSIS
+    <ejtp.crypto.rotate.RotateEncryptor object at ...>
+    >>> ident['comment']
+    'Lives dangerously under Rocky\\'s "guidance."'
+    '''
+    for req in ('name', 'location', 'encryptor'):
+        if not req in ident_dict:
+            raise ValueError("Missing ident property: %r" % req)
+
+    name      = ident_dict['name']
+    location  = ident_dict['location']
+    encryptor = ident_dict['encryptor']
+
+    cleaned = {}
+    cleaned.update(ident_dict)
+    del cleaned['name'], cleaned['location'], cleaned['encryptor']
+
+    return Identity(name, encryptor, location, **cleaned)
