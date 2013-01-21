@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.address import *
-from core import Identity
+from core import Identity, deserialize
 
 class IdentityCache(object):
     def __init__(self, source={}):
@@ -101,6 +101,46 @@ class IdentityCache(object):
         ['["local",null,"atlas"]', '["local",null,"mitzi"]']
         '''
         sync_caches(self, *caches)
+
+    def deserialize(self, cache_dict):
+        '''
+        Deserialize IdentityCache from straddr-keyed dict.
+
+        >>> from ejtp import testing
+        >>> orig_cache = IdentityCache()
+        >>> orig_cache.update_ident(testing.identity("mitzi"))
+        >>> orig_cache.update_ident(testing.identity("atlas"))
+
+        >>> serialization = orig_cache.serialize()
+        >>> new_cache = IdentityCache()
+        >>> new_cache.deserialize(serialization)
+
+        >>> new_cache.find_by_name("mitzi@lackadaisy.com").location
+        ['local', None, 'mitzi']
+        '''
+        for straddr in cache_dict:
+            ident = deserialize(cache_dict[straddr])
+            if str_address(ident.location) != straddr:
+                raise ValueError(   "Bad location key %r for %r", 
+                                    straddr,
+                                    ident.location)
+            self.update_ident(ident)
+
+    def serialize(self):
+        '''
+        Serialize IdentityCache to straddr-keyed dict.
+
+        >>> from ejtp import testing
+        >>> cache = IdentityCache()
+        >>> cache.update_ident(testing.identity("mitzi"))
+        >>> cache.update_ident(testing.identity("atlas"))
+        >>> cache.serialize() #doctest: +ELLIPSIS
+        {'["local",null,"mitzi"]': {...}, '["local",null,"atlas"]': {...}}
+        '''
+        result = {}
+        for straddr in self.cache:
+            result[straddr] = self.cache[straddr].serialize()
+        return result
 
     def __repr__(self):
         return "<IdentityCache %r>" % repr(self.cache)
