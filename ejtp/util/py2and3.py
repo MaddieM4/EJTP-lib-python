@@ -224,7 +224,10 @@ class String(object):
         if isinstance(string, String):
             string = string._data
         elif isinstance(string, RawData):
-            string = string.toString()._data
+            try:
+                string = string.toString()._data
+            except UnicodeDecodeError:
+                raise TypeError("can't convert RawData to String")
         elif isinstance(string, bytes):
             string = RawData(string).toString()._data
         elif (bytes == str):
