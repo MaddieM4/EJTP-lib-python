@@ -115,6 +115,19 @@ class RawData(object):
         '''
         return self.__class__(self._data.__getitem__(key))
 
+    def __contains__(self, key):
+        '''
+        >>> 'a' in RawData('abc')
+        True
+        '''
+        try:
+            key = self.__class__(key)
+        except (TypeError, ValueError):
+            return False
+        if len(key) > 1:
+            return False
+        return self._data.__contains__(key._data[0])
+
     def __iter__(self):
         '''
         >>> for c in RawData('abc'):
@@ -172,7 +185,7 @@ class RawData(object):
         '''
         if not isinstance(byte, RawData):
             try:
-                byte = RawData(byte)
+                byte = self.__class__(byte)
             except (TypeError, ValueError):
                 raise TypeError("can't convert byte to RawData")
         if len(byte) != 1:
@@ -181,7 +194,24 @@ class RawData(object):
             return self._data.index(byte._data[0])
         except ValueError:
             raise ValueError('byte not in RawData')
-      
+
+    def split(self, byte, maxsplit=-1):
+        '''
+        Splits RawData on every occurrence of byte.
+
+        >>> RawData('a:b:c').split(':') == [RawData('a'), RawData('b'), RawData('c')]
+        True
+        >>> RawData('a:b:c').split(':', 1) == [RawData('a'), RawData('b:c')]
+        True
+        '''
+        if (maxsplit == 0):
+            return [self]
+        try:
+            ind = self.index(byte)
+        except ValueError:
+            return [self]
+        return [self.__class__(self._data[:ind])] + self.__class__(self._data[ind+1:]).split(byte, maxsplit-1)
+
     def toString(self):
         '''
         >>> RawData('abc').toString() == String('abc')
@@ -333,7 +363,7 @@ class String(object):
         '''
         if not isinstance(substr, String):
             try:
-                substr = String(substr)
+                substr = self.__class__(substr)
             except TypeError:
                 raise TypeError("can't convert substr to String")
         try:
