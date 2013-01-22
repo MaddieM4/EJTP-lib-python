@@ -13,6 +13,7 @@ setup(
         'scripts/ejtpd',
         'scripts/ejtp-keygen',
         'scripts/ejtp-test',
+        'scripts/ejtp-console',
     ],
 	packages = [
 		'ejtp',
