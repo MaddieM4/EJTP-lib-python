@@ -125,7 +125,7 @@ class IdentityCache(object):
         '''
         for straddr in cache_dict:
             ident = deserialize(cache_dict[straddr])
-            if str_address(ident.location) != straddr:
+            if str_address(ident.location) != str_address(straddr):
                 raise ValueError(   "Bad location key %r for %r", 
                                     straddr,
                                     ident.location)
@@ -144,7 +144,7 @@ class IdentityCache(object):
         '''
         result = {}
         for straddr in self.cache:
-            result[straddr] = self.cache[straddr].serialize()
+            result[straddr.export()] = self.cache[straddr].serialize()
         return result
 
     @StringDecorator()
@@ -161,7 +161,9 @@ class IdentityCache(object):
         [u'local', None, u'atlas']
         '''
         if not file_object:
-            if file_path and isinstance(file_path, String):
+            if file_path:
+                if isinstance(file_path, String):
+                    file_path = file_path.export()
                 file_object = open(file_path, 'r')
         if not file_object:
             raise ValueError("Must provide either file_path or file_object")
@@ -184,7 +186,9 @@ class IdentityCache(object):
         >>> cache.save_to("resources/examplecache.json", indent=4)
         '''
         if not file_object:
-            if file_path and isinstance(file_path, String):
+            if file_path:
+                if isinstance(file_path, String):
+                    file_path = file_path.export()
                 file_object = open(file_path, 'w')
         if not file_object:
             raise ValueError("Must provide either file_path or file_object")
