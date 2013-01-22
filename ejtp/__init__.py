@@ -26,7 +26,6 @@ __all__ = [
 	'ejforward',
 	'frame',
 	'identity',
-	'interactive',
 	'jacks',
 	'motd',
 	'router',
