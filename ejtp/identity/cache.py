@@ -48,8 +48,7 @@ class IdentityCache(object):
         Traceback (most recent call last):
         TypeError: Expected ejtp.identity.core.Identity, got []
 
-        >>> ident.location.reverse()
-        >>> cache[ident.location.reverse()] = ident
+        >>> cache[['x', 'y', 'z']] = ident
         Traceback (most recent call last):
         ValueError: Trying to cache ident in the wrong location
 
@@ -66,9 +65,7 @@ class IdentityCache(object):
         location = str_address(location)
         if location != str_address(value.location):
             raise ValueError(
-                'Trying to cache ident in the wrong location',
-                location,
-                str_address(value.location)
+                'Trying to cache ident in the wrong location'
             )
         self.cache[location] = value
 
