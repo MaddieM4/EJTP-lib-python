@@ -355,8 +355,8 @@ class String(object):
   
     def __hash__(self):
         '''
-        >>> hash(String('abc'))
-        1453079729188098211
+        >>> hash(String('abc')) == hash(String('abc')._data)
+        True
         '''
         return self._data.__hash__()
       
