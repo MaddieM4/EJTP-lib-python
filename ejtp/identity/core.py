@@ -32,7 +32,7 @@ class Identity(object):
         >>> plaintext = "example"
         >>> sig = ident.sign(plaintext)
         >>> sig
-        'H\\xd0P\\xd8\\x90V\\xc4wX9\\x82\\xa7\\x04\\xbd\\xa3Pw:\\xbaO\\x02\\x808\\x8d\\xa1\\xe0\\xc4\\xa4\\xc8\\xeeLT'
+        RawData(48d050d89056c477583982a704bda350773aba4f0280388da1e0c4a4c8ee4c54)
         >>> ident.verify_signature(sig, plaintext)
         True
         '''

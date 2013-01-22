@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.address import *
+from ejtp.util.py2and3 import String, StringDecorator
 from core import Identity, deserialize
 
 import json
@@ -47,6 +48,7 @@ class IdentityCache(object):
         Traceback (most recent call last):
         TypeError: Expected ejtp.identity.core.Identity, got []
 
+        >>> ident.location.reverse()
         >>> cache[ident.location.reverse()] = ident
         Traceback (most recent call last):
         ValueError: Trying to cache ident in the wrong location
@@ -63,7 +65,11 @@ class IdentityCache(object):
             )
         location = str_address(location)
         if location != str_address(value.location):
-            raise ValueError('Trying to cache ident in the wrong location')
+            raise ValueError(
+                'Trying to cache ident in the wrong location',
+                location,
+                str_address(value.location)
+            )
         self.cache[location] = value
 
     def __delitem__(self, location):
@@ -93,14 +99,14 @@ class IdentityCache(object):
         >>> mitzi_cache.update_ident(testing.identity("mitzi"))
         >>> atlas_cache.update_ident(testing.identity("atlas"))
         >>> sorted(atlas_cache.cache.keys())
-        ['["local",null,"atlas"]']
+        [String('["local",null,"atlas"]')]
         >>> sorted(mitzi_cache.cache.keys())
-        ['["local",null,"mitzi"]']
+        [String('["local",null,"mitzi"]')]
         >>> mitzi_cache.sync(atlas_cache)
         >>> sorted(atlas_cache.cache.keys())
-        ['["local",null,"atlas"]', '["local",null,"mitzi"]']
+        [String('["local",null,"atlas"]'), String('["local",null,"mitzi"]')]
         >>> sorted(mitzi_cache.cache.keys())
-        ['["local",null,"atlas"]', '["local",null,"mitzi"]']
+        [String('["local",null,"atlas"]'), String('["local",null,"mitzi"]')]
         '''
         sync_caches(self, *caches)
 
@@ -137,13 +143,14 @@ class IdentityCache(object):
         >>> cache.update_ident(testing.identity("mitzi"))
         >>> cache.update_ident(testing.identity("atlas"))
         >>> cache.serialize() #doctest: +ELLIPSIS
-        {'["local",null,"mitzi"]': {...}, '["local",null,"atlas"]': {...}}
+        {String('["local",null,"mitzi"]'): {...}, String('["local",null,"atlas"]'): {...}}
         '''
         result = {}
         for straddr in self.cache:
             result[straddr] = self.cache[straddr].serialize()
         return result
 
+    @StringDecorator()
     def load_from(self, file_path = None, file_object = None):
         '''
         Load data from a serialization file.
@@ -157,13 +164,14 @@ class IdentityCache(object):
         [u'local', None, u'atlas']
         '''
         if not file_object:
-            if file_path and isinstance(file_path, basestring):
+            if file_path and isinstance(file_path, String):
                 file_object = open(file_path, 'r')
         if not file_object:
             raise ValueError("Must provide either file_path or file_object")
 
         self.deserialize(json.load(file_object))
 
+    @StringDecorator()
     def save_to(self, file_path = None, file_object = None, **kwargs):
         '''
         Save data to a serialization file.
@@ -179,7 +187,7 @@ class IdentityCache(object):
         >>> cache.save_to("resources/examplecache.json", indent=4)
         '''
         if not file_object:
-            if file_path and isinstance(file_path, basestring):
+            if file_path and isinstance(file_path, String):
                 file_object = open(file_path, 'w')
         if not file_object:
             raise ValueError("Must provide either file_path or file_object")

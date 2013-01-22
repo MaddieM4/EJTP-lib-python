@@ -23,3 +23,5 @@ __all__ = [
 	'rsa',
 	'rotate',
 ]
+
+from encryptor import make

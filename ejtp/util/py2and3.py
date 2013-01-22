@@ -282,6 +282,30 @@ class String(object):
             return self._data.__eq__(other._data)
         return NotImplemented
 
+    def __ne__(self, other):
+        '''
+        >>> String('abc') != String(RawData((97, 98, 99)))
+        False
+        >>> String('abc') != 'abc'
+        True
+        '''
+        if isinstance(other, self.__class__):
+            return not self._data.__eq__(other._data)
+        return NotImplemented
+
+    def __cmp__(self, other):
+        '''
+        >>> cmp(String('abc'), String('bbc'))
+        -1
+        >>> cmp(String('abc'), String('abc'))
+        0
+        >>> cmp(String('bbc'), String('abc'))
+        1
+        '''
+        if isinstance(other, self.__class__):
+            return cmp(self._data, other._data)
+        return NotImplemented
+
     def __add__(self, other):
         '''
         >>> String('a') + String('b') == String('ab')
