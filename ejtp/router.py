@@ -59,6 +59,16 @@ class Router(object):
         >>> # Frame with weird type
         >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')
         INFO:ejtp.router: Frame has a type that the router does not understand (x)
+
+        >>> # Frame with malformed compressed data
+        >>> r.recv('z\\x00Garbage')
+        INFO:ejtp.router: Router could not decompress frame: 'z\\x00Garbage' (Error -3 while decompressing data: incorrect header check)
+
+        >>> # Compressed frame with malformed underlying frame
+        >>> import zlib
+        >>> import frame
+        >>> r.recv(frame.compress("asdkfjh"))
+        INFO:ejtp.router: Router could not decompress frame: 'z\\x00x\\x9cK,N\\xc9N\\xcb\\xca\\x00\\x00\\x0bn\\x02\\xdc' (substring not found)
         '''
         logger.debug("Handling frame: %s", repr(msg))
         try:
@@ -67,7 +77,12 @@ class Router(object):
             logger.info("Router could not parse frame: %s", repr(msg))
             return
         if msg.type == "z":
-            msg = decompress(msg)
+            try:
+                msg = decompress(msg)
+            except Exception as e:
+                logger.info("Router could not decompress frame: %s (%s)", repr(msg), e)
+                return
+            logger.debug("Frame decompressed to: %s", repr(msg))
         if msg.type == "r":
             recvr = self.client(msg.addr) or self.jack(msg.addr)
             if recvr:
