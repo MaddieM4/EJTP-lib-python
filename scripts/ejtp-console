@@ -73,7 +73,11 @@ class Interactive(object):
 
     def rcv_callback(self, msg, client):
         content = json.loads(msg.content.export())
-        self.receive(content, msg.addr)
+        try:
+            sender = self.identity_cache.find_by_location(msg.addr).name
+        except KeyError:
+            sender = json.dumps(msg.addr)
+        self.receive(content, sender)
 
     def read_type(self, rt):
         '''
@@ -203,7 +207,7 @@ class ReceiveEvent(object):
     '''
     Represents a frame that has arrived.
     '''
-    def __init__(self, contents, sender=[], when=None):
+    def __init__(self, contents, sender, when=None):
         self.contents = contents
         self.sender   = sender
         self.time     = when or datetime.datetime.now()
@@ -216,7 +220,7 @@ class ReceiveEvent(object):
         return self.time.strftime("%m/%d/%y %H:%M:%S")
 
     def __str__(self):
-        return json.dumps(self.sender)+("(at %s):\n" % self.timestr())+json.dumps(self.contents, indent=4)
+        return self.sender+("(at %s):\n" % self.timestr())+json.dumps(self.contents, indent=4)
 
 if __name__ == "__main__":
     inter = Interactive()
