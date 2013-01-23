@@ -16,7 +16,7 @@ with open(os.path.join(root, 'ejtp-console'), 'rb') as fp:
 inputs = [
     "mitzi@lackadaisy.com",
     "send",
-    json.dumps(["local", None, "mitzi"]),
+    "victor@lackadaisy.com",
     json.dumps("first message"),
     "messages",
     "eval",
@@ -24,7 +24,7 @@ inputs = [
     "set client",
     "victor@lackadaisy.com",
     "send",
-    json.dumps(["local", None, "mitzi"]),
+    "mitzi@lackadaisy.com",
     json.dumps("another message"),
     "messages",
     "quit"

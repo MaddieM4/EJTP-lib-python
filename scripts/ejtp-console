@@ -103,11 +103,9 @@ class Interactive(object):
         self.client.rcv_callback = self.rcv_callback
 
     def scan_client(self):
-        # TODO: It uses some IdentityCache internals, it is not a good thing.
-        available_interfaces = ', '.join(v.name for v in self.identity_cache.cache.values())
         interface = self.scan(
 '||| What interface do you want to use? \n\
-||| Available interfaces: %s\n' % available_interfaces,
+||| Available interfaces: %s\n' % ', '.join(self._cached_names),
             "Client scan failed",
             self.identity_cache.find_by_name
         )
@@ -116,9 +114,9 @@ class Interactive(object):
     def scan_recipient(self):
         interface = self.scan(
 '||| What interface do you want to send to? \n\
-||| Example: ["udp4", ["127.0.0.1", 5803], "caroline"]\n',
+||| Available interfaces: %s\n' % ', '.join(self._cached_names),
             "Recipient scan failed",
-            json.loads
+            self.identity_cache.find_by_name
         )
         return interface
 
@@ -159,7 +157,7 @@ class Interactive(object):
             elif command == "send":
                 recipient = self.scan_recipient()
                 message   = self.scan_message()
-                self.client.write_json(recipient, message)
+                self.client.write_json(recipient.location, message)
             elif command == "set client":
                 self.scan_client()
             elif command == "eval":
@@ -194,6 +192,11 @@ class Interactive(object):
                     print("Error loading config file: %s" % filename)
 
         return self._cache
+
+    @property
+    def _cached_names(self):
+        # TODO: It uses some IdentityCache internals, it is not a good thing.
+        return [v.name for v in self.identity_cache.cache.values()]
 
 
 class ReceiveEvent(object):
