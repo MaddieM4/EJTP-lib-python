@@ -43,7 +43,6 @@ class Interactive(object):
         self.router.run()
         self.client = None
         self.messages   = []
-        self.encryptors = {}
         self._cache = None
 
     def view_messages(self, read=None):
