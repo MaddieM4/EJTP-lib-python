@@ -187,7 +187,7 @@ class Interactive(object):
                 try:
                     self._cache.load_from(expand)
                 except IOError:
-                    print "Error loading config file:", filename
+                    print("Error loading config file: %s" % filename)
 
             env_data = os.environ.get(env_var)
             if env_data:
