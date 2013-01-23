@@ -4,8 +4,12 @@ import json
 
 root = os.path.split(__file__)[0]
 
+# add project folder to sys path
+os.sys.path.insert(0, os.path.join(root, '..'))
+
 # set environ variable
 os.environ['EJTP_IDENTITY_CACHE_PATH'] = os.path.join(root, '../resources/examplecache.json')
+
 
 # load ejtp-console as a module
 with open(os.path.join(root, 'ejtp-console'), 'rb') as fp:
