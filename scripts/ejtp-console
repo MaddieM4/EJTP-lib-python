@@ -103,6 +103,7 @@ class Interactive(object):
         self.client.rcv_callback = self.rcv_callback
 
     def scan_client(self):
+        # TODO: It uses some IdentityCache internals, it is not a good thing.
         available_interfaces = ', '.join(v.name for v in self.identity_cache.cache.values())
         interface = self.scan(
 '||| What interface do you want to use? \n\
