@@ -34,6 +34,17 @@ class Encryptor(object):
         # where your public key and private key are different.
         return self.proto()
 
+    def is_public(self):
+        return self.proto() == self.public()
+
+    def can_encrypt(self):
+        '''
+        Is this encryptor capable of encryption?
+
+        By default, assumes true. Override where this is not guaranteed.
+        '''
+        return True
+
     @RawDataDecorator(strict=True)
     def hash_obj(self, plaintext):
         '''
