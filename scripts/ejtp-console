@@ -30,8 +30,6 @@ commands = (
     'messages',
     'send',
     'set client',
-    'log',
-    'clear log',
     'eval',
     'quit',
 )
@@ -163,13 +161,6 @@ class Interactive(object):
                 self.client.write_json(recipient, message)
             elif command == "set client":
                 self.scan_client()
-            elif command == "log":
-                print("    Router log:\n"+"-"*80)
-                self.router.log_dump()
-            elif command == "clear log":
-                print("    Clearing router log...")
-                del self.router.log[:]
-                print("    Done.")
             elif command == "eval":
                 print(eval(raw_input("\n")))
             elif command == "quit":
