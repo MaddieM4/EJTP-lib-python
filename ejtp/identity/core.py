@@ -78,6 +78,12 @@ class Identity(object):
         public_proto = self.encryptor.public()
         return Identity(self.name, public_proto, self.location)
 
+    def is_public(self):
+        return self.encryptor.is_public()
+
+    def can_encrypt(self):
+        return self.encryptor.can_encrypt()
+
     def serialize(self):
         '''
         Serialize Identity object to dict.

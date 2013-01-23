@@ -83,8 +83,27 @@ class IdentityCache(object):
         raise KeyError(name)
 
     def find_by_location(self, location):
-        #location = str_address(location)
         return self.cache[str_address(location)]
+
+    def all(self):
+        return self.cache.values()
+
+    def encrypt_capable(self):
+        '''
+        Return a list of every identity that can encrypt.
+
+        >>> from ejtp import testing
+        >>> cache = IdentityCache()
+        >>> cache.update_ident(testing.identity("mitzi"))
+        >>> cache.update_ident(testing.identity("atlas").public())
+        >>> cache.update_ident(Identity(
+        ...     "joe", ['rotate', 9], ['local', None, 'joe']))
+
+        >>> capable = cache.encrypt_capable()
+        >>> sorted(i.name for i in capable)
+        ['joe', 'mitzi@lackadaisy.com']
+        '''
+        return [i for i in self.all() if i.can_encrypt()]
 
     def sync(self, *caches):
         '''
