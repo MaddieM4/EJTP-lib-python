@@ -49,7 +49,7 @@ class RSA(encryptor.Encryptor):
         if length > split:
             return self.encrypt(value[:split].export()) + self.encrypt(value[split:].export())
         else:
-            return self.cipher.encrypt(value.export())
+            return self.cipher.encrypt(RawData(value).export())
 
     @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
