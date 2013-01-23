@@ -22,7 +22,7 @@ try:
 except ImportError: # in python3.x it's renamed to _thread
     import _thread as thread
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
 
 from   Crypto.PublicKey import RSA as rsalib
 from   Crypto.Cipher import PKCS1_OAEP as Cipher
@@ -49,7 +49,7 @@ class RSA(encryptor.Encryptor):
         if length > split:
             return self.encrypt(value[:split].export()) + self.encrypt(value[split:].export())
         else:
-            return self.cipher.encrypt(RawData(value).export())
+            return self.cipher.encrypt(value.export())
 
     @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
