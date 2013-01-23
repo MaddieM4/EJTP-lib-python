@@ -18,12 +18,14 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import os
 import datetime
 import json
 
 from ejtp.router import Router
 from ejtp.client import Client
 from ejtp.util   import hasher
+from ejtp.identity import IdentityCache
 
 commands = (
     'messages',
@@ -42,6 +44,7 @@ class Interactive(object):
         self.client = None
         self.messages   = []
         self.encryptors = {}
+        self._cache = None
 
     def view_messages(self, read=None):
         '''
@@ -100,7 +103,7 @@ class Interactive(object):
             raise TypeError("Expected bool or none, got %r" % rt)
 
     def set_client(self, interface):
-        self.client = Client(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
+        self.client = Client(self.router, interface.location, self.identity_cache)
         self.client.rcv_callback = self.rcv_callback
 
     def scan_client(self):
@@ -108,7 +111,7 @@ class Interactive(object):
 '||| What interface do you want to use? \n\
 ||| Example: ["udp4", ["127.0.0.1", 5802], "stevey"]\n',
             "Client scan failed",
-            json.loads
+            self.identity_cache.find_by_name
         )
         return self.set_client(interface)
 
@@ -180,6 +183,27 @@ class Interactive(object):
     @property
     def unread(self):
         return (m for m in self.messages if not m.read)
+
+    @property
+    def identity_cache(self):
+        if not self._cache:
+            # TODO: make it configurable
+            files = ['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']
+            env_var = 'EJTP_IDENTITY_CACHE'
+            self._cache = IdentityCache()
+
+            for filename in files:
+                expand = os.path.expanduser(filename)
+                try:
+                    self._cache.load_from(expand)
+                except IOError:
+                    print "Error loading config file:", filename
+
+            env_data = os.environ.get(env_var)
+            if env_data:
+                self._cache.deserialize(json.dumps(env_data))
+
+        return self._cache
 
 
 class ReceiveEvent(object):
