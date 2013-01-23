@@ -178,9 +178,12 @@ class Interactive(object):
     @property
     def identity_cache(self):
         if not self._cache:
-            # TODO: make it configurable
+            env_var = 'EJTP_IDENTITY_CACHE_PATH'
+            env_data = os.environ.get(env_var)
             files = ['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']
-            env_var = 'EJTP_IDENTITY_CACHE'
+            if env_data:
+                files.extend(env_data.split(':'))
+            
             self._cache = IdentityCache()
 
             for filename in files:
@@ -189,10 +192,6 @@ class Interactive(object):
                     self._cache.load_from(expand)
                 except IOError:
                     print("Error loading config file: %s" % filename)
-
-            env_data = os.environ.get(env_var)
-            if env_data:
-                self._cache.deserialize(json.dumps(env_data))
 
         return self._cache
 
