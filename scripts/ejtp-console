@@ -24,7 +24,6 @@ import json
 
 from ejtp.router import Router
 from ejtp.client import Client
-from ejtp.util   import hasher
 from ejtp.identity import IdentityCache
 
 commands = (
