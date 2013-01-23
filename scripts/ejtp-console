@@ -73,7 +73,8 @@ class Interactive(object):
         self.messages.append(ReceiveEvent(*args, **kwargs))
 
     def rcv_callback(self, msg, client):
-        self.receive(json.loads(msg.content), msg.addr)
+        content = json.loads(msg.content.export())
+        self.receive(content, msg.addr)
 
     def read_type(self, rt):
         '''
