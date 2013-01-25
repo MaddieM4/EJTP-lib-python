@@ -39,7 +39,7 @@ class RSA(encryptor.Encryptor):
         if keystr == None:
             self.generate(bits=bits or 1024)
         else:
-            self.set_key(rsalib.importKey(keystr))
+            self.set_key(rsalib.importKey(keystr.export()))
 
     @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, value):

@@ -34,6 +34,10 @@ commands = (
     'quit',
 )
 
+# Python 3 Renames raw_input to input
+try: input = raw_input
+except: pass
+
 class Interactive(object):
     def __init__(self, router=None):
         self.router = router or Router()
@@ -72,7 +76,7 @@ class Interactive(object):
         self.messages.append(ReceiveEvent(*args, **kwargs))
 
     def rcv_callback(self, msg, client):
-        content = json.loads(msg.content.export())
+        content = msg.jsoncontent
         try:
             sender = self.identity_cache.find_by_location(msg.addr).name
         except KeyError:
@@ -109,7 +113,7 @@ class Interactive(object):
     def scan_client(self):
         interface = self.scan(
 '||| What interface do you want to use? \n\
-||| Available interfaces: %s\n' % ', '.join(self._cached_names),
+||| Available interfaces: %s\n' % ', '.join(self._possible_clients),
             "Client scan failed",
             self.identity_cache.find_by_name
         )
@@ -135,12 +139,12 @@ class Interactive(object):
     def scan(self, prompt, failmsg, validator):
         while True:
             try:
-                response = raw_input(prompt)
+                response = input(prompt)
                 return validator(response)
             except KeyboardInterrupt:
                 quit(1)
-            except:
-                print(failmsg)
+            #except:
+            #    print(failmsg)
 
     def repl(self):
         self.scan_client()
@@ -199,8 +203,11 @@ class Interactive(object):
 
     @property
     def _cached_names(self):
-        # TODO: It uses some IdentityCache internals, it is not a good thing.
-        return [v.name for v in self.identity_cache.cache.values()]
+        return [v.name for v in self.identity_cache.all()]
+
+    @property
+    def _possible_clients(self):
+        return [v.name for v in self.identity_cache.encrypt_capable()]
 
 
 class ReceiveEvent(object):
