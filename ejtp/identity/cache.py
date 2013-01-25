@@ -159,7 +159,7 @@ class IdentityCache(object):
         >>> cache.update_ident(testing.identity("mitzi"))
         >>> cache.update_ident(testing.identity("atlas"))
         >>> cache.serialize() #doctest: +ELLIPSIS
-        {'["local",null,"mitzi"]': {...}, '["local",null,"atlas"]': {...}}
+        {...'["local",null,"mitzi"]': {...}, ...'["local",null,"atlas"]': {...}}
         '''
         result = {}
         for straddr in self.cache:
