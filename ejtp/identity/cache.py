@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.address import *
-from ejtp.util.py2and3  import String, StringDecorator
+from ejtp.util.py2and3  import String, StringDecorator, JSONBytesEncoder
 from ejtp.identity.core import Identity, deserialize
 
 import json
@@ -159,7 +159,7 @@ class IdentityCache(object):
         >>> cache.update_ident(testing.identity("mitzi"))
         >>> cache.update_ident(testing.identity("atlas"))
         >>> cache.serialize() #doctest: +ELLIPSIS
-        {u'["local",null,"mitzi"]': {...}, u'["local",null,"atlas"]': {...}}
+        {'["local",null,"mitzi"]': {...}, '["local",null,"atlas"]': {...}}
         '''
         result = {}
         for straddr in self.cache:
@@ -212,7 +212,12 @@ class IdentityCache(object):
         if not file_object:
             raise ValueError("Must provide either file_path or file_object")
 
-        json.dump(self.serialize(), file_object, **kwargs)
+        json.dump(
+            self.serialize(),
+            file_object,
+            default = JSONBytesDecoder,
+            **kwargs
+        )
 
     def __repr__(self):
         return "<IdentityCache %r>" % repr(self.cache)

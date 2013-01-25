@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 import ejtp.crypto
+from ejtp.util.py2and3 import JSONBytesEncoder
 
 class Identity(object):
     def __init__(self, name, encryptor, location, **kwargs):
@@ -93,6 +94,7 @@ class Identity(object):
         >>> print(json.dumps(
         ...     testing.identity().serialize(),
         ...     indent=4,
+        ...     default=JSONBytesEncoder,
         ... )) #doctest: +ELLIPSIS
         {
             "encryptor": [
