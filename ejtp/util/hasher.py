@@ -16,52 +16,60 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import is_string
+from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
 from hashlib import new
 import json
 
 HASH_FUNCTION = 'sha1' # was md5
 
+@RawDataDecorator(strict=True)
+@StringDecorator(args=False, ret=True, strict=True)
 def make(string):
-	'''
-	Create a hash of a string.
+    '''
+    Create a hash of a string.
 
-	>>> make("Sample string")
-	'e9a47e5417686cf0ac5c8ad9ee90ba2c1d08cc14'
-	'''
-	return new(HASH_FUNCTION, string).hexdigest()
+    >>> make("Sample string")
+    String('e9a47e5417686cf0ac5c8ad9ee90ba2c1d08cc14')
+    '''
+    return new(HASH_FUNCTION, string.export()).hexdigest()
 
 def make6(string):
-	return maken(string, 6)
+    return maken(string, 6)
 
 def maken(string, n):
-	return make(string)[:n]
+    return make(string)[:n]
 
-def strict(obj):
-	''' Convert an object into a strict JSON string '''
-	if isinstance(obj, bool) or obj==None or is_string(obj) or isinstance(obj, int):
-		return json.dumps(obj)
-	if isinstance(obj, list) or isinstance(obj, tuple):
-		return "[%s]" % ",".join([strict(x) for x in obj])
-	if isinstance(obj, dict):
-		strdict = {}
-		for key in obj:
-			strdict[str(key)] = obj[key]
-		keys = sorted(strdict.keys())
-		return "{%s}" % ",".join([strict(key)+":"+strict(strdict[key]) for key in keys])
-	else:
-		raise TypeError("Not JSONable: "+str(t))
+@StringDecorator()
+@StringDecorator(args=False, ret=True, strict=True)
+def strict(obj=None):
+    ''' Convert an object into a strict JSON string '''
+    if isinstance(obj, bool) or obj==None or isinstance(obj, int):
+        return json.dumps(obj)
+    if isinstance(obj, String):
+        return json.dumps(obj.export())
+    if isinstance(obj, RawData):
+        obj = tuple(obj)
+    if isinstance(obj, list) or isinstance(obj, tuple):
+        return "[%s]" % ",".join([strict(x).export() for x in obj])
+    if isinstance(obj, dict):
+        strdict = {}
+        for key in obj:
+            strdict[key] = obj[key]
+        keys = sorted(strdict.keys())
+        return "{%s}" % ",".join([strict(key).export()+":"+strict(strdict[key]).export() for key in keys])
 
+@StringDecorator(strict=True)
 def strictify(jsonstring):
-	''' Make a JSON string strict '''
-	return strict(json.loads(jsonstring))
+    ''' Make a JSON string strict '''
+    return strict(json.loads(jsonstring.export()))
 
 def checksum(obj):
-	''' Get the checksum of the strict of an object '''
-	return make(strict(obj))
+    ''' Get the checksum of the strict of an object '''
+    return make(strict(obj))
 
+@StringDecorator(ret=True, strict=True)
 def key(string):
-	if len(string)>10:
-		return string[:10]+make6(string[10:])
-	else:
-		return string
+    if len(string)>10:
+	    return string[:10]+make6(string[10:])
+    else:
+        return string

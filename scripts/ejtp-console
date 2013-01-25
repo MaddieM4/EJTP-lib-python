@@ -21,9 +21,9 @@ along with the Python EJTP library.  If not, see
 import datetime
 import json
 
-from router import Router
-from client import Client
-from util   import hasher
+from ejtp.router import Router
+from ejtp.client import Client
+from ejtp.util   import hasher
 
 commands = (
     'messages',

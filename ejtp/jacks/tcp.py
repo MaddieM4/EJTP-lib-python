@@ -19,30 +19,33 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
+from ejtp.jacks import streamjack
+
+from ejtp.util.py2and3 import RawDataDecorator
+
 import socket
-import streamjack
 
 class TCPJack(streamjack.StreamJack):
     '''
-    >>> import core as jack
+    >>> from ejtp.jacks import core as jack
     >>> jack.test_jacks(
     ...     ['tcp4', ['127.0.0.1', 18999], 'charlie'],
     ...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
     ... ) #doctest: +ELLIPSIS
     Router equality (should be false): False
     INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 19999)
-    Client ['tcp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'tcp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
+    Client ['tcp4', ['127.0.0.1', 19999], 'stacy'] recieved from [...'tcp4', [...'127.0.0.1', 18999], ...'charlie']: String('"A => B"')
     INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 18999)
-    Client ['tcp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'tcp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
+    Client ['tcp4', ['127.0.0.1', 18999], 'charlie'] recieved from [...'tcp4', [...'127.0.0.1', 19999], ...'stacy']: String('"B => A"')
     >>> jack.test_jacks(
     ...     ['tcp', ['::1', 8999], 'charlie'],
     ...     ['tcp', ['::1', 9999], 'stacy']
     ... ) #doctest: +ELLIPSIS
     Router equality (should be false): False
     INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 9999, 0, 0)
-    Client ['tcp', ['::1', 9999], 'stacy'] recieved from [u'tcp', [u'::1', 8999], u'charlie']: '"A => B"'
+    Client ['tcp', ['::1', 9999], 'stacy'] recieved from [...'tcp', [...'::1', 8999], ...'charlie']: String('"A => B"')
     INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 8999, 0, 0)
-    Client ['tcp', ['::1', 8999], 'charlie'] recieved from [u'tcp', [u'::1', 9999], u'stacy']: '"B => A"'
+    Client ['tcp', ['::1', 8999], 'charlie'] recieved from [...'tcp', [...'::1', 9999], ...'stacy']: String('"B => A"')
     '''
     def __init__(self, router, host='::', port=3972, ipv=6):
         if ipv==6:
@@ -129,8 +132,9 @@ class TCPConnection(streamjack.Connection):
                 self.inject(newdata)
         kill_socket(self.connection)
 
+    @RawDataDecorator(strict=True)
     def _send(self, frame):
-        sent = self.connection.send(frame)
+        sent = self.connection.send(frame.export())
         logger.info("%d / %d %r -> %r", 
             sent, 
             len(frame), 
@@ -138,6 +142,7 @@ class TCPConnection(streamjack.Connection):
             self.connection.getpeername()
         )
 
+    @RawDataDecorator(args=False, ret=True, strict=True)
     def _recv(self):
         return self.connection.recv(4096)
 

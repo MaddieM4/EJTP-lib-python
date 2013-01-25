@@ -26,7 +26,10 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-import core as jack
+from ejtp.jacks import core as jack
+
+from ejtp.util.py2and3 import RawDataDecorator
+
 import socket
 
 class UDPJack(jack.Jack):
@@ -34,21 +37,21 @@ class UDPJack(jack.Jack):
     >>> jack.test_jacks(
     ...     ['udp4', ['127.0.0.1', 18999], 'charlie'],
     ...     ['udp4', ['127.0.0.1', 19999], 'stacy']
-    ... )
+    ... ) # doctest: +ELLIPSIS
     Router equality (should be false): False
-    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 18999) -> (u'127.0.0.1', 19999)
-    Client ['udp4', ['127.0.0.1', 19999], 'stacy'] recieved from [u'udp4', [u'127.0.0.1', 18999], u'charlie']: '"A => B"'
-    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 19999) -> (u'127.0.0.1', 18999)
-    Client ['udp4', ['127.0.0.1', 18999], 'charlie'] recieved from [u'udp4', [u'127.0.0.1', 19999], u'stacy']: '"B => A"'
+    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 18999) -> (...'127.0.0.1', 19999)
+    Client ['udp4', ['127.0.0.1', 19999], 'stacy'] recieved from [...'udp4', [...'127.0.0.1', 18999], ...'charlie']: String('"A => B"')
+    INFO:ejtp.jacks.udpjack: 122 / 122 ('127.0.0.1', 19999) -> (...'127.0.0.1', 18999)
+    Client ['udp4', ['127.0.0.1', 18999], 'charlie'] recieved from [...'udp4', [...'127.0.0.1', 19999], ...'stacy']: String('"B => A"')
     >>> jack.test_jacks(
     ...     ['udp', ['::1', 8999], 'charlie'],
     ...     ['udp', ['::1', 9999], 'stacy']
-    ... )
+    ... ) # doctest: +ELLIPSIS
     Router equality (should be false): False
-    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 8999, 0, 0) -> (u'::1', 9999, 0, 0)
-    Client ['udp', ['::1', 9999], 'stacy'] recieved from [u'udp', [u'::1', 8999], u'charlie']: '"A => B"'
-    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 9999, 0, 0) -> (u'::1', 8999, 0, 0)
-    Client ['udp', ['::1', 8999], 'charlie'] recieved from [u'udp', [u'::1', 9999], u'stacy']: '"B => A"'
+    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 8999, 0, 0) -> (...'::1', 9999, 0, 0)
+    Client ['udp', ['::1', 9999], 'stacy'] recieved from [...'udp', [...'::1', 8999], ...'charlie']: String('"A => B"')
+    INFO:ejtp.jacks.udpjack: 106 / 106 ('::1', 9999, 0, 0) -> (...'::1', 8999, 0, 0)
+    Client ['udp', ['::1', 8999], 'charlie'] recieved from [...'udp', [...'::1', 9999], ...'stacy']: String('"B => A"')
     '''
     def __init__(self, router, host='::', port=3972, ipv=6):
         if ipv==6:
@@ -74,8 +77,8 @@ class UDPJack(jack.Jack):
             addr = (location[0], location[1], 0,0)
         else:
             addr = (location[0], location[1])
-        msg = str(msg)
-        sent = self.sock.sendto(msg, addr)
+        msg = msg.bytes()
+        sent = self.sock.sendto(msg.export(), addr)
         logger.info("%d / %d %r -> %r", 
             sent, 
             len(msg), 

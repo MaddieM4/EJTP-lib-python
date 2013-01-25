@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 from ejtp.client import Client
 from ejtp import frame
 from ejtp.util.hasher import make as hashfunc
-from ejtp.crypto import bin_string
+from ejtp.util.py2and3 import RawData
 
 _demo_client_addr = ['local', None, 'client']
 _demo_server_addr = ['local', None, 'server']
@@ -46,7 +46,7 @@ class ForwardClient(Client):
                 callback(self)
             self._status_callbacks = []
         elif mtype=='ejforward-message':
-            internal = bin_string(data['data'])
+            internal = RawData(data['data'])
             self.ack([hashfunc(internal)])
             try:
                 self.send(frame.Frame(internal)) # forward to router
@@ -70,7 +70,7 @@ class ForwardClient(Client):
         >>> from ejtp.util.hasher import strict
         >>> client, server = test_setup()
         >>> def on_status(client):
-        ...     print("Status is: " + strict(client.status))
+        ...     print("Status is: " + strict(client.status).export())
         >>> client.get_status(on_status)
         Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
 
@@ -78,7 +78,7 @@ class ForwardClient(Client):
         13
         >>> mhash = server.store_message(client.interface, "fakey message")
         >>> server.client(client.interface)['messages']
-        {'4fc5bbbfefe38b84b935fee015c192e397b6eac3': 'fakey message'}
+        {String('4fc5bbbfefe38b84b935fee015c192e397b6eac3'): 'fakey message'}
         >>> client.get_status(on_status)
         Status is: {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
 
@@ -103,7 +103,7 @@ class ForwardClient(Client):
         >>> from ejtp.util.hasher import strict
         >>> client, server = test_setup()
         >>> def on_status(client):
-        ...     print("Status is: " + strict(client.status))
+        ...     print("Status is: " + strict(client.status).export())
         >>> client.get_status(on_status)
         Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
         '''
@@ -119,8 +119,8 @@ class ForwardClient(Client):
         Send a message to the server.
 
         >>> client, server = test_setup()
-        >>> client.upload("farfagnugen", {}) # Silly message type for testing purposes
-        WARNING:ejtp.ejforward.server: Unknown message type, u'farfagnugen'
+        >>> client.upload("farfagnugen", {}) # doctest: +ELLIPSIS 
+        WARNING:ejtp.ejforward.server: Unknown message type, ...'farfagnugen'
         '''
         data['type'] = dtype
         self.write_json(self.serveraddr, data)
@@ -131,7 +131,7 @@ class ForwardClient(Client):
 
 def test_setup():
     # Set up the demo client stuff in this module for further testing
-    from server import ForwardServer
+    from ejtp.ejforward.server import ForwardServer
     from ejtp.router import Router
     r = Router()
     client = ForwardClient(r, _demo_client_addr, _demo_server_addr)

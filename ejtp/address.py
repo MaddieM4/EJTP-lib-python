@@ -17,9 +17,10 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.hasher import strict
-from ejtp.util.py2and3 import is_string
+from ejtp.util.py2and3 import String, StringDecorator
 from json import loads
 
+@StringDecorator()
 def str_address(address):
     '''
         Converts address to string, only if it isn't already
@@ -28,11 +29,12 @@ def str_address(address):
         >>> str_address("[0,9]")
         '[0,9]'
     '''
-    if is_string(address):
+    if isinstance(address, String):
         return address
     else:
         return strict(address)
 
+@StringDecorator()
 def py_address(address):
     '''
         Converts address to non-string, only if it isn't already
@@ -41,11 +43,11 @@ def py_address(address):
         >>> py_address("[0,9]")
         [0, 9]
     '''
-    if is_string(address):
-        return loads(address)
+    if isinstance(address, String):
+        return loads(address.export())
     elif isinstance(address, list):
         return address
     elif isinstance(address, tuple):
-        return loads(strict(address))
+        return loads(strict(address).export())
     else:
-        raise ValueError("Can not convert to py_address: %r", address)
+        raise ValueError("Can not convert to py_address: %r" % address)
