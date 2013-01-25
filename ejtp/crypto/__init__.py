@@ -24,4 +24,4 @@ __all__ = [
 	'rotate',
 ]
 
-from encryptor import make
+from ejtp.crypto.encryptor import make

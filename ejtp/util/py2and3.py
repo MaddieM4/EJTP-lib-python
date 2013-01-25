@@ -293,17 +293,17 @@ class String(object):
             return not self._data.__eq__(other._data)
         return NotImplemented
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         '''
-        >>> cmp(String('abc'), String('bbc'))
-        -1
-        >>> cmp(String('abc'), String('abc'))
-        0
-        >>> cmp(String('bbc'), String('abc'))
-        1
+        >>> String('abc') < String('bbc')
+        True
+        >>> String('abc') < String('abc')
+        False
+        >>> String('bbc') < String('abc')
+        False
         '''
         if isinstance(other, self.__class__):
-            return cmp(self._data, other._data)
+            return self._data < other._data
         return NotImplemented
 
     def __add__(self, other):
@@ -606,3 +606,7 @@ class StringDecorator(DataDecorator):
             return ret
         return func(*args, **kwargs)
 
+def JSONBytesEncoder(python_object):
+    if isinstance(python_object, bytes):
+        return String(python_object).export()
+    raise TypeError(repr(python_object) + ' is not JSON serializable')

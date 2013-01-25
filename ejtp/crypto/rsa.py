@@ -31,7 +31,7 @@ import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
 class RSA(encryptor.Encryptor):
-    @StringDecorator()
+    @RawDataDecorator()
     def __init__(self, keystr, bits=None):
         self.keystr = keystr
         self._key = None
@@ -39,7 +39,7 @@ class RSA(encryptor.Encryptor):
         if keystr == None:
             self.generate(bits=bits or 1024)
         else:
-            self.set_key(rsalib.importKey(keystr))
+            self.set_key(rsalib.importKey(keystr.export()))
 
     @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, value):
@@ -49,7 +49,7 @@ class RSA(encryptor.Encryptor):
         if length > split:
             return self.encrypt(value[:split].export()) + self.encrypt(value[split:].export())
         else:
-            return self.cipher.encrypt(value)
+            return self.cipher.encrypt(value.export())
 
     @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
