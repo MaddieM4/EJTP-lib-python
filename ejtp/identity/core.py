@@ -67,13 +67,13 @@ class Identity(object):
 
         >>> from ejtp import testing
         >>> ident = testing.identity()
-        >>> "PRIVATE" in ident.encryptor.proto()[1]
+        >>> "PRIVATE" in str(ident.encryptor.proto()[1])
         True
-        >>> "PUBLIC" in ident.encryptor.proto()[1]
+        >>> "PUBLIC" in str(ident.encryptor.proto()[1])
         False
-        >>> "PRIVATE" in ident.public().encryptor.proto()[1]
+        >>> "PRIVATE" in str(ident.public().encryptor.proto()[1])
         False
-        >>> "PUBLIC" in ident.public().encryptor.proto()[1]
+        >>> "PUBLIC" in str(ident.public().encryptor.proto()[1])
         True
         '''
         public_proto = self.encryptor.public()
