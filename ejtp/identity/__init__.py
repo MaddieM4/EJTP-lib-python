@@ -21,5 +21,5 @@ __all__ = [
     'cache',
 ]
 
-from cache import IdentityCache
-from core import Identity
+from ejtp.identity.core  import Identity
+from ejtp.identity.cache import IdentityCache

@@ -31,7 +31,7 @@ import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
 class RSA(encryptor.Encryptor):
-    @StringDecorator()
+    @RawDataDecorator()
     def __init__(self, keystr, bits=None):
         self.keystr = keystr
         self._key = None

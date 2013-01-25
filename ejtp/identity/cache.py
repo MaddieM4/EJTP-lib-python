@@ -17,8 +17,8 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.address import *
-from ejtp.util.py2and3 import String, StringDecorator
-from core import Identity, deserialize
+from ejtp.util.py2and3  import String, StringDecorator
+from ejtp.identity.core import Identity, deserialize
 
 import json
 

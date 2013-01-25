@@ -90,10 +90,10 @@ class Identity(object):
 
         >>> from ejtp import testing
         >>> import json
-        >>> print json.dumps(
+        >>> print(json.dumps(
         ...     testing.identity().serialize(),
         ...     indent=4,
-        ... ) #doctest: +ELLIPSIS
+        ... )) #doctest: +ELLIPSIS
         {
             "encryptor": [
                 "rsa", 
