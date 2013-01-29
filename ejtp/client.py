@@ -42,10 +42,8 @@ class Client(object):
         if make_jack:
             jacks.make(router, interface)
 
-    def send(self, msg, compression = True):
+    def send(self, msg):
         # Send frame to router
-        if compression:
-            msg = frame.compress(msg)
         self.router.recv(msg)
 
     def relay(self, msg):

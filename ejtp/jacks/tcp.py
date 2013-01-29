@@ -47,7 +47,7 @@ class TCPJack(streamjack.StreamJack):
     INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 8999, 0, 0)
     Client ['tcp', ['::1', 8999], 'charlie'] recieved from [...'tcp', [...'::1', 9999], ...'stacy']: String('"B => A"')
     '''
-    def __init__(self, router, host='::', port=3972, ipv=6):
+    def __init__(self, router, host='::', port=3972, ipv=6, compression=True):
         if ipv==6:
             ifacetype = "tcp"
             self.address = (host, port, 0, 0)
@@ -57,7 +57,7 @@ class TCPJack(streamjack.StreamJack):
             self.address = (host, port)
             self.sockfamily = socket.AF_INET
 
-        streamjack.StreamJack.__init__(self, router, (ifacetype, (host, port)))
+        streamjack.StreamJack.__init__(self, router, (ifacetype, (host, port)), compression)
         self.closed = True
         self.lock_init.release()
 
