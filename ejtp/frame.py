@@ -39,20 +39,16 @@ class Frame(object):
     T_Z = RawData('z')
 
     @RawDataDecorator(strict=True)
-    def __init__(self, data, decompress=True):
-        self._load(data, decompress)
+    def __init__(self, data):
+        self._load(data)
 
-    def _load(self, data, decompress=True):
+    def _load(self, data):
         self.type = data[0]
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
         if self.type == self.T_Z:
-            if decompress:
-                self._load(zlib.decompress(self.ciphercontent.export()))
-                return
-            else:
-                self.compressedcontent = self.ciphercontent
+            self.compressedcontent = self.ciphercontent
         if self.type == self.T_J:
             self.raw_decode()
         if self.straddr:
@@ -136,7 +132,7 @@ def make(type, addr, encryptor, content):
             ciphercontent = encryptor.encrypt(content.export())
     else:
         ciphercontent = content
-    msg = Frame(type+straddr+'\x00'+ciphercontent, decompress=False)
+    msg = Frame(type+straddr+'\x00'+ciphercontent)
     msg.content = content
     return msg
 
