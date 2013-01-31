@@ -29,7 +29,7 @@ from ejtp import jacks
 from ejtp import identity
 
 class Client(object):
-    def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
+    def __init__(self, router, interface, encryptor_cache = None, make_jack = True, compression = True):
         '''
             encryptor_get should be a function that accepts an argument "iface"
             and returns an encryptor prototype (2-element list, like ["rotate", 5]).
@@ -40,7 +40,7 @@ class Client(object):
             self.router._loadclient(self)
         self.encryptor_cache = encryptor_cache or identity.IdentityCache()
         if make_jack:
-            jacks.make(router, interface)
+            jacks.make(router, interface, compression)
 
     def send(self, msg):
         # Send frame to router
