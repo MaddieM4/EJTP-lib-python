@@ -24,5 +24,18 @@ def test_filenames(filenames, env_var=None):
             result.append(filename)
     return result
 
+def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json']):
+    '''
+    Configure cache loading filenames.
+    
+    >>> from identity.cache import IdentityCache
+    >>> ic = IdentityCache()
+    >>> configure_identity_cache(ic, ['resources/examplecache.json'])
+    >>> ic.find_by_name('mitzi@lackadaisy.com').location
+    [u'local', None, u'mitzi']
+    '''
+    for filename in test_filenames(filenames):
+        cache.load_from(filename)
+
 def configure_ejtpd(filenames):
     raise NotImplementedError()
