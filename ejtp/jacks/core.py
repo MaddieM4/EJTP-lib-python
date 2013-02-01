@@ -57,7 +57,10 @@ class Jack(object):
         if hasattr(self, "closed") and self.closed==False:
             # Already running
             return None
-        import thread
+        try:
+            import thread
+        except ImportError:
+            import _thread as thread
         self.thread = thread.start_new_thread(self.run, ())
 
     @property
@@ -72,21 +75,21 @@ def make(router, iface):
     t = iface[0]
     # UDP Jack
     if t == "udp":
-        import udpjack
+        from ejtp.jacks import udpjack
         host, port = iface[1]
         return udpjack.UDPJack(router, host=host, port=port)
     elif t == "udp4":
-        import udpjack
+        from ejtp.jacks import udpjack
         host, port = iface[1]
         return udpjack.UDPJack(router, host=host, port=port, ipv=4)
 
     # TCP Jack
     elif t == "tcp":
-        import tcp
+        from ejtp.jacks import tcp
         host, port = iface[1]
         return tcp.TCPJack(router, host=host, port=port)
     elif t == "tcp4":
-        import tcp
+        from ejtp.jacks import tcp
         host, port = iface[1]
         return tcp.TCPJack(router, host=host, port=port, ipv=4)
 
@@ -102,7 +105,7 @@ def test_jacks(ifaceA, ifaceB):
     routerB = router.Router()
     clientA = client.Client(routerA, ifaceA)
     clientB = client.Client(routerB, ifaceB)
-    print "Router equality (should be false):", clientA.router == clientB.router
+    print("Router equality (should be false): %s" % (clientA.router == clientB.router))
 
     # Share encryptor data
     clientA.encryptor_cache = clientB.encryptor_cache
@@ -115,13 +118,13 @@ def test_jacks(ifaceA, ifaceB):
     def rcv_callback(msg, client_obj):
         transfer_condition.acquire()
         with print_lock:
-            print "Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content)
+            print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content.toString()))
         transfer_condition.notify_all()
         transfer_condition.release()
     clientA.rcv_callback = rcv_callback
     clientB.rcv_callback = rcv_callback
     for r in (routerA, routerB):
-        with r._jacks.values()[0].lock_ready: pass
+        with list(r._jacks.values())[0].lock_ready: pass
 
     # Do the test
     timeout = 0.5

@@ -17,25 +17,29 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-import encryptor
+from ejtp.crypto import encryptor
+from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
 
 from Crypto.Hash import SHA
 from Crypto.Cipher import AES
 
 class AESEncryptor(encryptor.Encryptor):
+    @StringDecorator(strict=True)
     def __init__(self, password):
         self.password = password
-        hash = SHA.new(password).digest()
+        hash = SHA.new(password.toRawData().export()).digest()
         self.cipher = AES.new(hash[:16]) # Must be multiple of 16, cuts 20 char digest to 16 char
 
+    @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, value):
         # Uses custom format to encrypt arbitrary length strings with padding
-        code = str(len(value)) + "\x00" + value
+        code = RawData(len(value)) + "\x00" + value
         code += (16 - len(code) % 16) * "\x00"
-        return self.cipher.encrypt(code)
+        return self.cipher.encrypt(code.export())
 
+    @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
-        code = self.cipher.decrypt(value)
+        code = RawData(self.cipher.decrypt(value.export()))
         split = code.index('\x00')
         length = int(code[:split])
         code = code[split+1:]

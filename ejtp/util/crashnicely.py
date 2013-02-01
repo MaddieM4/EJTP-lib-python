@@ -25,10 +25,10 @@ class Guard(object):
 	Class of exception catching and printing objects.
 
 	>>> with Guard():
-	...     print "This code is okay"
+	...     print("This code is okay")
 	This code is okay
 	>>> with Guard(print_traceback=False):
-	... 	print "This code is bad"[""] # doctest: +ELLIPSIS
+	... 	print("This code is bad"[""]) # doctest: +ELLIPSIS
 	Traceback <traceback object at ...> caught by <ejtp.util.crashnicely.Guard object at ...>
 	'''
 	def __init__(self, print_catch=True, print_traceback=True):
@@ -43,7 +43,8 @@ class Guard(object):
 		if not exc_traceback:
 			return True
 		if self.print_catch:
-			print "Traceback",exc_traceback,"caught by", self
+			print("Traceback %s caught by %s" % (exc_traceback, self))
 		if self.print_traceback:
 			traceback.print_exception(exc_type, exc_value, exc_traceback)
 		return True
+

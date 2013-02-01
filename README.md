@@ -16,7 +16,6 @@ who goes by the name of Bluethulu.
 
 ![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/stable/resources/bluethulu.png)
 
-
 Installation
 ============
 
@@ -25,15 +24,12 @@ go into the uncompressed directory, and run "./setup.py install" as
 an administrator account. This is standard procedure for most
 Python libraries, and is how this one works as well.
 
-The latest stable version (really, really recommended you don't try
-to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.9.1](
+The latest stable version (and the first community-developed stable
+version yet available) is [Version 0.9.2](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has new command-line scripts, ejtpd and ejtp-keygen, for
-setting up and controlling long-running system infrastructure. These
-tools are still a bit rough, especially ejtpd, and will be the primary
-focus of the next few minor versions, as well as some fixes for issues
-discovered in the AES encryption code.
+which has bug fixes, Python 3.X support, and the identity system
+migrated from DEJE, which forms the new standard format for storing
+encryption identity metadata.
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
@@ -52,7 +48,7 @@ Dependencies
 Usage
 =====
 
-You can try out the EJTP demo client by running ```./ejtp/interactive.py```.
+You can try out the EJTP demo client by running ```ejtp-console```.
 For demo code you can look inside that file, but basically, all you
 need is a Router object, and to create Clients as necessary, setting
 their rcv_callback property to your own preferred callback.

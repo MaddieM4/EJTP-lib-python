@@ -19,12 +19,14 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.crypto import make
+from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
+from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
 
-from address import *
-import frame
-import jacks
+from ejtp.address import *
+from ejtp import frame
+from ejtp import jacks
+from ejtp import identity
 
 class Client(object):
     def __init__(self, router, interface, encryptor_cache = None, make_jack = True):
@@ -36,7 +38,7 @@ class Client(object):
         self.router = router
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
-        self.encryptor_cache = encryptor_cache or dict()
+        self.encryptor_cache = encryptor_cache or identity.IdentityCache()
         if make_jack:
             jacks.make(router, interface)
 
@@ -54,14 +56,14 @@ class Client(object):
     def route(self, msg):
         # Recieve frame from router (will be type 'r' or 's', which contains message)
         logger.debug("Client routing frame: %s", repr(msg))
-        if msg.type == 'r':
+        if msg.type == msg.T_R:
             if msg.addr != self.interface:
                 self.relay(msg)
             else:
                 self.route(self.unpack(msg))
-        elif msg.type == 's':
+        elif msg.type == msg.T_S:
             self.route(self.unpack(msg))
-        elif msg.type == 'j':
+        elif msg.type == msg.T_J:
             self.rcv_callback(msg, self)
 
     def rcv_callback(self, msg, client_obj):
@@ -92,8 +94,8 @@ class Client(object):
         self.send(frame.onion(msg, hoplist))
 
     def owrite_json(self, hoplist, data, wrap_sender=True):
-        msg = frame.make('j', None, None, strict(data))
-        self.owrite(hoplist, str(msg), wrap_sender)
+        msg = frame.make(frame.Frame.T_J, None, None, strict(data))
+        self.owrite(hoplist, msg, wrap_sender)
 
     def write_json(self, addr, data, wrap_sender=True):
         self.owrite_json([addr], data, wrap_sender)
@@ -101,14 +103,14 @@ class Client(object):
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
         sig_s = self.encryptor_get(self.interface)
-        msg   = frame.make('s', self.interface, sig_s, msg)
+        msg   = frame.make(frame.Frame.T_S, self.interface, sig_s, msg.bytes())
         return msg
 
     # Encryption
 
     def encryptor_get(self, address):
         address = str_address(address)
-        return make(self.encryptor_cache[address])
+        return make(self.encryptor_cache[address].encryptor)
 
     def encryptor_set(self, address, encryptor):
         '''
@@ -117,11 +119,16 @@ class Client(object):
         >>> e = client.encryptor_get('["x",["y",8],"z"]')
         >>> e #doctest: +ELLIPSIS
         <ejtp.crypto.rotate.RotateEncryptor object ...>
-        >>> e.encrypt("Aquaboogie")
-        'Euyefsskmi'
+        >>> from ejtp.util.py2and3 import RawData
+        >>> e.encrypt("Aquaboogie") == RawData('Euyefsskmi')
+        True
         '''
-        address = str_address(address)
-        self.encryptor_cache[address] = list(encryptor)
+        address = py_address(address)
+        if not address in self.encryptor_cache:
+            dummy_ident = identity.Identity(None, encryptor, address)
+            self.encryptor_cache.update_ident(dummy_ident)
+        else:
+            self.encryptor_cache[address].encryptor = list(encryptor)
 
     def sign(self, obj):
         '''
@@ -131,7 +138,7 @@ class Client(object):
         >>> c.encryptor_set(c.interface, ['rotate',41])
         >>> original = ['catamaran']
         >>> c.sign(original)
-        ':\\n\\x0e;<9\\x10\\x0e\\x0f=:8\\x0b\\x0c\\r\\x08\\x079\\x0f\\x0f\\x0c9\\x0e\\x0e\\x08=:8::\\x0b\\x109=\\x0b\\t\\x0c:\\n\\x0b'
+        RawData(3a0a0e3b3c39100e0f3d3a380b0c0d0807390f0f0c390e0e083d3a383a3a0b10393d0b090c3a0a0b)
         '''
         strdata = hashfunc(strict(obj))
         return self.encryptor_get(self.interface).flip().encrypt(strdata)
@@ -147,7 +154,7 @@ class Client(object):
         True
         '''
         strdata = hashfunc(strict(obj))
-        return self.encryptor_get(signer).flip().decrypt(sig) == strdata
+        return self.encryptor_get(signer).flip().decrypt(sig).toString() == strdata
 
 def mock_client():
     return Client(None, None, make_jack=False)
@@ -161,12 +168,12 @@ def mock_locals(name1="c1", name2="c2"):
     >>> c1.encryptor_set(c2.interface, ['rotate', -7])
     >>> c1.router == c2.router
     True
-    >>> c1.write_json(c2.interface, "hello")
-    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [u'udp', [u'127.0.0.1', 555], u'c1']: '"hello"'
-    >>> c2.write_json(c1.interface, "goodbye")
-    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [u'udp', [u'127.0.0.1', 555], u'c2']: '"goodbye"'
+    >>> c1.write_json(c2.interface, "hello") # doctest: +ELLIPSIS
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from [...'udp', [...'127.0.0.1', 555], ...'c1']: RawData(2268656c6c6f22)
+    >>> c2.write_json(c1.interface, "goodbye") # doctest: +ELLIPSIS
+    INFO:ejtp.client: Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from [...'udp', [...'127.0.0.1', 555], ...'c2']: RawData(22676f6f6462796522)
     '''
-    from router import Router
+    from ejtp.router import Router
     r  = Router()
     c1 = Client(r, ['udp', ['127.0.0.1', 555], name1], make_jack = False)
     c2 = Client(r, ['udp', ['127.0.0.1', 555], name2], make_jack = False)

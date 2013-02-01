@@ -17,8 +17,12 @@ along with the Python EJTP library.  If not, see
 '''
 
 
-import thread
-import encryptor
+try:
+    import thread
+except ImportError: # in python3.x it's renamed to _thread
+    import _thread as thread
+from ejtp.crypto import encryptor
+from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
 
 from   Crypto.PublicKey import RSA as rsalib
 from   Crypto.Cipher import PKCS1_OAEP as Cipher
@@ -27,6 +31,7 @@ import Crypto.Util.number
 from   Crypto.Util.number import ceil_div
 
 class RSA(encryptor.Encryptor):
+    @RawDataDecorator()
     def __init__(self, keystr, bits=None):
         self.keystr = keystr
         self._key = None
@@ -34,29 +39,30 @@ class RSA(encryptor.Encryptor):
         if keystr == None:
             self.generate(bits=bits or 1024)
         else:
-            self.set_key(rsalib.importKey(keystr))
+            self.set_key(rsalib.importKey(keystr.export()))
 
+    @RawDataDecorator(ret=True, strict=True)
     def encrypt(self, value):
         # Process in blocks
-        value  = str(value)
         length = len(value)
         split  = self.input_blocksize
         if length > split:
-            return self.encrypt(value[:split]) + self.encrypt(value[split:])
+            return self.encrypt(value[:split].export()) + self.encrypt(value[split:].export())
         else:
-            return self.cipher.encrypt(value)
+            return self.cipher.encrypt(value.export())
 
+    @RawDataDecorator(ret=True, strict=True)
     def decrypt(self, value):
-        value  = str(value)
         length = len(value)
         split  = self.output_blocksize
         if length > split:
-            return self.decrypt(value[:split]) + self.decrypt(value[split:])
+            return self.decrypt(value[:split].export()) + self.decrypt(value[split:].export())
         elif length == split:
-            return self.cipher.decrypt(value)
+            return self.cipher.decrypt(value.export())
         else:
             raise ValueError("Wrong size for ciphertext, expected %d and got %d" % (split, length))
 
+    @RawDataDecorator(ret=True, strict=True)
     def sign(self, plaintext):
         '''
         Override version using PKCS1_PSS signing to sign (and randomly salt) plaintext.
@@ -66,7 +72,8 @@ class RSA(encryptor.Encryptor):
         except TypeError:
             # Raise consistent error description, regardless of PyCrypto version
             raise TypeError("RSA encryptor cannot sign without private key")
-
+    
+    @RawDataDecorator(strict=True)
     def sig_verify(self, plaintext, signature):
         '''
         Override version using PKCS1_PSS signing to verify a signature.
@@ -91,7 +98,7 @@ class RSA(encryptor.Encryptor):
         Traceback (most recent call last):
         TypeError: RSA encryptor cannot sign without private key
         '''
-        return self.signer.verify(self.hash_obj(plaintext), signature)
+        return self.signer.verify(self.hash_obj(plaintext), signature.export())
 
     # Locking properties
 
@@ -154,6 +161,19 @@ class RSA(encryptor.Encryptor):
     def public(self):
         key = self.key.publickey()
         return ['rsa', key.exportKey()]
+
+    def can_encrypt(self):
+        '''
+        Determines if this encryptor has the private key for encryption.
+
+        >>> myrsa = RSA(SAMPLE_KEY_PRIVATE)
+        >>> myrsa.can_encrypt()
+        True
+        >>> from ejtp.crypto import make
+        >>> make(myrsa.public()).can_encrypt()
+        False
+        '''
+        return self.key.has_private()
 
 SAMPLE_KEY_PRIVATE = '-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgQCnA7oUrAe0JgMZfPzrdmaUjwkomYVXSmamemPaINybgDIIHDDr\nizwq8agHIvc/kwQ6ZZP9XQA/YbKq9rqaCD5yvwIyet/MiFz8b1zh1tSte4uDV9vU\nuTaF4y+1TmZVtZbfmC4E2ic/i72mJKy02FExvm+oAObFSraOfLiShUubSQIDAQAB\nAn8aGHr6v+Z0P3w8f0sFf3qHu9GyhkpPWVCwsm7npjrSETXADqeWJitAioG2m8AG\nLvJ6LWTyMZXYUWuZSvPdHWykQD/VMn7F5jIy5hjzYON/a7mBYPw0NFdUc4VTR4dU\nzuR9T0MkyIV9w4Rl3AU9SfpRneAtutoC4gqROrFLcWiBAkEAurSBELVUcvWTelFa\n8WsY474/j6DiZ3/jrDirblhqnRzZkIa9ETSzGNgmIRMtgabdkAgdoqDpJkwGzYAi\n+u3yBQJBAOUAW1tEQlwAYfMmFwzXLDZg7+t9nefTNr5SEY3KAoo+hLxxLeSwyp+k\ndzQfS8ITPS0o2bFHhD2uDFpbe3kRM3UCQB8kxPK4jKGwfS1GLNlgeAJlVczrlViW\naK/ttArwDLiwe0o0b41TMRzP0Wxq+ohKAWNpNyhNlxagT/IvkaYx0tECQQCRtoFq\n+GsVKXUqB3GhTQUn8NSYzox8Z4ws3AGpbAHjv1YspgOiwc+cd0UWWFeXPTCvHJAw\nWqZNrQLVN+LALW7FAkEAgkFG3700qy9L4kVdBYiGKyTgUGGLVKjegShyYY9jQBLO\nHk+tnhFsjc/wBaHlNAzScTJjjdJnNbGRtQtgtl86wA==\n-----END RSA PRIVATE KEY-----'
 SAMPLE_KEY_PUBLIC = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnA7oUrAe0JgMZfPzrdmaUjwko\nmYVXSmamemPaINybgDIIHDDrizwq8agHIvc/kwQ6ZZP9XQA/YbKq9rqaCD5yvwIy\net/MiFz8b1zh1tSte4uDV9vUuTaF4y+1TmZVtZbfmC4E2ic/i72mJKy02FExvm+o\nAObFSraOfLiShUubSQIDAQAB\n-----END PUBLIC KEY-----'

@@ -18,22 +18,25 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import os
 import datetime
 import json
 
-from router import Router
-from client import Client
-from util   import hasher
+from ejtp.router import Router
+from ejtp.client import Client
+from ejtp.identity import IdentityCache
 
 commands = (
     'messages',
     'send',
     'set client',
-    'log',
-    'clear log',
     'eval',
     'quit',
 )
+
+# Python 3 Renames raw_input to input
+try: input = raw_input
+except: pass
 
 class Interactive(object):
     def __init__(self, router=None):
@@ -41,7 +44,7 @@ class Interactive(object):
         self.router.run()
         self.client = None
         self.messages   = []
-        self.encryptors = {}
+        self._cache = None
 
     def view_messages(self, read=None):
         '''
@@ -62,18 +65,23 @@ class Interactive(object):
              or (read == False and self.unread) \
              or []
         if not len(messages):
-            print "    No messages."
+            print("    No messages.")
             return
-        print "    "+self.read_type(read).capitalize()+" messages:"
+        print("    "+self.read_type(read).capitalize()+" messages:")
         for message in messages:
-            print "-"*80
-            print message
+            print("-"*80)
+            print(message)
 
     def receive(self, *args, **kwargs):
         self.messages.append(ReceiveEvent(*args, **kwargs))
 
     def rcv_callback(self, msg, client):
-        self.receive(json.loads(msg.content), msg.addr)
+        content = msg.jsoncontent
+        try:
+            sender = self.identity_cache.find_by_location(msg.addr).name
+        except KeyError:
+            sender = json.dumps(msg.addr)
+        self.receive(content, sender)
 
     def read_type(self, rt):
         '''
@@ -99,24 +107,24 @@ class Interactive(object):
             raise TypeError("Expected bool or none, got %r" % rt)
 
     def set_client(self, interface):
-        self.client = Client(self.router, interface, lambda x: ['rotate', int(hasher.checksum(x),16)])
+        self.client = Client(self.router, interface.location, self.identity_cache)
         self.client.rcv_callback = self.rcv_callback
 
     def scan_client(self):
         interface = self.scan(
 '||| What interface do you want to use? \n\
-||| Example: ["udp4", ["127.0.0.1", 5802], "stevey"]\n',
+||| Available interfaces: %s\n' % ', '.join(self._possible_clients),
             "Client scan failed",
-            json.loads
+            self.identity_cache.find_by_name
         )
         return self.set_client(interface)
 
     def scan_recipient(self):
         interface = self.scan(
 '||| What interface do you want to send to? \n\
-||| Example: ["udp4", ["127.0.0.1", 5803], "caroline"]\n',
+||| Available interfaces: %s\n' % ', '.join(self._cached_names),
             "Recipient scan failed",
-            json.loads
+            self.identity_cache.find_by_name
         )
         return interface
 
@@ -131,12 +139,12 @@ class Interactive(object):
     def scan(self, prompt, failmsg, validator):
         while True:
             try:
-                response = raw_input(prompt)
+                response = input(prompt)
                 return validator(response)
             except KeyboardInterrupt:
                 quit(1)
-            except:
-                print failmsg
+            #except:
+            #    print(failmsg)
 
     def repl(self):
         self.scan_client()
@@ -157,18 +165,11 @@ class Interactive(object):
             elif command == "send":
                 recipient = self.scan_recipient()
                 message   = self.scan_message()
-                self.client.write_json(recipient, message)
+                self.client.write_json(recipient.location, message)
             elif command == "set client":
                 self.scan_client()
-            elif command == "log":
-                print "    Router log:\n"+"-"*80
-                self.router.log_dump()
-            elif command == "clear log":
-                print "    Clearing router log..."
-                del self.router.log[:]
-                print "    Done."
             elif command == "eval":
-                print eval(raw_input("\n"))
+                print(eval(raw_input("\n")))
             elif command == "quit":
                 quit()
 
@@ -180,12 +181,40 @@ class Interactive(object):
     def unread(self):
         return (m for m in self.messages if not m.read)
 
+    @property
+    def identity_cache(self):
+        if not self._cache:
+            env_var = 'EJTP_IDENTITY_CACHE_PATH'
+            env_data = os.environ.get(env_var)
+            files = ['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']
+            if env_data:
+                files.extend(env_data.split(':'))
+            
+            self._cache = IdentityCache()
+
+            for filename in files:
+                expand = os.path.expanduser(filename)
+                try:
+                    self._cache.load_from(expand)
+                except IOError:
+                    print("Error loading config file: %s" % filename)
+
+        return self._cache
+
+    @property
+    def _cached_names(self):
+        return [v.name for v in self.identity_cache.all()]
+
+    @property
+    def _possible_clients(self):
+        return [v.name for v in self.identity_cache.encrypt_capable()]
+
 
 class ReceiveEvent(object):
     '''
     Represents a frame that has arrived.
     '''
-    def __init__(self, contents, sender=[], when=None):
+    def __init__(self, contents, sender, when=None):
         self.contents = contents
         self.sender   = sender
         self.time     = when or datetime.datetime.now()
@@ -198,7 +227,7 @@ class ReceiveEvent(object):
         return self.time.strftime("%m/%d/%y %H:%M:%S")
 
     def __str__(self):
-        return json.dumps(self.sender)+("(at %s):\n" % self.timestr())+json.dumps(self.contents, indent=4)
+        return self.sender+("(at %s):\n" % self.timestr())+json.dumps(self.contents, indent=4)
 
 if __name__ == "__main__":
     inter = Interactive()

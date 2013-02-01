@@ -66,7 +66,7 @@ def configure(loud=False):
     In theory, Doctestall should import ejtp.logging.verbose as one of the
     first modules it imports, which should configure ejtp.logging loudly.
 
-    >>> import verbose
+    >>> from . import verbose
     >>> debug('I am the greatest! - Bender "Bending" Rodriguez') 
     >>> info('I am the greatest! - Bender "Bending" Rodriguez') 
     INFO:ejtp: I am the greatest! - Bender "Bending" Rodriguez
