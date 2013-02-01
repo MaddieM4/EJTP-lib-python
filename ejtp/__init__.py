@@ -21,6 +21,7 @@ __all__ = [
 	'logging',
 	'address',
 	'client',
+	'config',
 	'crypto',
 	'daemon',
 	'ejforward',
