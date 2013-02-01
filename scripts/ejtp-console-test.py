@@ -44,8 +44,8 @@ def input_func(prompt):
     print "$", obj
     return obj
 
-# override raw_input builtin
-console.raw_input = input_func
+# override input builtins
+console.input = input_func
 
 # run interactive console
 inter = console.Interactive()

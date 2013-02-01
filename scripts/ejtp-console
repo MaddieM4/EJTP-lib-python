@@ -169,7 +169,7 @@ class Interactive(object):
             elif command == "set client":
                 self.scan_client()
             elif command == "eval":
-                print(eval(raw_input("\n")))
+                print(eval(input("\n")))
             elif command == "quit":
                 quit()
 
