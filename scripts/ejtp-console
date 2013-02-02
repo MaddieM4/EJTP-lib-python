@@ -185,10 +185,8 @@ class Interactive(object):
     @property
     def identity_cache(self):
         if not self._cache:
-            env_var = 'EJTP_IDENTITY_CACHE_PATH'
-            files = ['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']
             self._cache = IdentityCache()
-            configure_identity_cache(self._cache, test_filenames(files, env_var))
+            configure_identity_cache(cache)
 
         return self._cache
 

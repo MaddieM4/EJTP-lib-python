@@ -24,7 +24,7 @@ def test_filenames(filenames, env_var=None):
             result.append(filename)
     return result
 
-def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json']):
+def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']):
     '''
     Configure cache loading filenames.
     
@@ -34,7 +34,7 @@ def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json']):
     >>> ic.find_by_name('mitzi@lackadaisy.com').location
     [u'local', None, u'mitzi']
     '''
-    for filename in test_filenames(filenames):
+    for filename in test_filenames(filenames, 'EJTP_IDENTITY_CACHE_PATH'):
         cache.load_from(filename)
 
 def configure_ejtpd(filenames):
