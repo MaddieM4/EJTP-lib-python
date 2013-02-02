@@ -13,9 +13,10 @@ def test_filenames(filenames, env_var=None):
     >>> test_filenames(['client.py'], env_var='SOME_PATH')
     ['resources/examplecache.json']
     '''
-    env_files = os.environ.get(env_var, None)
-    if env_files:
-        filenames = tuple(env_files.split(':'))
+    if env_var:
+        env_files = os.environ.get(env_var, None)
+        if env_files:
+            filenames = tuple(env_files.split(':'))
 
     result = []
     for filename in filenames:
@@ -28,11 +29,11 @@ def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json', '~/.ejtp/c
     '''
     Configure cache loading filenames.
     
-    >>> from identity.cache import IdentityCache
+    >>> from ejtp.identity.cache import IdentityCache
     >>> ic = IdentityCache()
     >>> configure_identity_cache(ic, ['resources/examplecache.json'])
-    >>> ic.find_by_name('mitzi@lackadaisy.com').location
-    [u'local', None, u'mitzi']
+    >>> ic.find_by_name('mitzi@lackadaisy.com').location # doctest: +ELLIPSIS
+    [...'local', None, ...'mitzi']
     '''
     for filename in test_filenames(filenames, 'EJTP_IDENTITY_CACHE_PATH'):
         cache.load_from(filename)
