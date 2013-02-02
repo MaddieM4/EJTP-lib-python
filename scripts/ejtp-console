@@ -25,6 +25,7 @@ import json
 from ejtp.router import Router
 from ejtp.client import Client
 from ejtp.identity import IdentityCache
+from ejtp.config import configure_identity_cache
 
 commands = (
     'messages',
@@ -169,7 +170,7 @@ class Interactive(object):
             elif command == "set client":
                 self.scan_client()
             elif command == "eval":
-                print(eval(raw_input("\n")))
+                print(eval(input("\n")))
             elif command == "quit":
                 quit()
 
@@ -184,20 +185,8 @@ class Interactive(object):
     @property
     def identity_cache(self):
         if not self._cache:
-            env_var = 'EJTP_IDENTITY_CACHE_PATH'
-            env_data = os.environ.get(env_var)
-            files = ['~/.ejtp/idents.json', '~/.ejtp/console/idents.json']
-            if env_data:
-                files.extend(env_data.split(':'))
-            
             self._cache = IdentityCache()
-
-            for filename in files:
-                expand = os.path.expanduser(filename)
-                try:
-                    self._cache.load_from(expand)
-                except IOError:
-                    print("Error loading config file: %s" % filename)
+            configure_identity_cache(self._cache)
 
         return self._cache
 
