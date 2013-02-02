@@ -75,13 +75,13 @@ def make(router, iface):
     t = iface[0]
     # UDP Jack
     if t == "udp":
-        from ejtp.jacks import udpjack
+        from ejtp.jacks import udp
         host, port = iface[1]
-        return udpjack.UDPJack(router, host=host, port=port)
+        return udp.UDPJack(router, host=host, port=port)
     elif t == "udp4":
-        from ejtp.jacks import udpjack
+        from ejtp.jacks import udp
         host, port = iface[1]
-        return udpjack.UDPJack(router, host=host, port=port, ipv=4)
+        return udp.UDPJack(router, host=host, port=port, ipv=4)
 
     # TCP Jack
     elif t == "tcp":

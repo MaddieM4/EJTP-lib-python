@@ -20,7 +20,7 @@ from ejtp.jacks.core import *
 
 __all__ = [
     'core',
-    'streamjack',
+    'stream',
     'tcp',
-    'udpjack',
+    'udp',
 ]
