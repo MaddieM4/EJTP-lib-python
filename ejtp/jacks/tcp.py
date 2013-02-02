@@ -19,13 +19,13 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.jacks import streamjack
+from ejtp.jacks import stream
 
 from ejtp.util.py2and3 import RawDataDecorator
 
 import socket
 
-class TCPJack(streamjack.StreamJack):
+class TCPJack(stream.StreamJack):
     '''
     >>> from ejtp.jacks import core as jack
     >>> jack.test_jacks(
@@ -57,7 +57,7 @@ class TCPJack(streamjack.StreamJack):
             self.address = (host, port)
             self.sockfamily = socket.AF_INET
 
-        streamjack.StreamJack.__init__(self, router, (ifacetype, (host, port)))
+        stream.StreamJack.__init__(self, router, (ifacetype, (host, port)))
         self.closed = True
         self.lock_init.release()
 
@@ -96,9 +96,9 @@ class TCPJack(streamjack.StreamJack):
     def create_connection(self, interface):
         return TCPConnection(self, interface)
 
-class TCPConnection(streamjack.Connection):
+class TCPConnection(stream.Connection):
     def __init__(self, jack, interface, connection=None):
-        streamjack.Connection.__init__(self, jack)
+        stream.Connection.__init__(self, jack)
 
         # Who you're connected to
         self.interface = interface
