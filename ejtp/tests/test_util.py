@@ -83,3 +83,22 @@ class TestHasherStrictify(unittest.TestCase):
 
     def test_dict(self):
         self._assert('{"test1":1,"test2":2}', {'test1': 1, 'test2': 2})
+
+
+class TestHasherChecksum(unittest.TestCase):
+
+    def setUp(self):
+        self._strict = hasher.strict
+        self._make = hasher.make
+        hasher.strict = lambda x: self._mock('strict', x)
+        hasher.make = lambda x: self._mock('make', x)
+
+    def _mock(self, func, value):
+        return '%s_%s' % (func, value)
+
+    def test_calls(self):
+        self.assertEqual('make_strict_test', hasher.checksum('test'))
+
+    def tearDown(self):
+        hasher.strict = self._strict
+        hasher.make = self._make
