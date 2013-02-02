@@ -25,7 +25,7 @@ import json
 from ejtp.router import Router
 from ejtp.client import Client
 from ejtp.identity import IdentityCache
-from ejtp.config import test_filenames, configure_identity_cache
+from ejtp.config import configure_identity_cache
 
 commands = (
     'messages',
@@ -186,7 +186,7 @@ class Interactive(object):
     def identity_cache(self):
         if not self._cache:
             self._cache = IdentityCache()
-            configure_identity_cache(cache)
+            configure_identity_cache(self._cache)
 
         return self._cache
 
