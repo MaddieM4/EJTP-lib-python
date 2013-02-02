@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from ejtp.util.py2and3 import RawData, String
@@ -33,6 +34,34 @@ class TestHasherStrict(unittest.TestCase):
 
     def test_RawData(self):
         self._assert('"test"', RawData('test'))
+
+    def test_bool(self):
+        self._assert('false', False)
+
+    def test_none(self):
+        self._assert('null', None)
+
+    def test_string(self):
+        self._assert('"test"', 'test')
+
+    def test_int(self):
+        self._assert('1', 1)
+
+    def test_list(self):
+        self._assert('["test1","test2"]', ['test1', 'test2'])
+
+    def test_tuple(self):
+        self._assert('["test1","test2"]', ('test1', 'test2'))
+
+    def test_dict(self):
+        self._assert('{"test1":1,"test2":2}', {'test1': 1, 'test2': 2})
+
+
+class TestHasherStrictify(unittest.TestCase):
+
+    def _assert(self, expected, value):
+        value = hasher.strictify(json.dumps(value))
+        self.assertEqual(RawData(expected), RawData(value))
 
     def test_bool(self):
         self._assert('false', False)
