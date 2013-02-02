@@ -1,16 +1,22 @@
 import unittest
 
+from ejtp.util.py2and3 import RawData
 from ejtp.util import hasher
+
 
 class TestHasher(unittest.TestCase):
 
-    expected_sha1 = 'e9a47e5417686cf0ac5c8ad9ee90ba2c1d08cc14'
+    text = 'Sample string'
+    expected_hash = 'e9a47e5417686cf0ac5c8ad9ee90ba2c1d08cc14'
+
+    def _assert(self, expected, value):
+        self.assertEqual(RawData(expected), RawData(value))
 
     def test_make(self):
-        self.assertEqual(self.expected_sha1, hasher.make('Sample string').export())
+        self._assert(self.expected_hash, hasher.make(self.text))
 
     def test_make6(self):
-        self.assertEqual(self.expected_sha1[:6], hasher.make6('Sample string').export())
+        self._assert(self.expected_hash[:6], hasher.make6(self.text))
 
     def test_maken(self):
-        self.assertEqual(self.expected_sha1[:3], hasher.maken('Sample string', 3).export())
+        self._assert(self.expected_hash[:3], hasher.maken(self.text, 3))
