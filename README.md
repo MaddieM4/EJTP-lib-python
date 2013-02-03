@@ -42,6 +42,7 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
+* The latest version of [PyECC](http://pypi.python.org/pypi/PyECC).
  * For testing, install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
 
 
