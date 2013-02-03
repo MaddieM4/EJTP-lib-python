@@ -39,7 +39,7 @@ class ECC(encryptor.Encryptor):
     def __init__(self, public, private, curve):
         kwargs = {}
 
-        self._ecc = _ECC(public=public, private=private, curve=curve)
+        self._ecc = _ECC(public=public or '', private=private, curve=curve)
         self._can_encrypt = bool(private)
         self.__curve = curve
 
