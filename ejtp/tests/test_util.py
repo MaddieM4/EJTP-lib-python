@@ -87,18 +87,19 @@ class TestHasherStrictify(unittest.TestCase):
 
 class TestHasherChecksum(unittest.TestCase):
 
-    def setUp(self):
-        self._strict = hasher.strict
-        self._make = hasher.make
-        hasher.strict = lambda x: self._mock('strict', x)
-        hasher.make = lambda x: self._mock('make', x)
-
-    def _mock(self, func, value):
-        return '%s_%s' % (func, value)
-
     def test_calls(self):
-        self.assertEqual('make_strict_test', hasher.checksum('test'))
+        mock = lambda func, value: '%s_%s' % (func, value)
+        try:
+            self._strict = hasher.strict
+            self._make = hasher.make
+            hasher.strict = lambda x: mock('strict', x)
+            hasher.make = lambda x: mock('make', x)
+            self.assertEqual('make_strict_test', hasher.checksum('test'))
+        finally:
+            hasher.strict = self._strict
+            hasher.make = self._make
 
-    def tearDown(self):
-        hasher.strict = self._strict
-        hasher.make = self._make
+    def test_string(self):
+        expected = '5006d6f8302000e8b87fef5c50c071d6d97b4e88'
+        value = hasher.checksum('test')
+        self.assertEqual(RawData(expected), RawData(value))
