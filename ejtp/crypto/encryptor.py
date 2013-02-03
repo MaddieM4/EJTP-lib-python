@@ -134,5 +134,8 @@ def make(data):
     elif t=="rsa":
         from . import rsa
         return rsa.RSA(*args)
+    elif t=="ecc":
+        from . import ecc
+        return ecc.ECC(*args)
     else:
         raise TypeError("Unsupported encryption type: %r"%data)
