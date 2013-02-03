@@ -34,6 +34,8 @@ Options:
 import sys
 
 from ejtp.vendor.docopt import docopt
+from ejtp.crypto.encryptor import make
+from ejtp.util.py2and3 import String
 from ejtp.identity.cache import IdentityCache
 from ejtp.config import configure_identity_cache
 
@@ -49,13 +51,16 @@ if __name__ == '__main__':
 
     input_text = input_text.rstrip('\n')
 
-    identity = None
+    encryptor = None
     if arguments['id']:
         cache = IdentityCache()
         configure_identity_cache(cache)
         identity = cache.find_by_name(arguments['<parameter>'])
+        encryptor = identity.encryptor
+    if arguments['with']:
+        encryptor = make(String(arguments['<parameter>']))
 
     if arguments['encode']:
-        print(identity.encryptor.encrypt(input_text).export())
+        print(encryptor.encrypt(input_text).export())
     if arguments['decode']:
-        print(identity.encryptor.decrypt(input_text).export())
+        print(encryptor.decrypt(input_text).export())
