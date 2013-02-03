@@ -64,3 +64,8 @@ if __name__ == '__main__':
         print(encryptor.encrypt(input_text).export())
     if arguments['decode']:
         print(encryptor.decrypt(input_text).export())
+    if arguments['sign']:
+        print(input_text)
+        print(encryptor.sign(input_text).export())
+    if arguments['sig-verify']:
+        print(encryptor.sig_verify(*input_text.split('\n', 1)))
