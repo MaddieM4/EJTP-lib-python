@@ -22,11 +22,12 @@ __doc__ = '''ejtp-crypto
 A simple little script for run EJTP encryptors from the command line.
 
 Usage:
-    ejtp-crypto ( encode | decode | sign | sig-verify ) ( id | with ) <parameter>
+    ejtp-crypto ( encode | decode | sign | sig-verify ) ( id | with ) <parameter> [options]
     ejtp-crypto -h | --help
     ejtp-crypto --version
 
 Options:
+    -f <filename>   File used as stdin
     -h --help       Show this help message
 '''
 
@@ -42,7 +43,13 @@ configure_identity_cache(cache)
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ejtp-crypto 0.9.2')
 
-    input_text = sys.stdin.read().rstrip('\n')
+    if arguments['-f']:
+        with open(arguments['-f'], 'r') as stdin:
+            input_text = stdin.read()
+    else:
+        input_text = sys.stdin.read()
+
+    input_text = input_text.rstrip('\n')
 
     identity = None
     if arguments['id']:
