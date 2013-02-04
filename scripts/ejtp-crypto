@@ -22,7 +22,8 @@ __doc__ = '''ejtp-crypto
 A simple little script for run EJTP encryptors from the command line.
 
 Usage:
-    ejtp-crypto ( encode | decode | sign | sig-verify ) ( id | with ) <parameter> [options]
+    ejtp-crypto ( encode | decode | sign ) ( id | with ) <parameter> [-f <filename>]
+    ejtp-crypto ( sig-verify ) ( id | with ) <parameter> --sigfile=<sigfile> [-f <filename>]
     ejtp-crypto -h | --help
     ejtp-crypto --version
 
@@ -65,7 +66,9 @@ if __name__ == '__main__':
     if arguments['decode']:
         print(encryptor.decrypt(input_text).export())
     if arguments['sign']:
-        print(input_text)
         print(encryptor.sign(input_text).export())
-    if arguments['sig-verify']:
-        print(encryptor.sig_verify(*input_text.split('\n', 1)))
+    if arguments['sig-verify'] and arguments['--sigfile']:
+        sigfile = arguments['--sigfile']
+        with open(sigfile) as f:
+            signature = f.read().rstrip('\n')
+            print(encryptor.sig_verify(input_text, signature))
