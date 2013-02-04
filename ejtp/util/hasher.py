@@ -66,10 +66,3 @@ def strictify(jsonstring):
 def checksum(obj):
     ''' Get the checksum of the strict of an object '''
     return make(strict(obj))
-
-@StringDecorator(ret=True, strict=True)
-def key(string):
-    if len(string)>10:
-	    return string[:10]+make6(string[10:])
-    else:
-        return string
