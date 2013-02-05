@@ -19,17 +19,11 @@ along with the Python EJTP library.  If not, see
 try:
     from pyecc import ECC as _ECC
 except ImportError:
+    # it makes pyecc a soft dependency
     class _ECC(object):
 
         def __init__(self, *args, **kwargs):
-            # TODO: add a warning here
-            pass
-
-        def encrypt(self, source):
-            return source
-
-        def decrypt(self, source):
-            return source
+            raise TypeError('PyECC is not installed.')
 
 
 from ejtp.crypto import encryptor
