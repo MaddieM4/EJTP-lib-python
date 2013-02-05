@@ -11,7 +11,9 @@ def main():
     loader = unittest.TestLoader()
     tests = loader.discover(base_path)
     test_runner = unittest.runner.TextTestRunner()
-    test_runner.run(tests)
+    results = test_runner.run(tests)
+    if not results.wasSuccessful():
+        quit(1)
 
 if __name__ == '__main__':
     main()
