@@ -33,6 +33,7 @@ Options:
 '''
 
 import sys
+import binascii
 
 from ejtp.vendor.docopt import docopt
 from ejtp.crypto.encryptor import make
@@ -40,6 +41,11 @@ from ejtp.util.py2and3 import String
 from ejtp.identity.cache import IdentityCache
 from ejtp.config import configure_identity_cache
 
+def byte_to_hex(bytestr):
+    return binascii.hexlify(bytestr).decode('ascii')
+
+def hex_to_byte(hexstr):
+    return binascii.unhexlify(hexstr.encode('ascii'))
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='ejtp-crypto 0.9.2')
@@ -62,13 +68,15 @@ if __name__ == '__main__':
         encryptor = make(String(arguments['<parameter>']))
 
     if arguments['encode']:
-        print(encryptor.encrypt(input_text).export())
+        encrypted = encryptor.encrypt(input_text)
+        print(byte_to_hex(encrypted.export()))
     if arguments['decode']:
-        print(encryptor.decrypt(input_text).export())
+        decrypted = encryptor.decrypt(hex_to_byte(input_text))
+        print(decrypted.export().decode('utf-8'))
     if arguments['sign']:
-        print(encryptor.sign(input_text).export())
+        print(byte_to_hex(encryptor.sign(input_text).export()))
     if arguments['sig-verify'] and arguments['--sigfile']:
         sigfile = arguments['--sigfile']
         with open(sigfile) as f:
-            signature = f.read().rstrip('\n')
+            signature = hex_to_byte(f.read().rstrip())
             print(encryptor.sig_verify(input_text, signature))
