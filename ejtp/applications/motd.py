@@ -50,12 +50,6 @@ class MOTDClient(Client):
     def request(self, remote, callback):
         '''
         Callbacks get called with arguments (frame msg, Client client)
-
-        >>> client, server = mock_locals()
-        >>> def printresponse(msg, c):
-        ...     print(msg.jsoncontent['content'])
-        >>> client.request(server.interface, printresponse)
-        Example message
         '''
         self.callbacks[str_address(remote)] = callback
         self.write_json(py_address(remote), {
