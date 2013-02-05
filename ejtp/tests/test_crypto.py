@@ -29,6 +29,7 @@ try:
     import pyecc
     has_ecc = True
 except ImportError:
+    print('WARNING: PyECC not found. Skipping ECC encryptor tests.')
     has_ecc = False
 
 

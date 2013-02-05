@@ -20,14 +20,7 @@ import os
 import sys
 from ejtp.util.compat import unittest
 
-def check_dependencies():
-    try:
-        import pyecc
-    except ImportError:
-        print('WARNING: PyECC not found. Skipping ECC encryptor tests.')
-
 def main():
-    check_dependencies()
     loader = unittest.TestLoader()
     if len(sys.argv) > 1:
         tests = unittest.TestSuite()
