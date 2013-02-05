@@ -1,10 +1,5 @@
 import os
-import sys
-
-if sys.version[:3] in ('2.4', '2.5', '2.6', '3.0', '3.1'):
-    import unittest2 as unittest
-else:
-    import unittest
+from ejtp.util.compat import unittest
 
 def main():
     base_path = os.path.split(__file__)[0]
