@@ -30,8 +30,15 @@ def main():
     check_dependencies()
     loader = unittest.TestLoader()
     if len(sys.argv) > 1:
-        names = ['.'.join([__package__, name]) for name in sys.argv[1:]]
-        tests = loader.loadTestsFromNames(names)
+        tests = unittest.TestSuite()
+        names = sys.argv[1:]
+        for name in names:
+            try:
+                test = loader.loadTestsFromName('%s.%s' % (__package__, name))
+            except AttributeError as ex:
+                print("Error loading '%s': %s" % (name, ex))
+                quit(1)
+            tests.addTests(test)
     else:
         base_path = os.path.split(__file__)[0]
         tests = loader.discover(base_path)
