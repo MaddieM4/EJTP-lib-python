@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 import os
+import sys
 from ejtp.util.compat import unittest
 
 def check_dependencies():
@@ -27,9 +28,13 @@ def check_dependencies():
 
 def main():
     check_dependencies()
-    base_path = os.path.split(__file__)[0]
     loader = unittest.TestLoader()
-    tests = loader.discover(base_path)
+    if len(sys.argv) > 1:
+        names = ['.'.join([__package__, name]) for name in sys.argv[1:]]
+        tests = loader.loadTestsFromNames(names)
+    else:
+        base_path = os.path.split(__file__)[0]
+        tests = loader.discover(base_path)
     test_runner = unittest.runner.TextTestRunner()
     results = test_runner.run(tests)
     if not results.wasSuccessful():
