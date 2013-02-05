@@ -44,23 +44,7 @@ class ECC(encryptor.Encryptor):
         return self._ecc.decrypt(source.export())
 
     def can_encrypt(self):
-        '''
-        Determines if this encryptor has the private key for encryption.
-
-        >>> ecc = ECC(SAMPLE_KEY_PUBLIC, SAMPLE_KEY_PRIVATE, 'p184')
-        >>> ecc.can_encrypt()
-        True
-        >>> from .encryptor import make
-        >>> ecc = make(['ecc', SAMPLE_KEY_PUBLIC, None, 'p184'])
-        >>> ecc.can_encrypt()
-        False
-        '''
         return self._can_encrypt
 
     def proto(self):
         return ['ecc', self.__curve]
-
-
-# TODO: move it to an unit test
-SAMPLE_KEY_PUBLIC = '#&M=6cSQ}m6C(hUz-7j@E=>oS#TL3F[F[a[q9S;RhMh+F#gP|Q6R}lhT_e7b'
-SAMPLE_KEY_PRIVATE = '!!![t{l5N^uZd=Bg(P#N|PH#IN8I0,Jq/PvdVNi^PxR,(5~p-o[^hPE#40.<|'
