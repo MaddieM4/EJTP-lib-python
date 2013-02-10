@@ -25,17 +25,6 @@ class Identity(object):
         >>> ident = Identity("joe", ['rotate', 8], None)
         >>> ident.name
         'joe'
-        >>> e =  ident.encryptor
-        >>> e # doctest: +ELLIPSIS
-        <ejtp.crypto.rotate.RotateEncryptor object at ...>
-        >>> e == ident.encryptor # Make sure this is cached
-        True
-        >>> plaintext = "example"
-        >>> sig = ident.sign(plaintext)
-        >>> sig
-        RawData(48d050d89056c477583982a704bda350773aba4f0280388da1e0c4a4c8ee4c54)
-        >>> ident.verify_signature(sig, plaintext)
-        True
         '''
         self._contents = {
             'name': name,
@@ -64,17 +53,6 @@ class Identity(object):
         '''
         Return a copy of this Identity with only the public component of
         its encryptor object.
-
-        >>> from ejtp import testing
-        >>> ident = testing.identity()
-        >>> "PRIVATE" in str(ident.encryptor.proto()[1])
-        True
-        >>> "PUBLIC" in str(ident.encryptor.proto()[1])
-        False
-        >>> "PRIVATE" in str(ident.public().encryptor.proto()[1])
-        False
-        >>> "PUBLIC" in str(ident.public().encryptor.proto()[1])
-        True
         '''
         public_proto = self.encryptor.public()
         return Identity(self.name, public_proto, self.location)
@@ -88,19 +66,6 @@ class Identity(object):
     def serialize(self):
         '''
         Serialize Identity object to dict.
-
-        >>> from ejtp import testing
-        >>> import json
-        >>> json_data = json.dumps(
-        ...     testing.identity().serialize(),
-        ...     indent=4,
-        ...     default=JSONBytesEncoder,
-        ... )
-        >>> data = json.loads(json_data)
-        >>> data["encryptor"] #doctest: +ELLIPSIS
-        [...'rsa', ...'...']
-        >>> data["location"] #doctest: +ELLIPSIS
-        [...'local', None, ...'mitzi']
         '''
         self['encryptor'] = self.encryptor.proto()
         return self._contents
@@ -135,30 +100,6 @@ class Identity(object):
 def deserialize(ident_dict):
     '''
     Deserialize a dict into an Identity.
-
-    >>> id_dict = {}
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'name'
-    >>> id_dict['name'] = "Calvin"
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'location'
-    >>> id_dict['location'] = ["local", None, "calvin-freckle-mcmurray"]
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'encryptor'
-    >>> id_dict['encryptor'] = ['rotate', 4]
-    >>> id_dict['comment'] = "Lives dangerously under Rocky's \\"guidance.\\""
-    >>> ident = deserialize(id_dict)
-    >>> ident.name
-    'Calvin'
-    >>> ident.location
-    ['local', None, 'calvin-freckle-mcmurray']
-    >>> ident.encryptor #doctest: +ELLIPSIS
-    <ejtp.crypto.rotate.RotateEncryptor object at ...>
-    >>> ident['comment']
-    'Lives dangerously under Rocky\\'s "guidance."'
     '''
     for req in ('name', 'location', 'encryptor'):
         if not req in ident_dict:
