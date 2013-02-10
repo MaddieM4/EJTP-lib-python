@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -77,7 +78,7 @@ class TCPJack(stream.StreamJack):
                     self.add_connection(interface, 
                         TCPConnection(self, interface, connection=conn)
                     )
-                except socket.error as e:
+                except socket.error:
                     pass
             for conn in list(self.connections.values()):
                 conn.close()
