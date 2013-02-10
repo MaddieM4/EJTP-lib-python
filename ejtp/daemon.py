@@ -23,7 +23,7 @@ from ejtp.client import Client
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String
 from ejtp.address import *
-from ejtp.compat import get_exception
+from ejtp.util.compat import get_exception
 import re
 
 errorcodes = {
