@@ -120,7 +120,7 @@ def test_jacks(ifaceA, ifaceB):
         transfer_condition.acquire()
         with print_lock:
             print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content.toString()))
-        transfer_condition.notify_all()
+        transfer_condition.notifyAll()
         transfer_condition.release()
     clientA.rcv_callback = rcv_callback
     clientB.rcv_callback = rcv_callback
