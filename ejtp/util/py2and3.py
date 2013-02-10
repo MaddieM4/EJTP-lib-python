@@ -16,6 +16,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.util.compat import format, bytes
+
 class RawData(object):
     '''
     This class is supposed to store raw data and behaves similar to str in
@@ -193,7 +195,10 @@ class RawData(object):
         if len(byte) != 1:
             raise TypeError('byte must be of length 1')
         try:
-            return self._data.index(byte._data[0])
+            __data = self._data
+            if isinstance(__data, tuple):
+                __data = list(__data)
+            return __data.index(byte._data[0])
         except ValueError:
             raise ValueError('byte not in RawData')
 

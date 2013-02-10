@@ -1,6 +1,4 @@
-import json
-
-from ejtp.util.compat import unittest
+from ejtp.util.compat import unittest, json
 
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor
@@ -95,6 +93,15 @@ class TestIdentityCache(unittest.TestCase):
 
     def setUp(self):
         self.cache = IdentityCache()
+        self.joe_ident = Identity('joe', ['rotate', 3], ['local', None, 'joe'])
+
+    def test_setitem_wrong_type(self):
+        self.assertRaisesRegexp(TypeError, "Expected ejtp.identity.core.Identity",
+            self.cache.__setitem__, self.joe_ident, [])
+
+    def test_setitem_wrong_location(self):
+        self.assertRaisesRegexp(ValueError, "Trying to cache ident in the wrong location",
+            self.cache.__setitem__, ['x', 'y', 'z'], self.joe_ident)
 
     def test_serialize(self):
         self.cache.update_ident(testing.identity('mitzi'))

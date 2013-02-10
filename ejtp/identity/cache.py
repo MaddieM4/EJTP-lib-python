@@ -20,7 +20,7 @@ from ejtp.address import *
 from ejtp.util.py2and3  import String, StringDecorator, JSONBytesEncoder
 from ejtp.identity.core import Identity, deserialize
 
-import json
+from ejtp.util.compat import json
 
 class IdentityCache(object):
     def __init__(self, source={}):
