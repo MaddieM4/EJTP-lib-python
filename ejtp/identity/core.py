@@ -25,17 +25,6 @@ class Identity(object):
         >>> ident = Identity("joe", ['rotate', 8], None)
         >>> ident.name
         'joe'
-        >>> e =  ident.encryptor
-        >>> e # doctest: +ELLIPSIS
-        <ejtp.crypto.rotate.RotateEncryptor object at ...>
-        >>> e == ident.encryptor # Make sure this is cached
-        True
-        >>> plaintext = "example"
-        >>> sig = ident.sign(plaintext)
-        >>> sig
-        RawData(48d050d89056c477583982a704bda350773aba4f0280388da1e0c4a4c8ee4c54)
-        >>> ident.verify_signature(sig, plaintext)
-        True
         '''
         self._contents = {
             'name': name,
@@ -64,17 +53,6 @@ class Identity(object):
         '''
         Return a copy of this Identity with only the public component of
         its encryptor object.
-
-        >>> from ejtp import testing
-        >>> ident = testing.identity()
-        >>> "PRIVATE" in str(ident.encryptor.proto()[1])
-        True
-        >>> "PUBLIC" in str(ident.encryptor.proto()[1])
-        False
-        >>> "PRIVATE" in str(ident.public().encryptor.proto()[1])
-        False
-        >>> "PUBLIC" in str(ident.public().encryptor.proto()[1])
-        True
         '''
         public_proto = self.encryptor.public()
         return Identity(self.name, public_proto, self.location)
@@ -88,84 +66,40 @@ class Identity(object):
     def serialize(self):
         '''
         Serialize Identity object to dict.
-
-        >>> from ejtp import testing
-        >>> import json
-        >>> print(json.dumps(
-        ...     testing.identity().serialize(),
-        ...     indent=4,
-        ...     default=JSONBytesEncoder,
-        ... )) #doctest: +ELLIPSIS
-        {
-            "encryptor": [
-                "rsa", 
-                "..."
-            ], 
-            "name": "mitzi@lackadaisy.com", 
-            "location": [
-                "local", 
-                null, 
-                "mitzi"
-            ]
-        }
         '''
         self['encryptor'] = self.encryptor.proto()
         return self._contents
 
-    @property
-    def name(self):
+    def _get_name(self):
         return self['name']
 
-    @name.setter
-    def name(self, v):
+    def _set_name(self, v):
         self['name'] = v
 
-    @property
-    def location(self):
+    name = property(_get_name, _set_name)
+
+    def _get_location(self):
         return self['location']
 
-    @location.setter
-    def location(self, v):
+    def _set_location(self, v):
         self['location'] = v
 
-    @property
-    def encryptor(self):
+    location = property(_get_location, _set_location)
+
+    def _get_encryptor(self):
         if not self._encryptor:
             self._encryptor = ejtp.crypto.make(self['encryptor'])
         return self._encryptor
 
-    @encryptor.setter
-    def encryptor(self, new_encryptor):
+    def _set_encryptor(self, new_encryptor):
         self._encryptor = ejtp.crypto.make(new_encryptor)
         self['encryptor'] = self.encryptor.proto()
+
+    encryptor = property(_get_encryptor, _set_encryptor)
 
 def deserialize(ident_dict):
     '''
     Deserialize a dict into an Identity.
-
-    >>> id_dict = {}
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'name'
-    >>> id_dict['name'] = "Calvin"
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'location'
-    >>> id_dict['location'] = ["local", None, "calvin-freckle-mcmurray"]
-    >>> ident = deserialize(id_dict)
-    Traceback (most recent call last):
-    ValueError: Missing ident property: 'encryptor'
-    >>> id_dict['encryptor'] = ['rotate', 4]
-    >>> id_dict['comment'] = "Lives dangerously under Rocky's \\"guidance.\\""
-    >>> ident = deserialize(id_dict)
-    >>> ident.name
-    'Calvin'
-    >>> ident.location
-    ['local', None, 'calvin-freckle-mcmurray']
-    >>> ident.encryptor #doctest: +ELLIPSIS
-    <ejtp.crypto.rotate.RotateEncryptor object at ...>
-    >>> ident['comment']
-    'Lives dangerously under Rocky\\'s "guidance."'
     '''
     for req in ('name', 'location', 'encryptor'):
         if not req in ident_dict:

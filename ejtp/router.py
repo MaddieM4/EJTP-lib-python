@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -67,7 +68,7 @@ class Router(object):
         if not isinstance(msg, Frame):
             try:
                 msg = Frame(msg)
-            except Exception as e:
+            except Exception:
                 logger.info("Router could not parse frame: %s", repr(msg))
                 return
         if msg.type == msg.T_R:

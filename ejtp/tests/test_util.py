@@ -1,8 +1,6 @@
-import json
-import unittest
-
 from ejtp.util.py2and3 import RawData, String
 from ejtp.util import hasher
+from ejtp.util.compat import json, unittest
 
 
 class TestHasherMake(unittest.TestCase):

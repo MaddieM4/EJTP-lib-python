@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 

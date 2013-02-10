@@ -4,7 +4,10 @@ from ejtp.util.compat import unittest, is_py3k
 from ejtp.crypto.ecc import ECC
 
 
-@unittest.skipIf(is_py3k, 'Python 3.x does not have PyECC dependency.')
+skipPy3k = unittest.skipIf(is_py3k, 'Python 3.x does not have PyECC dependency.')
+onlyPy3k = unittest.skipUnless(is_py3k, 'Python 2.x have PyECC dependency.')
+
+
 class TestECC(unittest.TestCase):
 
     private_key = '!!![t{l5N^uZd=Bg(P#N|PH#IN8I0,Jq/PvdVNi^PxR,(5~p-o[^hPE#40.<|'
@@ -31,8 +34,11 @@ class TestECC(unittest.TestCase):
         self.assertEqual('test', decrypted.export())
 
 
-@unittest.skipUnless(is_py3k, 'Python 2.x have PyECC dependency.')
 class TestECCPy3K(unittest.TestCase):
 
     def test_should_fail(self):
         self.assertRaises(TypeError, ECC, None, None, 'p184')
+
+
+TestECC = skipPy3k(TestECC)
+TestECCPy3K = onlyPy3k(TestECCPy3K)
