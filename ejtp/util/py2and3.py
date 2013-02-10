@@ -195,10 +195,9 @@ class RawData(object):
         if len(byte) != 1:
             raise TypeError('byte must be of length 1')
         try:
-            __data = self._data
-            if isinstance(__data, tuple):
-                __data = list(__data)
-            return __data.index(byte._data[0])
+            _data = self._data if isinstance(self._data, tuple) and hasattr(self._data, 'index') \
+                else list(self._data)
+            return _data.index(byte._data[0])
         except ValueError:
             raise ValueError('byte not in RawData')
 
