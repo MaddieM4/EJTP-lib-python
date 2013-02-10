@@ -3,7 +3,7 @@
 EJTP-lib-python
 ===============
 
-[![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png?branch=development)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
+[![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
 
 Encrypted JSON Transport Protocol library for Python 2.x.
 
