@@ -68,19 +68,15 @@ then simply run the command `tox`.
     name@machine$ tox
     (a bunch of output ...)
     ____________ summary ______________
-    ERROR:   py25: commands failed
+      py25: commands succeeded
       py26: commands succeeded
       py27: commands succeeded
-    ERROR:   py31: commands failed
+      py31: commands succeeded
       py32: commands succeeded
-    ERROR:   py33: commands failed
+      py33: commands succeeded
+      congratulations :)
 
-At this time, versions 2.5, 3.1, and 3.3 are planned to have support, but
-don't yet. Don't worry about them failing. This should be fixed [soon enough](
-https://github.com/campadrenalin/EJTP-lib-python/issues/74). Until then, the
-build indicator will be a forlorn red indefinitely.
-
-Any other errors should be reported in a [Github Issue](
+Any errors should be reported in a [Github Issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) so I can
 have a look at it. I may reply with questions in response to that, but
 filing a test failure takes less than 5 minutes of your time and is
