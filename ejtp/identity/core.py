@@ -70,32 +70,32 @@ class Identity(object):
         self['encryptor'] = self.encryptor.proto()
         return self._contents
 
-    @property
-    def name(self):
+    def _get_name(self):
         return self['name']
 
-    @name.setter
-    def name(self, v):
+    def _set_name(self, v):
         self['name'] = v
 
-    @property
-    def location(self):
+    name = property(_get_name, _set_name)
+
+    def _get_location(self):
         return self['location']
 
-    @location.setter
-    def location(self, v):
+    def _set_location(self, v):
         self['location'] = v
 
-    @property
-    def encryptor(self):
+    location = property(_get_location, _set_location)
+
+    def _get_encryptor(self):
         if not self._encryptor:
             self._encryptor = ejtp.crypto.make(self['encryptor'])
         return self._encryptor
 
-    @encryptor.setter
-    def encryptor(self, new_encryptor):
+    def _set_encryptor(self, new_encryptor):
         self._encryptor = ejtp.crypto.make(new_encryptor)
         self['encryptor'] = self.encryptor.proto()
+
+    encryptor = property(_get_encryptor, _set_encryptor)
 
 def deserialize(ident_dict):
     '''
