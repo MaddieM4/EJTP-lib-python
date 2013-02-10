@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
 from hashlib import new
-import json
+from ejtp.util.compat import json
 
 HASH_FUNCTION = 'sha1' # was md5
 
