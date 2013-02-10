@@ -22,6 +22,7 @@ __all__ = [
     'encryptor',
 	'rsa',
 	'rotate',
+    'ecc'
 ]
 
 from ejtp.crypto.encryptor import make
