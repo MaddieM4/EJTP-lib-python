@@ -91,23 +91,16 @@ class Identity(object):
 
         >>> from ejtp import testing
         >>> import json
-        >>> print(json.dumps(
+        >>> json_data = json.dumps(
         ...     testing.identity().serialize(),
         ...     indent=4,
         ...     default=JSONBytesEncoder,
-        ... )) #doctest: +ELLIPSIS
-        {
-            "encryptor": [
-                "rsa", 
-                "..."
-            ], 
-            "name": "mitzi@lackadaisy.com", 
-            "location": [
-                "local", 
-                null, 
-                "mitzi"
-            ]
-        }
+        ... )
+        >>> data = json.loads(json_data)
+        >>> data["encryptor"] #doctest: +ELLIPSIS
+        [...'rsa', ...'...']
+        >>> data["location"] #doctest: +ELLIPSIS
+        [...'local', None, ...'mitzi']
         '''
         self['encryptor'] = self.encryptor.proto()
         return self._contents
