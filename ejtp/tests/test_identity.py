@@ -1,3 +1,4 @@
+import os
 from ejtp.util.compat import unittest, json
 
 import ejtp.crypto
@@ -94,6 +95,9 @@ class TestIdentityCache(unittest.TestCase):
     def setUp(self):
         self.cache = IdentityCache()
         self.joe_ident = Identity('joe', ['rotate', 3], ['local', None, 'joe'])
+        self.mitzi_ident = testing.identity('mitzi')
+        self.atlas_ident = testing.identity('atlas')
+        self.victor_ident = testing.identity('victor')
 
     def test_setitem_wrong_type(self):
         self.assertRaisesRegexp(TypeError, "Expected ejtp.identity.core.Identity",
@@ -104,8 +108,53 @@ class TestIdentityCache(unittest.TestCase):
             self.cache.__setitem__, ['x', 'y', 'z'], self.joe_ident)
 
     def test_serialize(self):
-        self.cache.update_ident(testing.identity('mitzi'))
-        self.cache.update_ident(testing.identity('atlas'))
+        self.cache.update_ident(self.mitzi_ident)
         serialized_ident = self.cache.serialize()
         self.assertIn('["local",null,"mitzi"]', serialized_ident)
-        self.assertIn('["local",null,"atlas"]', serialized_ident)
+
+    def test_encrypt_capable(self):
+        self.cache.update_ident(self.mitzi_ident)
+        self.cache.update_ident(self.atlas_ident.public())
+        self.cache.update_ident(self.joe_ident)
+
+        capable = [ident.name for ident in self.cache.encrypt_capable()]
+        self.assertIn('joe', capable)
+        self.assertIn('mitzi@lackadaisy.com', capable)
+        self.assertNotIn('atlas@lackadaisy.com', capable)
+
+    def _assert_caches(self, cache1, cache2):
+        for item in zip(sorted(cache1.cache.keys()), sorted(cache2.cache.keys())):
+            self.assertEqual(*item)
+
+    def test_sync(self):
+        mitzi_cache = IdentityCache()
+        atlas_cache = IdentityCache()
+        mitzi_cache.update_ident(self.mitzi_ident)
+        atlas_cache.update_ident(self.atlas_ident)
+        mitzi_cache.sync(atlas_cache)
+        self._assert_caches(mitzi_cache, atlas_cache)
+
+    def test_deserialize(self):
+        self.cache.update_ident(self.mitzi_ident)
+        self.cache.update_ident(self.atlas_ident)
+
+        serialization = self.cache.serialize()
+        new_cache = IdentityCache()
+        new_cache.deserialize(serialization)
+        self._assert_caches(self.cache, new_cache)
+
+    def test_load_from_without_args(self):
+        self.assertRaisesRegexp(ValueError, 'Must provide either file_path or file_object', self.cache.load_from)
+
+    def test_load(self):
+        self.cache.load_from('resources/examplecache.json')
+        atlas_location = self.cache.find_by_name("atlas@lackadaisy.com").location
+        self.assertListEqual(self.atlas_ident.location, atlas_location)
+
+    def test_save_to_without_args(self):
+        self.assertRaisesRegexp(ValueError, 'Must provide either file_path or file_object', self.cache.save_to)
+
+    def test_save_to(self):
+        self.cache.update_ident(self.mitzi_ident)
+        self.cache.save_to('resources/temp.json', indent=4)
+        os.remove('resources/temp.json')
