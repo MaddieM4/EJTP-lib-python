@@ -3,6 +3,8 @@
 EJTP-lib-python
 ===============
 
+[![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png?branch=development)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
+
 Encrypted JSON Transport Protocol library for Python 2.x.
 
 EJTP is a data transfer protocol that allows JSON exchange over a
@@ -42,7 +44,7 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
-* The latest version of [PyECC](http://pypi.python.org/pypi/PyECC).
+ * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC), if you want ECC cipher support.
  * For testing, install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
 
 
