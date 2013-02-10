@@ -44,8 +44,10 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
- * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC), if you want ECC cipher support.
- * For testing, install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+ * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository]((https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
+ * For testing:
+   * Install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+   * Install [tox](http://testrun.org/tox/latest/index.html).
 
 
 Usage
@@ -60,18 +62,25 @@ their rcv_callback property to your own preferred callback.
 Testing
 =======
 
-The "install_and_test.sh" script is a one-liner that I use to quickly
-install updated code and run it through the test suite while I work.
-It depends on having [DoctestAll](https://github.com/campadrenalin/DoctestAll)
-installed, so you want to do that first of all, before testing EJTP.
-If you want to know whether this EJTP implementation has any problems
-on your system, run this script, and it should spit out something like
+Install the software needed for testing (see Dependencies section above),
+then simply run the command `tox`.
 
-    name@machine$ ./install_and_test.sh
-    0 failures, 138 tests.
+    name@machine$ tox
+    (a bunch of output ...)
+    ____________ summary ______________
+    ERROR:   py25: commands failed
+      py26: commands succeeded
+      py27: commands succeeded
+    ERROR:   py31: commands failed
+      py32: commands succeeded
+    ERROR:   py33: commands failed
 
-at the end. If there are failures, be sure to copy the entire output
-of the command and put that in a [Github Issue](
+At this time, versions 2.5, 3.1, and 3.3 are planned to have support, but
+don't yet. Don't worry about them failing. This should be fixed [soon enough](
+https://github.com/campadrenalin/EJTP-lib-python/issues/74). Until then, the
+build indicator will be a forlorn red indefinitely.
+
+Any other errors should be reported in a [Github Issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) so I can
 have a look at it. I may reply with questions in response to that, but
 filing a test failure takes less than 5 minutes of your time and is
