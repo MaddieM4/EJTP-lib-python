@@ -5,7 +5,7 @@ from ejtp.util.compat import unittest
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor
 from ejtp import testing # TODO: move it to tests
-from ejtp.identity import Identity
+from ejtp.identity import Identity, IdentityCache
 from ejtp.identity.core import deserialize
 from ejtp.util.py2and3 import JSONBytesEncoder
 
@@ -89,3 +89,16 @@ class TestIdentityDeserialize(unittest.TestCase):
         self.assertEqual(data['location'], ident.location)
         self.assertIsInstance(ident.encryptor, RotateEncryptor)
         self.assertEqual(data['comment'], ident['comment'])
+
+
+class TestIdentityCache(unittest.TestCase):
+
+    def setUp(self):
+        self.cache = IdentityCache()
+
+    def test_serialize(self):
+        self.cache.update_ident(testing.identity('mitzi'))
+        self.cache.update_ident(testing.identity('atlas'))
+        serialized_ident = self.cache.serialize()
+        self.assertIn('["local",null,"mitzi"]', serialized_ident)
+        self.assertIn('["local",null,"atlas"]', serialized_ident)

@@ -153,13 +153,6 @@ class IdentityCache(object):
     def serialize(self):
         '''
         Serialize IdentityCache to straddr-keyed dict.
-
-        >>> from ejtp import testing
-        >>> cache = IdentityCache()
-        >>> cache.update_ident(testing.identity("mitzi"))
-        >>> cache.update_ident(testing.identity("atlas"))
-        >>> cache.serialize() #doctest: +ELLIPSIS
-        {...'["local",null,"mitzi"]': {...}, ...'["local",null,"atlas"]': {...}}
         '''
         result = {}
         for straddr in self.cache:
