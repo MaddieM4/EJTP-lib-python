@@ -91,17 +91,6 @@ class IdentityCache(object):
     def encrypt_capable(self):
         '''
         Return a list of every identity that can encrypt.
-
-        >>> from ejtp import testing
-        >>> cache = IdentityCache()
-        >>> cache.update_ident(testing.identity("mitzi"))
-        >>> cache.update_ident(testing.identity("atlas").public())
-        >>> cache.update_ident(Identity(
-        ...     "joe", ['rotate', 9], ['local', None, 'joe']))
-
-        >>> capable = cache.encrypt_capable()
-        >>> sorted(i.name for i in capable)
-        ['joe', 'mitzi@lackadaisy.com']
         '''
         return [i for i in self.all() if i.can_encrypt()]
 
@@ -110,19 +99,12 @@ class IdentityCache(object):
         Sync to one or more other cache objects
 
         >>> from ejtp import testing
-        >>> mitzi_cache = IdentityCache()
-        >>> atlas_cache = IdentityCache()
-        >>> mitzi_cache.update_ident(testing.identity("mitzi"))
-        >>> atlas_cache.update_ident(testing.identity("atlas"))
-        >>> sorted(atlas_cache.cache.keys())
-        [String('["local",null,"atlas"]')]
-        >>> sorted(mitzi_cache.cache.keys())
-        [String('["local",null,"mitzi"]')]
-        >>> mitzi_cache.sync(atlas_cache)
-        >>> sorted(atlas_cache.cache.keys())
-        [String('["local",null,"atlas"]'), String('["local",null,"mitzi"]')]
-        >>> sorted(mitzi_cache.cache.keys())
-        [String('["local",null,"atlas"]'), String('["local",null,"mitzi"]')]
+        >>> cache1 = IdentityCache()
+        >>> cache2 = IdentityCache()
+        >>> cache1.update_ident(testing.identity("mitzi"))
+        >>> cache1.sync(cache2)
+        >>> cache2.find_by_name("mitzi@lackadaisy.com").location
+        ['local', None, 'mitzi']
         '''
         sync_caches(self, *caches)
 
@@ -133,7 +115,6 @@ class IdentityCache(object):
         >>> from ejtp import testing
         >>> orig_cache = IdentityCache()
         >>> orig_cache.update_ident(testing.identity("mitzi"))
-        >>> orig_cache.update_ident(testing.identity("atlas"))
 
         >>> serialization = orig_cache.serialize()
         >>> new_cache = IdentityCache()
@@ -165,12 +146,8 @@ class IdentityCache(object):
         Load data from a serialization file.
 
         >>> cache = IdentityCache()
-        >>> cache.load_from()
-        Traceback (most recent call last):
-        ValueError: Must provide either file_path or file_object
         >>> cache.load_from("resources/examplecache.json")
         >>> cache.find_by_name("atlas@lackadaisy.com").location
-        [u'local', None, u'atlas']
         '''
         if not file_object:
             if file_path:
@@ -187,15 +164,11 @@ class IdentityCache(object):
         '''
         Save data to a serialization file.
 
-        >>> from ejtp import testing
         >>> cache = IdentityCache()
         >>> cache.update_ident(testing.identity("mitzi"))
         >>> cache.update_ident(testing.identity("atlas"))
         >>> cache.update_ident(testing.identity("victor"))
-        >>> cache.save_to()
-        Traceback (most recent call last):
-        ValueError: Must provide either file_path or file_object
-        >>> cache.save_to("resources/examplecache.json", indent=4)
+        cache.save_to('resources/examplecache.json', indent=4)
         '''
         if not file_object:
             if file_path:
@@ -208,7 +181,7 @@ class IdentityCache(object):
         json.dump(
             self.serialize(),
             file_object,
-            default = JSONBytesDecoder,
+            default = JSONBytesEncoder,
             **kwargs
         )
 
