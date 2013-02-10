@@ -15,3 +15,17 @@ is_py3k = sys.version_info[0] == 3
 
 def get_exception():
     return sys.exc_info()[1]
+
+# Python 2.5 does not have format builtin
+try:
+    format = format
+except NameError:
+    def format(value, spec): # TODO: is it right?
+        f ='%' + spec
+        return f % value
+
+# Python 2.5 does not have bytes builtin
+try:
+    bytes = bytes
+except NameError:
+    bytes = str
