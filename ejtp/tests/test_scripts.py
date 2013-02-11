@@ -69,3 +69,17 @@ class TestConsole(unittest.TestCase):
         $ quit
         '''
         self._assertCLI(expected)
+
+    def test_eval(self):
+        expected = '''
+        What interface do you want to use?
+        Available interfaces:
+        $ mitzi@lackadaisy.com
+        Enter a command
+        $ eval
+        $ 2 ** 10
+        1024
+        Enter a command
+        $ quit
+        '''
+        self._assertCLI(expected)
