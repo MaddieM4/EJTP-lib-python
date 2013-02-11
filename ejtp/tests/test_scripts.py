@@ -3,6 +3,7 @@ from __future__ import with_statement
 import os
 import imp
 import sys
+import tempfile
 
 from ejtp.util.compat import json, unittest, StringIO
 
@@ -10,9 +11,9 @@ root = os.path.join(os.path.split(__file__)[0], '../..')
 
 class IOMock(object):
 
-    def __init__(self, input=None):
+    def __init__(self):
         self._stream = []
-        self.input = input or []
+        self.input = []
         self.output = []
 
     def readline(self):
@@ -44,6 +45,11 @@ class IOMock(object):
 
     def pipe(self):
         self.input = self.output
+        self.output = []
+        self._stream = []
+
+    def clear(self):
+        self.input = []
         self.output = []
         self._stream = []
 
@@ -172,3 +178,22 @@ class TestCrypto(unittest.TestCase):
 
     def test_encode_decode_with(self):
         self._test_encode_decode(text='banana', with_='["rsa","-----BEGIN RSA PRIVATE KEY-----\\nMIICXAIBAAKBgQDAZQNip0GPxFZsyxcgIgyvuPTHsruu66DBsESG5/Pfbcye3g4W\\nwfg+dBP3IfUnLB4QXGzK42BAd57fCBXOtalSOkFoze/C2q74gYFBMvIPbEfef8yQ\\n83uoNkYAFBVp6yNlT51IQ2mY19KpqoyxMZftxwdtImthE5UG1knZE64sIwIDAQAB\\nAoGAIGjjyRqj0LQiWvFbU+5odLGTipBxTWYkDnzDDnbEfj7g2WJOvUavqtWjB16R\\nDahA6ECpkwP6kuGTwb567fdsLkLApwwqAtpjcu96lJpbRC1nq1zZjwNB+ywssqfV\\nV3R2/rgIEE6hsWS1wBHufJeqBZtlkeUp/VEx/uopyuR/WgECQQDJOaFSutj1q1dt\\nNO23Q6w3Ie4uMQ59rWeRxXA5+KjDZCxrizzo/Bew5ZysJzHB2n8QQ15WJ7gTSjwJ\\nMQdl/7SJAkEA9MQG/6JivkhUNh45xMYqnMHuutyIeGE17QndSfknU+8CX9UBLjsL\\nw1QU+llJ3iYfMPEDaydn0HJ8+iinyyAISwJAe7Z2vEorwT5KTdXQoG92nZ66tKNs\\naVAG8NQWH04FU7tuo9/C3uq+Ff/UxvKB4NDYdcM1aHqa7SEir/P4vHjtIQJAFKc9\\n1/BB2MCNqoteYIZALj4HAOl+8nlxbXD5pTZK5UAzuRZmJRqCYZcEtiM2onIhC6Yq\\nna4Tink+pnUrw24OhQJBAIjujQS5qwOf2p5yOqU3UYsBv7PS8IitmYFARTlcYh1G\\nrmcIPHRtkxIwNuFxy3ZRRPEDGFa82id5QHUJT8sJbqY=\\n-----END RSA PRIVATE KEY-----"]')
+
+    def test_signature(self):
+        argv = ['ejtp-crypto', 'sign', 'id', 'mitzi@lackadaisy.com']
+        self.io.input.append('banana')
+        with self.io:
+            self.crypto.main(argv)
+
+        tmp = tempfile.mktemp()
+
+        with open(tmp, 'w') as f:
+            f.write(self.io.get_value())
+
+        argv = ['ejtp-crypto', 'sig-verify', 'id', 'mitzi@lackadaisy.com', '--sigfile', tmp]
+        self.io.clear()
+        self.io.input.append('banana')
+        with self.io:
+            self.crypto.main(argv)
+
+        self.assertEqual('True', self.io.get_value())
