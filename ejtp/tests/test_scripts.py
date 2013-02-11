@@ -83,3 +83,26 @@ class TestConsole(unittest.TestCase):
         $ quit
         '''
         self._assertCLI(expected)
+
+    def test_messages(self):
+        expected = '''
+        What interface do you want to use?
+        Available interfaces:
+        $ mitzi@lackadaisy.com
+        Enter a command
+        $ send
+        What interface do you want to send to?
+        Available interfaces:
+        $ mitzi@lackadaisy.com
+        What message do you want to send?
+        $ "one message"
+        Enter a command
+        $ messages
+        All messages
+        ------------
+        mitzi@lackadaisy.com
+        "one message"
+        Enter a command
+        $ quit
+        '''
+        self._assertCLI(expected)
