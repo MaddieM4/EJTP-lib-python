@@ -1,10 +1,6 @@
 import logging
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
 
-from ejtp.util.compat import unittest
+from ejtp.util.compat import unittest, StringIO
 
 from ejtp import client
 from ejtp.client import Client
