@@ -10,15 +10,19 @@ root = os.path.join(os.path.split(__file__)[0], '../..')
 
 class IOMock(object):
 
-    def __init__(self, input=None, output=None):
+    def __init__(self, input=None):
         self._stream = []
         self.input = input or []
-        self.output = output or []
+        self.output = []
 
     def readline(self):
         _input = self.input.pop(0)
-        self._stream.append(_input)
-        return _input.lstrip('$ ')
+        self._stream.append('$ ' + _input)
+        return _input
+
+    def read(self):
+        text = '\n'.join(self.input)
+        return text
 
     def write(self, text):
         _output = text.strip().split('\n')
@@ -35,6 +39,15 @@ class IOMock(object):
     def get_lines(self):
         return [line for line in self._stream if line]
 
+    def get_value(self):
+        return '\n'.join(self.get_lines())
+
+    def pipe(self):
+        self.input = self.output
+        self.output = []
+        self._stream = []
+
+
 
 class TestConsole(unittest.TestCase):
 
@@ -49,7 +62,7 @@ class TestConsole(unittest.TestCase):
 
     def _assertCLI(self, expected):
         lines_expected = [line.strip() for line in expected.strip().split('\n')]
-        self.io.input.extend([line for line in lines_expected if line.startswith('$')])
+        self.io.input.extend([line[2:] for line in lines_expected if line.startswith('$')])
 
         with self.io:
             self.assertRaises(SystemExit, self.inter.repl)
@@ -121,3 +134,31 @@ class TestConsole(unittest.TestCase):
         $ quit
         '''
         self._assertCLI(expected)
+
+
+class TestCrypto(unittest.TestCase):
+
+    def _import(self):
+        file_ = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-crypto'))
+        with open(file_, 'rb') as fp:
+            return imp.load_module('crypto', fp, 'ejtp-crypto', ('.py', 'rb', imp.PY_SOURCE))
+
+    def setUp(self):
+        self.crypto = self._import()
+        if not self.crypto:
+            self.crypto = crypto
+        self.io = IOMock()
+
+    def test_encode_decode_id(self):
+        argv = ['ejtp-crypto', 'encode', 'id', 'mitzi@lackadaisy.com']
+        self.io.input.append('banana')
+        with self.io:
+            self.crypto.main(argv)
+
+        argv = ['ejtp-crypto', 'decode', 'id', 'mitzi@lackadaisy.com']
+        self.io.pipe()
+        with self.io:
+            self.crypto.main(argv)
+
+        self.assertEqual('banana', self.io.get_value())
+
