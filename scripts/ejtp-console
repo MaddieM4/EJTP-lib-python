@@ -20,12 +20,12 @@ along with the Python EJTP library.  If not, see
 
 import os
 import datetime
-import json
 
 from ejtp.router import Router
 from ejtp.client import Client
 from ejtp.identity import IdentityCache
 from ejtp.config import configure_identity_cache
+from ejtp.util.compat import json
 
 commands = (
     'messages',
