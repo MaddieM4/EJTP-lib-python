@@ -106,3 +106,18 @@ class TestConsole(unittest.TestCase):
         $ quit
         '''
         self._assertCLI(expected)
+
+    def test_set_client(self):
+        expected = '''
+        What interface do you want to use?
+        Available interfaces:
+        $ mitzi@lackadaisy.com
+        Enter a command
+        $ set client
+        What interface do you want to use?
+        Available interfaces:
+        $ victor@lackadaisy.com
+        Enter a command
+        $ quit
+        '''
+        self._assertCLI(expected)
