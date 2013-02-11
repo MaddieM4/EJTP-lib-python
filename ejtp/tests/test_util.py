@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -16,9 +17,17 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import sys
+
 from ejtp.util.py2and3 import RawData, String
 from ejtp.util import hasher
+from ejtp.util.crashnicely import Guard
 from ejtp.util.compat import json, unittest
+
+try: # TODO: use ejtp.util.compat.StringIO
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 class TestHasherMake(unittest.TestCase):
@@ -119,3 +128,33 @@ class TestHasherChecksum(unittest.TestCase):
         expected = '5006d6f8302000e8b87fef5c50c071d6d97b4e88'
         value = hasher.checksum('test')
         self.assertEqual(RawData(expected), RawData(value))
+
+
+class TestCrashNicely(unittest.TestCase):
+
+    def setUp(self):
+        sys.stdout = self.output = StringIO()
+
+    def _assertInOutput(self, expected):
+        self.assertIn(expected, self.output.getvalue())
+
+    def _assertNotInOutput(self, expected):
+        self.assertNotIn(expected, self.output.getvalue())
+
+    def test_ok(self):
+        with Guard():
+            print('ok')
+        self._assertInOutput('ok')
+
+    def test_with_print_traceback(self):
+        with Guard():
+            raise AssertionError()
+        self._assertInOutput('AssertionError')
+
+    def test_without_print_traceback(self):
+        with Guard(print_traceback=False):
+            raise AssertionError()
+        self._assertNotInOutput('AssertionError')
+
+    def teadDown(self):
+        sys.stdout = sys.__stdout__
