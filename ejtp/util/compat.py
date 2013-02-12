@@ -47,3 +47,9 @@ try:
     bytes = bytes
 except NameError:
     bytes = str
+
+# Python 3+ moved cStringIO to io module
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO

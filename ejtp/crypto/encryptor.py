@@ -119,7 +119,7 @@ class Flip(Encryptor):
 @StringDecorator()
 def make(data):
     if isinstance(data, String):
-        import json
+        from ejtp.util.compat import json
         data = json.loads(data.export())
     if isinstance(data, Encryptor):
         return data
