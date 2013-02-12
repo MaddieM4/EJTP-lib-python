@@ -127,7 +127,8 @@ class TestHasherChecksum(unittest.TestCase):
 class TestCrashNicely(unittest.TestCase):
 
     def setUp(self):
-        sys.stdout = self.output = StringIO()
+        # Use same output stream for both
+        sys.stderr = sys.stdout = self.output = StringIO()
 
     def _assertInOutput(self, expected):
         self.assertIn(expected, self.output.getvalue())
@@ -150,5 +151,6 @@ class TestCrashNicely(unittest.TestCase):
             raise AssertionError()
         self._assertNotInOutput('AssertionError')
 
-    def teadDown(self):
+    def tearDown(self):
+        sys.stderr = sys.__stderr__
         sys.stdout = sys.__stdout__
