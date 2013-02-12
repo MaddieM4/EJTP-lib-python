@@ -26,7 +26,7 @@ class TestRouter(unittest.TestCase):
             'client already loaded', self.router._loadclient, client)
 
 
-class TestRouterLog(unittest.TestCase):
+class TestRouterStream(unittest.TestCase):
 
     def setUp(self):
         self.router = router.Router()
@@ -35,22 +35,24 @@ class TestRouterLog(unittest.TestCase):
         router.logger.setLevel(logging.INFO)
         router.logger.addHandler(handler)
 
-    def _assertInLog(self, expected):
+    def _assertInStream(self, expected):
         value = self.stream.getvalue()
         self.assertIn(expected, value)
 
+    def _test_message(self, expected, message='Jam and cookies', destination='["local",null,"example"]', format=None):
+        data = ''.join([format, destination, '\x00', message])
+        self.router.recv(data)
+        self._assertInStream(expected)
+
     def test_recv_invalid_message(self):
         self.router.recv('qwerty')
-        self._assertInLog("Router could not parse frame: 'qwerty'")
+        self._assertInStream("Router could not parse frame: 'qwerty'")
 
     def test_client_inexistent(self):
-        self.router.recv('r["local",null,"example"]\x00Jam and cookies')
-        self._assertInLog("Router could not deliver frame")
+        self._test_message('Router could not deliver frame', format='r')
 
     def test_frame_with_no_destination(self):
-        self.router.recv('s["local",null,"example"]\x00Jam and cookies')
-        self._assertInLog('Frame recieved directly from')
+        self._test_message('Frame recieved directly from', format='s')
 
     def test_frame_with_weird_type(self):
-        self.router.recv('x["local",null,"example"]\x00Jam and cookies')
-        self._assertInLog("Frame has a type that the router does not understand")
+        self._test_message('Frame has a type that the router does not understand', format='x')
