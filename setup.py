@@ -12,7 +12,6 @@ setup(
     scripts = [
         'scripts/ejtpd',
         'scripts/ejtp-keygen',
-        'scripts/ejtp-test',
         'scripts/ejtp-console',
         'scripts/ejtp-crypto'
     ],
