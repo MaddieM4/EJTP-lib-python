@@ -46,3 +46,7 @@ class TestRouterLog(unittest.TestCase):
     def test_client_inexistent(self):
         self.router.recv('r["local",null,"example"]\x00Jam and cookies')
         self._assertInLog("Router could not deliver frame")
+
+    def test_frame_with_no_destination(self):
+        self.router.recv('s["local",null,"example"]\x00Jam and cookies')
+        self._assertInLog('Frame recieved directly from')
