@@ -60,7 +60,9 @@ class TestConsole(unittest.TestCase):
     def _import(self):
         filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-console'))
         with open(filename, 'rb') as fp:
-            return imp.load_module('ejtp-console', fp, filename, ('.py', 'rb', imp.PY_SOURCE))
+            module = imp.new_module('ejtp-console')
+            exec(fp.read(), module.__dict__)
+            return module
 
     def setUp(self):
         self.io = IOMock()
@@ -148,7 +150,9 @@ class TestCrypto(unittest.TestCase):
     def _import(self):
         filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-crypto'))
         with open(filename, 'rb') as fp:
-            return imp.load_module('ejtp-crypto', fp, filename, ('.py', 'rb', imp.PY_SOURCE))
+            module = imp.new_module('ejtp-crypto')
+            exec(fp.read(), module.__dict__)
+            return module
 
     def setUp(self):
         self.crypto = self._import()
