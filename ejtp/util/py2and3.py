@@ -475,17 +475,25 @@ class DataDecorator(object):
                 return self._decoratedFunc(self._func, *((func,)+args), **kwargs)
             return self._decoratedFunc(self._func, *args, **kwargs)
         self._func = func
+        self._wrap_func(self, func)
         return self
 
-    def _decoratedFunc(self, *args, **kwargs):
-        raise NotImplementedError('this method must be implemented by subclasses')
-    
     def __get__(self, instance, owner):
         # this method only gets called, if the decorated function is a method
         # so we have to make sure that instance will be included in the call
         from functools import partial
-        return partial(self._decoratedFunc, partial(self._func, instance))
-
+        return self._wrap_func(partial(self._decoratedFunc, partial(self._func, instance)), self._func)
+    
+    def _wrap_func(self, wrapper, func):
+        '''
+        Wraps the original function in the decorator.
+        '''
+        from functools import update_wrapper
+        return update_wrapper(wrapper, func, updated=())
+    
+    def _decoratedFunc(self, *args, **kwargs):
+        raise NotImplementedError('this method must be implemented by subclasses')
+ 
 class RawDataDecorator(DataDecorator):
     '''
     Tries to parse arguments into RawData.
