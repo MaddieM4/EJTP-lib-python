@@ -22,13 +22,7 @@ import sys
 from ejtp.util.py2and3 import RawData, String
 from ejtp.util import hasher
 from ejtp.util.crashnicely import Guard
-from ejtp.util.compat import json, unittest
-
-try: # TODO: use ejtp.util.compat.StringIO
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from ejtp.util.compat import json, unittest, StringIO
 
 class TestHasherMake(unittest.TestCase):
 
