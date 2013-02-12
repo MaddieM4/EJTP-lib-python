@@ -138,15 +138,6 @@ class Router(object):
             jack.run_threaded()
 
     def _loadclient(self, client):
-        '''
-        >>> from ejtp.client import Client
-        >>> c = Client(None, (4, 5, 6), make_jack = False)
-        >>> r = Router()
-        >>> r._loadclient(c)
-        >>> r._loadclient(c)
-        Traceback (most recent call last):
-        ValueError: client already loaded
-        '''
         key = rtuple(client.interface[:3])
         if key in self._clients:
             raise ValueError('client already loaded')
