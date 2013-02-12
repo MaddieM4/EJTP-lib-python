@@ -50,3 +50,7 @@ class TestRouterLog(unittest.TestCase):
     def test_frame_with_no_destination(self):
         self.router.recv('s["local",null,"example"]\x00Jam and cookies')
         self._assertInLog('Frame recieved directly from')
+
+    def test_frame_with_weird_type(self):
+        self.router.recv('x["local",null,"example"]\x00Jam and cookies')
+        self._assertInLog("Frame has a type that the router does not understand")

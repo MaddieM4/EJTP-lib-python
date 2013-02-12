@@ -46,11 +46,6 @@ class Router(object):
     def recv(self, msg):
         '''
         Accepts string or frame.Frame
-
-        >>> r = Router()
-        >>> # Frame with weird type
-        >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')
-        INFO:ejtp.router: Frame has a type that the router does not understand (RawData(78))
         '''
         logger.debug("Handling frame: %s", repr(msg))
         if not isinstance(msg, Frame):
