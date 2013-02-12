@@ -48,10 +48,6 @@ class Router(object):
         Accepts string or frame.Frame
 
         >>> r = Router()
-        >>> # Test gibberish errors
-        >>> r.recv("kdfj;alfjl;")
-        INFO:ejtp.router: Router could not parse frame: 'kdfj;alfjl;'
-
         >>> # Undeliverable message, client doesn't exist
         >>> r.recv('r["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
         INFO:ejtp.router: Router could not deliver frame: [...'local', None, ...'example']

@@ -1,4 +1,6 @@
-from ejtp.util.compat import unittest
+import logging
+
+from ejtp.util.compat import unittest, StringIO
 from ejtp import router
 
 class TestRouter(unittest.TestCase):
@@ -22,3 +24,17 @@ class TestRouter(unittest.TestCase):
         self.router._loadclient(client)
         self.assertRaisesRegexp(ValueError,
             'client already loaded', self.router._loadclient, client)
+
+
+class TestRouterLog(unittest.TestCase):
+
+    def setUp(self):
+        self.router = router.Router()
+        self.stream = StringIO()
+        handler = logging.StreamHandler(self.stream)
+        router.logger.setLevel(logging.INFO)
+        router.logger.addHandler(handler)
+
+    def test_recv_invalid_message(self):
+        self.router.recv('qwerty')
+        self.assertIn("Router could not parse frame: 'qwerty'", self.stream.getvalue())
