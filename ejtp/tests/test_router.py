@@ -35,6 +35,14 @@ class TestRouterLog(unittest.TestCase):
         router.logger.setLevel(logging.INFO)
         router.logger.addHandler(handler)
 
+    def _assertInLog(self, expected):
+        value = self.stream.getvalue()
+        self.assertIn(expected, value)
+
     def test_recv_invalid_message(self):
         self.router.recv('qwerty')
-        self.assertIn("Router could not parse frame: 'qwerty'", self.stream.getvalue())
+        self._assertInLog("Router could not parse frame: 'qwerty'")
+
+    def test_client_inexistent(self):
+        self.router.recv('r["local",null,"example"]\x00Jam and cookies')
+        self._assertInLog("Router could not deliver frame")

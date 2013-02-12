@@ -48,10 +48,6 @@ class Router(object):
         Accepts string or frame.Frame
 
         >>> r = Router()
-        >>> # Undeliverable message, client doesn't exist
-        >>> r.recv('r["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
-        INFO:ejtp.router: Router could not deliver frame: [...'local', None, ...'example']
-
         >>> # Frame with no destination
         >>> r.recv('s["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
         INFO:ejtp.router: Frame recieved directly from [...'local', None, ...'example']
