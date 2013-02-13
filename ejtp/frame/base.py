@@ -16,11 +16,51 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.util.py2and3 import RawDataDecorator
 
 class BaseFrame(object):
     '''
     Base class for all frames.
     '''
 
-    def __init__(self):
-        raise TypeError('BaseFrame should not be instanciated, use a subclass instead')
+    @RawDataDecorator(strict=True)
+    def __init__(self, data):
+        self._data = data
+        self._decoded_data = None
+        self._decoded = False
+    
+    def decode(self, ident_cache=None):
+        '''
+        decodes data to corresponding Python objects
+        Must be defined by every subclass
+
+        Arguments:
+        ident_cache: IdentitiyCache that will be used while decoding.
+                     If none is given, the Frame may fail to decode.
+        '''
+        raise NotImplementedError('each subclass of BaseFrame must define self.decode(ident_cache)')
+    
+    @property
+    def content(self):
+        if self._decoded:
+            return self._decoded_data
+        else:
+            #TODO raise error
+            pass 
+
+
+class NestedFrame(BaseFrame):
+    '''
+    Base class for all frames containing another frame.
+    '''
+    
+    def unpack(self, ident_cache=None):
+        '''
+        decodes, unpacks and returns the nested Frame.
+        Must be defined by every subclass.
+
+        Arguments:
+        ident_cache: IdentitiyCache that will be used while decoding and unpacking.
+                     If none is given, the Frame may fail to unpack.
+        '''
+        raise NotImplementedError('each subclass of BaseFrame must define self.unpack(ident_cache)')
