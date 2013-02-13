@@ -16,21 +16,16 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-try:
-    from pyecc import ECC as _ECC
-except ImportError:
-    # it makes pyecc a soft dependency
-    class _ECC(object):
-
-        def __init__(self, *args, **kwargs):
-            raise TypeError('PyECC is not installed.')
-
-
 from ejtp.crypto import encryptor
 from ejtp.util.py2and3 import RawDataDecorator
 
 class ECC(encryptor.Encryptor):
     def __init__(self, public, private, curve):
+        try:
+            from pyecc import ECC as _ECC
+        except ImportError:
+            raise TypeError('PyECC is not installed')
+
         self._ecc = _ECC(public=public or '', private=private, curve=curve)
         self._can_encrypt = bool(private)
         self.__curve = curve
