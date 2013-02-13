@@ -46,23 +46,6 @@ class Router(object):
     def recv(self, msg):
         '''
         Accepts string or frame.Frame
-
-        >>> r = Router()
-        >>> # Test gibberish errors
-        >>> r.recv("kdfj;alfjl;")
-        INFO:ejtp.router: Router could not parse frame: 'kdfj;alfjl;'
-
-        >>> # Undeliverable message, client doesn't exist
-        >>> r.recv('r["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
-        INFO:ejtp.router: Router could not deliver frame: [...'local', None, ...'example']
-
-        >>> # Frame with no destination
-        >>> r.recv('s["local",null,"example"]\\x00Jam and cookies') # doctest: +ELLIPSIS
-        INFO:ejtp.router: Frame recieved directly from [...'local', None, ...'example']
-
-        >>> # Frame with weird type
-        >>> r.recv('x["local",null,"example"]\\x00Jam and cookies')
-        INFO:ejtp.router: Frame has a type that the router does not understand (RawData(78))
         '''
         logger.debug("Handling frame: %s", repr(msg))
         if not isinstance(msg, Frame):
@@ -130,18 +113,6 @@ class Router(object):
             self._loadclient(c)
 
     def _loadjack(self, jack):
-        '''
-            >>> from ejtp.jacks import Jack
-            >>> class DummyJack(Jack):
-            ...     def run(self, *args):
-            ...         return
-            ... 
-            >>> r = Router()
-            >>> j = DummyJack(r, (1, 2, 3))
-            >>> r._loadjack(j)
-            Traceback (most recent call last):
-            ValueError: jack already loaded
-        '''
         key = rtuple(jack.interface[:2])
         if key in self._jacks:
             raise ValueError('jack already loaded')
@@ -150,15 +121,6 @@ class Router(object):
             jack.run_threaded()
 
     def _loadclient(self, client):
-        '''
-        >>> from ejtp.client import Client
-        >>> c = Client(None, (4, 5, 6), make_jack = False)
-        >>> r = Router()
-        >>> r._loadclient(c)
-        >>> r._loadclient(c)
-        Traceback (most recent call last):
-        ValueError: client already loaded
-        '''
         key = rtuple(client.interface[:3])
         if key in self._clients:
             raise ValueError('client already loaded')
