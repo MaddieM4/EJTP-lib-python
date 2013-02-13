@@ -17,8 +17,9 @@ setup(
     ],
 	packages = [
 		'ejtp',
+		'ejtp.applications',
+		'ejtp.applications.ejforward',
 		'ejtp.crypto',
-		'ejtp.ejforward',
 		'ejtp.identity',
 		'ejtp.jacks',
 		'ejtp.logging',

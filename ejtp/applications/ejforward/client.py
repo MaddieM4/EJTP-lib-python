@@ -83,7 +83,7 @@ class ForwardClient(Client):
         Status is: {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
 
         >>> client.retrieve(hashes=[mhash])
-        WARNING:ejtp.ejforward.client: Invalid frame, discarding
+        WARNING:ejtp.applications.ejforward.client: Invalid frame, discarding
         >>> server.client(client.interface)['messages']
         {}
         >>> client.get_status(on_status)
