@@ -120,7 +120,7 @@ class ForwardClient(Client):
 
         >>> client, server = test_setup()
         >>> client.upload("farfagnugen", {}) # doctest: +ELLIPSIS 
-        WARNING:ejtp.ejforward.server: Unknown message type, ...'farfagnugen'
+        WARNING:ejtp.applications.ejforward.server: Unknown message type, ...'farfagnugen'
         '''
         data['type'] = dtype
         self.write_json(self.serveraddr, data)
@@ -131,7 +131,7 @@ class ForwardClient(Client):
 
 def test_setup():
     # Set up the demo client stuff in this module for further testing
-    from ejtp.ejforward.server import ForwardServer
+    from ejtp.applications.ejforward.server import ForwardServer
     from ejtp.router import Router
     r = Router()
     client = ForwardClient(r, _demo_client_addr, _demo_server_addr)
