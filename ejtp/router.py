@@ -46,11 +46,6 @@ class Router(object):
     def recv(self, msg):
         '''
         Accepts string or frame.Frame
-
-        >>> # Frame with malformed compressed data
-        >>> r.recv('z\\x00Garbage')
-        INFO:ejtp.router: Router could not decompress frame: Frame: RawData(7a0047617262616765) (Error -3 while decompressing data: incorrect header check)
-
         '''
         logger.debug("Handling frame: %s", repr(msg))
         if not isinstance(msg, Frame):
