@@ -18,6 +18,13 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.util.compat import format, bytes
 
+#Python3 doesn't have longs, Python2 does.
+try:
+    dummyvar = long
+except:
+    # Long isn't defined, so we set it to int to prevent crashes
+    long = int
+
 class RawData(object):
     '''
     This class is supposed to store raw data and behaves similar to str in
@@ -30,9 +37,9 @@ class RawData(object):
 
         >>> RawData(RawData((1, 2, 3))) == RawData((1, 2, 3))
         True
-        >>> repr(RawData((1, 2, 3))) == 'RawData(010203)'
+        >>> repr(RawData((1, 2, 3))) == 'RawData(0x010203)'
         True
-        >>> repr(RawData('abc')) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData(0x616263)'
         True
         >>> RawData(String('abc')) == RawData('abc')
         True
@@ -47,6 +54,16 @@ class RawData(object):
             value = value._data
         else:
             if isinstance(value, int):
+                # or isinstance(value, long):
+                # Does not percieve leading nullbytes
+                #intvalue = value
+                #value = []
+                #while intvalue:
+                    #last = intvalue % 256
+                    #value.append(last)
+                    #intvalue -= last
+                    #intvalue = intvalue >> 8
+                #value.reverse()
                 value = (value,)
             try:
                 iter(value)
@@ -152,10 +169,10 @@ class RawData(object):
 
     def __repr__(self):
         '''
-        >>> repr(RawData('abc')) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData(0x616263)'
         True
         '''
-        return 'RawData(' + str().join([format(c, '02x') for c in self._data]) + ')'
+        return 'RawData(0x' + str().join([format(c, '02x') for c in self._data]) + ')'
     
     def __int__(self):
         '''
@@ -503,7 +520,7 @@ class RawDataDecorator(DataDecorator):
     ...     print(a)
     ...
     >>> test('abc', 123)
-    RawData(616263)
+    RawData(0x616263)
     >>> test(1234, 'Hello world!')
     1234
     >>> @RawDataDecorator(args=False, kwargs=True, strict=True)
@@ -511,7 +528,7 @@ class RawDataDecorator(DataDecorator):
     ...     print(b)
     ...
     >>> test(b = 'ab')
-    RawData(6162)
+    RawData(0x6162)
     >>> test(b = 1234) # doctest: +ELLIPSIS
     Traceback (most recent call last):
     TypeError: ...
@@ -520,7 +537,7 @@ class RawDataDecorator(DataDecorator):
     ...     return 'abc'
     ...
     >>> test()
-    RawData(616263)
+    RawData(0x616263)
     '''
     def _decoratedFunc(self, func, *args, **kwargs):
         if self._dec_args['args']:

@@ -50,7 +50,7 @@ class TestClient(unittest.TestCase):
         client.encryptor_set(client.interface, ['rotate', 41])
         original = ['catamaran']
         signature = client.sign(original)
-        self.assertEqual('RawData(3a0a0e3b3c39100e0f3d3a380b0c0d0807390f0f0c390e0e083d3a383a3a0b10393d0b090c3a0a0b)', repr(signature))
+        self.assertEqual('RawData(0x3a0a0e3b3c39100e0f3d3a380b0c0d0807390f0f0c390e0e083d3a383a3a0b10393d0b090c3a0a0b)', repr(signature))
 
     def test_sig_verify(self):
         client = Client(None, ['demo_interface'])
@@ -71,5 +71,5 @@ class TestClient(unittest.TestCase):
         c1.write_json(c2.interface, "hello")
         c2.write_json(c1.interface, "goodbye")
         result = self.stream.getvalue().strip().split('\n')
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData(2268656c6c6f22)", result[0])
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData(22676f6f6462796522)", result[1])
+        self._assert("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData(0x2268656c6c6f22)", result[0])
+        self._assert("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData(0x22676f6f6462796522)", result[1])
