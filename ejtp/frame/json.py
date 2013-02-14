@@ -18,15 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
-from ejtp.util.compat import json
 
 @RegisterFrame('j')
 class JSONFrame(BaseFrame):
-    '''
-    Frame that contains json data that is parsed to python objects.
-    '''
-
-    def decode(self, ident_cache=None):
-        self._decoded_data = json.loads(self._data.toString().export())
-        self._decoded = True
-
+    pass

@@ -16,9 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.frame.base import NestedFrame
+from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 
 @RegisterFrame('s')
-class SignedFrame(NestedFrame):
+class SignedFrame(BaseFrame):
     pass
