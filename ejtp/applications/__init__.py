@@ -18,9 +18,7 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
-	'client',
-	'server',
+	'ejforward',
+	'daemon',
+	'motd',
 ]
-
-from ejtp.ejforward.client import ForwardClient
-from ejtp.ejforward.server import ForwardServer

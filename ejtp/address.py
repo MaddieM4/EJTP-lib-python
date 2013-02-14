@@ -18,7 +18,8 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String, StringDecorator
-from json import loads
+from ejtp.util.compat import json
+loads = json.loads
 
 @StringDecorator()
 def str_address(address):

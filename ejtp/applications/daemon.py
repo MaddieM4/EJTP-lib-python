@@ -23,6 +23,7 @@ from ejtp.client import Client
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String
 from ejtp.address import *
+from ejtp.util.compat import get_exception
 import re
 
 errorcodes = {
@@ -72,7 +73,8 @@ class DaemonClient(Client):
                 self.client_destroy(data)
             else:
                 return self.error(sender,403,command)
-        except Exception as e:
+        except Exception:
+            e = get_exception()
             logger.error(e)
             return self.error(sender, 100, data)
 
@@ -114,7 +116,8 @@ class DaemonClient(Client):
         client = None
         try:
             client = client_class(self.router, *args, **kwargs)
-        except Exception as e:
+        except Exception:
+            e = get_exception()
             logger.error(e)
             data['exception'] = repr(e)
             return self.error(self.controller, 502, data)
@@ -184,7 +187,8 @@ class ControllerClient(Client):
                 self.response_callback(False, data)
             else:
                 return self.error(sender,403,command)
-        except Exception as e:
+        except Exception:
+            e = get_exception()
             logger.error(e)
             return self.error(sender, 100, data)
 
@@ -242,23 +246,23 @@ def mock_locals(name1='c1', name2='c2'):
     Returns two clients that talk locally through a router.
     >>> daemon, control = mock_locals()
     >>> modname, classname, interface = "ejtp.client", "Client", ["local", None, "Exampley"]
-    >>> control.client_init(modname, classname)
-    INFO:ejtp.daemon: Initializing client...
-    ERROR:ejtp.daemon: __init__() takes at least 3 arguments (2 given)
-    ERROR:ejtp.daemon: CLIENT ERROR #502 Command error (Class initialization error) {"args":[],"class":"Client","exception":"TypeError('__init__() takes at least 3 arguments (2 given)',)","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
-    ERROR:ejtp.daemon: Remote error 502 Command error (Class initialization error) {"args":[],"class":"Client","exception":"TypeError('__init__() takes at least 3 arguments (2 given)',)","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
-    >>> control.client_init(modname, classname, interface)
-    INFO:ejtp.daemon: Initializing client...
-    INFO:ejtp.daemon: SUCCESFUL COMMAND {"args":[["local",null,"Exampley"]],"class":"Client","kwargs":{},"module":"ejtp.client","type":"ejtpd-client-init"}
-    INFO:ejtp.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})
+    >>> control.client_init(modname, classname) # doctest: +ELLIPSIS
+    INFO:ejtp.applications.daemon: Initializing client...
+    ERROR:ejtp.applications.daemon: __init__() ...
+    ERROR:ejtp.applications.daemon: CLIENT ERROR #502 Command error (Class initialization error) ...
+    ERROR:ejtp.applications.daemon: Remote error 502 Command error (Class initialization error) ...
+    >>> control.client_init(modname, classname, interface) # doctest: +ELLIPSIS
+    INFO:ejtp.applications.daemon: Initializing client...
+    INFO:ejtp.applications.daemon: SUCCESFUL COMMAND ...
+    INFO:ejtp.applications.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})
     >>> daemon.router.client(interface) #doctest: +ELLIPSIS
     <ejtp.client.Client object at ...>
     >>> daemon.router.client(interface).interface # doctest: +ELLIPSIS
     [...'local', None, ...'Exampley']
     >>> control.client_destroy(interface)
-    INFO:ejtp.daemon: Destroying client...
-    INFO:ejtp.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
-    INFO:ejtp.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])
+    INFO:ejtp.applications.daemon: Destroying client...
+    INFO:ejtp.applications.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
+    INFO:ejtp.applications.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])
     >>> repr(daemon.router.client(interface))
     'None'
     '''

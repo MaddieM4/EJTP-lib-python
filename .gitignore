@@ -1,4 +1,5 @@
 *.py[co]
+__pycache__
 
 # Packages
 *.egg
@@ -28,3 +29,6 @@ pip-log.txt
 
 # Vim. F--- your litter, vim.
 *.sw[op]
+
+# Created by tox
+MANIFEST

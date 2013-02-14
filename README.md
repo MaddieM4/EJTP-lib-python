@@ -1,7 +1,9 @@
-![EJTP Logo](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/ejtp_logo.png)
+![EJTP Logo](https://raw.github.com/campadrenalin/EJTP-lib-python/stable/resources/ejtp_logo.png)
 
 EJTP-lib-python
 ===============
+
+[![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
 
 Encrypted JSON Transport Protocol library for Python 2.x.
 
@@ -14,8 +16,7 @@ can be engineered to carry EJTP frames.
 The project's mascot is a charming, many-tentacled younger god
 who goes by the name of Bluethulu.
 
-![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/development/resources/bluethulu.png)
-
+![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/stable/resources/bluethulu.png)
 
 Installation
 ============
@@ -25,15 +26,12 @@ go into the uncompressed directory, and run "./setup.py install" as
 an administrator account. This is standard procedure for most
 Python libraries, and is how this one works as well.
 
-The latest stable version (really, really recommended you don't try
-to use anything development-y, since I have a tendency for code
-demolition and reconstruction) is [Version 0.9.1](
+The latest stable version (and the first community-developed stable
+version yet available) is [Version 0.9.2](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has new command-line scripts, ejtpd and ejtp-keygen, for
-setting up and controlling long-running system infrastructure. These
-tools are still a bit rough, especially ejtpd, and will be the primary
-focus of the next few minor versions, as well as some fixes for issues
-discovered in the AES encryption code.
+which has bug fixes, Python 3.X support, and the identity system
+migrated from DEJE, which forms the new standard format for storing
+encryption identity metadata.
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
@@ -46,13 +44,16 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
- * For testing, install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+ * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository]((https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
+ * For testing:
+   * Install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
+   * Install [tox](http://testrun.org/tox/latest/index.html).
 
 
 Usage
 =====
 
-You can try out the EJTP demo client by running ```./ejtp/interactive.py```.
+You can try out the EJTP demo client by running ```ejtp-console```.
 For demo code you can look inside that file, but basically, all you
 need is a Router object, and to create Clients as necessary, setting
 their rcv_callback property to your own preferred callback.
@@ -61,18 +62,21 @@ their rcv_callback property to your own preferred callback.
 Testing
 =======
 
-The "install_and_test.sh" script is a one-liner that I use to quickly
-install updated code and run it through the test suite while I work.
-It depends on having [DoctestAll](https://github.com/campadrenalin/DoctestAll)
-installed, so you want to do that first of all, before testing EJTP.
-If you want to know whether this EJTP implementation has any problems
-on your system, run this script, and it should spit out something like
+Install the software needed for testing (see Dependencies section above),
+then simply run the command `tox`.
 
-    name@machine$ ./install_and_test.sh
-    0 failures, 138 tests.
+    name@machine$ tox
+    (a bunch of output ...)
+    ____________ summary ______________
+      py25: commands succeeded
+      py26: commands succeeded
+      py27: commands succeeded
+      py31: commands succeeded
+      py32: commands succeeded
+      py33: commands succeeded
+      congratulations :)
 
-at the end. If there are failures, be sure to copy the entire output
-of the command and put that in a [Github Issue](
+Any errors should be reported in a [Github Issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) so I can
 have a look at it. I may reply with questions in response to that, but
 filing a test failure takes less than 5 minutes of your time and is

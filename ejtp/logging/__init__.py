@@ -20,8 +20,13 @@ __all__ = [
     'verbose',
 ]
 
-import logging
 import sys
+
+# Temporarily disable local module search to load standard logging module
+local = sys.path[0]
+del sys.path[0]
+import logging
+sys.path.insert(0, local)
 
 def makeLogger(name, format, stream, level):
     logger = logging.getLogger(name)

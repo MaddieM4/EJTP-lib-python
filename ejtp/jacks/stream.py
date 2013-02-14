@@ -21,6 +21,7 @@ from ejtp.frame import compress
 from ejtp.jacks import core as jack
 
 from ejtp.util.py2and3 import RawData, RawDataDecorator
+from ejtp.util.compat import format
 
 import threading
 try:

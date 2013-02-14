@@ -18,11 +18,9 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
-	'aes',
-    'encryptor',
-	'rsa',
-	'rotate',
-    'ecc'
+	'client',
+	'server',
 ]
 
-from ejtp.crypto.encryptor import make
+from ejtp.applications.ejforward.client import ForwardClient
+from ejtp.applications.ejforward.server import ForwardServer

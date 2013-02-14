@@ -119,7 +119,7 @@ class Flip(Encryptor):
 @StringDecorator()
 def make(data):
     if isinstance(data, String):
-        import json
+        from ejtp.util.compat import json
         data = json.loads(data.export())
     if isinstance(data, Encryptor):
         return data
@@ -134,5 +134,8 @@ def make(data):
     elif t=="rsa":
         from . import rsa
         return rsa.RSA(*args)
+    elif t=="ecc":
+        from . import ecc
+        return ecc.ECC(*args)
     else:
         raise TypeError("Unsupported encryption type: %r"%data)

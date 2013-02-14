@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
 	name = 'ejtp',
-	version = '0.9.1',
+	version = '0.9.2',
 	description = 'Encrypted JSON Transport Protocol library',
 	author = 'Philip Horger',
 	author_email = 'philip.horger@gmail.com',
@@ -12,13 +12,14 @@ setup(
     scripts = [
         'scripts/ejtpd',
         'scripts/ejtp-keygen',
-        'scripts/ejtp-test',
         'scripts/ejtp-console',
+        'scripts/ejtp-crypto'
     ],
 	packages = [
 		'ejtp',
+		'ejtp.applications',
+		'ejtp.applications.ejforward',
 		'ejtp.crypto',
-		'ejtp.ejforward',
 		'ejtp.identity',
 		'ejtp.jacks',
 		'ejtp.logging',

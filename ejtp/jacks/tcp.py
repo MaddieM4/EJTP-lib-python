@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -19,13 +20,13 @@ along with the Python EJTP library.  If not, see
 from ejtp import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.jacks import streamjack
+from ejtp.jacks import stream
 
 from ejtp.util.py2and3 import RawDataDecorator
 
 import socket
 
-class TCPJack(streamjack.StreamJack):
+class TCPJack(stream.StreamJack):
     '''
     >>> from ejtp.jacks import core as jack
     >>> jack.test_jacks(
@@ -57,7 +58,7 @@ class TCPJack(streamjack.StreamJack):
             self.address = (host, port)
             self.sockfamily = socket.AF_INET
 
-        streamjack.StreamJack.__init__(self, router, (ifacetype, (host, port)), compression)
+        stream.StreamJack.__init__(self, router, (ifacetype, (host, port)), compression)
         self.closed = True
         self.lock_init.release()
 
@@ -77,7 +78,7 @@ class TCPJack(streamjack.StreamJack):
                     self.add_connection(interface, 
                         TCPConnection(self, interface, connection=conn)
                     )
-                except socket.error as e:
+                except socket.error:
                     pass
             for conn in list(self.connections.values()):
                 conn.close()
@@ -96,9 +97,9 @@ class TCPJack(streamjack.StreamJack):
     def create_connection(self, interface):
         return TCPConnection(self, interface)
 
-class TCPConnection(streamjack.Connection):
+class TCPConnection(stream.Connection):
     def __init__(self, jack, interface, connection=None):
-        streamjack.Connection.__init__(self, jack)
+        stream.Connection.__init__(self, jack)
 
         # Who you're connected to
         self.interface = interface
@@ -116,7 +117,8 @@ class TCPConnection(streamjack.Connection):
                 self.connection = socket.socket(family, socktype, proto)
                 self.connection.connect(advsockaddr)
             else:
-                self.connection = socket.create_connection(sockaddr)
+                self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.connection.connect(sockaddr)
         self.connection.settimeout(1)
         self.start()
 

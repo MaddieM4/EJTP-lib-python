@@ -44,7 +44,7 @@ class ForwardServer(Client):
         To send a message through EJForward, simply onion route through the 
         server, client, and destination, in that order.
 
-        >>> from ejtp.ejforward.client import test_setup
+        >>> from ejtp.applications.ejforward.client import test_setup
         >>> from ejtp.client import Client
         >>> client, server = test_setup()
         >>> dest   = Client(client.router, ['local', None, 'destination'])

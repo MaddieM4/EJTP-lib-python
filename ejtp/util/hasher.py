@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
 from hashlib import new
-import json
+from ejtp.util.compat import json
 
 HASH_FUNCTION = 'sha1' # was md5
 
@@ -66,10 +66,3 @@ def strictify(jsonstring):
 def checksum(obj):
     ''' Get the checksum of the strict of an object '''
     return make(strict(obj))
-
-@StringDecorator(ret=True, strict=True)
-def key(string):
-    if len(string)>10:
-	    return string[:10]+make6(string[10:])
-    else:
-        return string

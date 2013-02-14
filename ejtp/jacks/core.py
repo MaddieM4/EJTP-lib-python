@@ -1,3 +1,4 @@
+from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -76,13 +77,13 @@ def make(router, iface, compression=True):
     t = iface[0]
     # UDP Jack
     if t == "udp":
-        from ejtp.jacks import udpjack
+        from ejtp.jacks import udp
         host, port = iface[1]
-        return udpjack.UDPJack(router, host=host, port=port, compression=compression)
+        return udp.UDPJack(router, host=host, port=port, compression=compression)
     elif t == "udp4":
-        from ejtp.jacks import udpjack
+        from ejtp.jacks import udp
         host, port = iface[1]
-        return udpjack.UDPJack(router, host=host, port=port, ipv=4, compression=compression)
+        return udp.UDPJack(router, host=host, port=port, ipv=4, compression=compression)
 
     # TCP Jack
     elif t == "tcp":
@@ -120,7 +121,7 @@ def test_jacks(ifaceA, ifaceB):
         transfer_condition.acquire()
         with print_lock:
             print("Client %r recieved from %r: %r" % (client_obj.interface, msg.addr, msg.content.toString()))
-        transfer_condition.notify_all()
+        transfer_condition.notifyAll()
         transfer_condition.release()
     clientA.rcv_callback = rcv_callback
     clientB.rcv_callback = rcv_callback

@@ -110,7 +110,7 @@ def compile_enc_cache(args, conf):
 
 def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=True):
     from ejtp.router import Router
-    from ejtp.daemon import DaemonClient
+    from ejtp.applications.daemon import DaemonClient
     import os
     r = Router()
     c = DaemonClient(r, interface, controller, filtertext, ecache, make_jack)
@@ -118,7 +118,7 @@ def daemon_start(interface, controller, filtertext='.*', ecache=None, make_jack=
 
 def controller_do(interface, target, on_create, on_response, ecache=None, make_jack=True):
     from ejtp.router import Router
-    from ejtp.daemon import ControllerClient
+    from ejtp.applications.daemon import ControllerClient
     r = Router()
     c = ControllerClient(r, interface, target, ecache, make_jack)
     c.response_callback = on_response
@@ -200,7 +200,7 @@ def cli_client(args):
         quit(0)
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='ejtpd 0.9.1')
+    arguments = docopt(__doc__, version='ejtpd 0.9.2')
     if arguments['start']:
         cli_start(arguments)
     elif arguments['client']:
