@@ -23,6 +23,7 @@ from ejtp.util.compat import unittest, is_py3k
 from ejtp.util.py2and3 import RawData
 from ejtp.crypto import make
 from ejtp.crypto.ecc import ECC
+from ejtp.crypto.rsa import RSA
 
 
 skipPy3k = unittest.skipIf(is_py3k, 'Python 3.x does not have PyECC dependency.')
@@ -56,6 +57,36 @@ class TestEncryptor(unittest.TestCase):
         sig = self.re.sign(self.plaintext)
         self.assertTrue(self.re.sig_verify(self.plaintext, sig))
         self.assertFalse(self.re.sig_verify("other text", sig))
+
+
+class TestRSA(unittest.TestCase):
+
+    def setUp(self):
+        self.plaintext = 'hello world'
+        self.private_key = '-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgQCnA7oUrAe0JgMZfPzrdmaUjwkomYVXSmamemPaINybgDIIHDDr\nizwq8agHIvc/kwQ6ZZP9XQA/YbKq9rqaCD5yvwIyet/MiFz8b1zh1tSte4uDV9vU\nuTaF4y+1TmZVtZbfmC4E2ic/i72mJKy02FExvm+oAObFSraOfLiShUubSQIDAQAB\nAn8aGHr6v+Z0P3w8f0sFf3qHu9GyhkpPWVCwsm7npjrSETXADqeWJitAioG2m8AG\nLvJ6LWTyMZXYUWuZSvPdHWykQD/VMn7F5jIy5hjzYON/a7mBYPw0NFdUc4VTR4dU\nzuR9T0MkyIV9w4Rl3AU9SfpRneAtutoC4gqROrFLcWiBAkEAurSBELVUcvWTelFa\n8WsY474/j6DiZ3/jrDirblhqnRzZkIa9ETSzGNgmIRMtgabdkAgdoqDpJkwGzYAi\n+u3yBQJBAOUAW1tEQlwAYfMmFwzXLDZg7+t9nefTNr5SEY3KAoo+hLxxLeSwyp+k\ndzQfS8ITPS0o2bFHhD2uDFpbe3kRM3UCQB8kxPK4jKGwfS1GLNlgeAJlVczrlViW\naK/ttArwDLiwe0o0b41TMRzP0Wxq+ohKAWNpNyhNlxagT/IvkaYx0tECQQCRtoFq\n+GsVKXUqB3GhTQUn8NSYzox8Z4ws3AGpbAHjv1YspgOiwc+cd0UWWFeXPTCvHJAw\nWqZNrQLVN+LALW7FAkEAgkFG3700qy9L4kVdBYiGKyTgUGGLVKjegShyYY9jQBLO\nHk+tnhFsjc/wBaHlNAzScTJjjdJnNbGRtQtgtl86wA==\n-----END RSA PRIVATE KEY-----'
+        self.public_key = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnA7oUrAe0JgMZfPzrdmaUjwko\nmYVXSmamemPaINybgDIIHDDrizwq8agHIvc/kwQ6ZZP9XQA/YbKq9rqaCD5yvwIy\net/MiFz8b1zh1tSte4uDV9vUuTaF4y+1TmZVtZbfmC4E2ic/i72mJKy02FExvm+o\nAObFSraOfLiShUubSQIDAQAB\n-----END PUBLIC KEY-----'
+
+    def test_sig_verify(self):
+        myrsa = RSA(self.private_key)
+        self.assertTrue(myrsa.sig_verify(self.plaintext, myrsa.sign(self.plaintext)))
+        self.assertFalse(myrsa.sig_verify(self.plaintext, myrsa.sign('other text')))
+
+    def test_sig_verify_with_public_key(self):
+        myrsa = RSA(self.private_key)
+        public = RSA(self.public_key)
+        self.assertTrue(public.sig_verify(self.plaintext, myrsa.sign(self.plaintext)))
+        self.assertFalse(public.sig_verify(self.plaintext, myrsa.sign('other text')))
+
+    def test_sign_with_public_key(self):
+        public = RSA(self.public_key)
+        self.assertRaisesRegexp(TypeError,
+            'RSA encryptor cannot sign without private key',
+            public.sign, self.plaintext)
+
+    def test_can_encrypt(self):
+        myrsa = RSA(self.private_key)
+        self.assertTrue(myrsa.can_encrypt())
+        self.assertFalse(make(myrsa.public()).can_encrypt())
 
 
 class TestECC(unittest.TestCase):
