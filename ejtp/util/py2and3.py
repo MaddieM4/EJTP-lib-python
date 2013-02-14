@@ -30,9 +30,9 @@ class RawData(object):
 
         >>> RawData(RawData((1, 2, 3))) == RawData((1, 2, 3))
         True
-        >>> repr(RawData((1, 2, 3))) == 'RawData(010203)'
+        >>> repr(RawData((1, 2, 3))) == 'RawData((0x01,0x02,0x03))'
         True
-        >>> repr(RawData('abc')) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData((0x61,0x62,0x63))'
         True
         >>> RawData(String('abc')) == RawData('abc')
         True
@@ -152,10 +152,10 @@ class RawData(object):
 
     def __repr__(self):
         '''
-        >>> repr(RawData('abc')) == 'RawData(616263)'
+        >>> repr(RawData('abc')) == 'RawData((0x61,0x62,0x63))'
         True
         '''
-        return 'RawData(' + str().join([format(c, '02x') for c in self._data]) + ')'
+        return 'RawData((' + ','.join([format(c, '#04x') for c in self._data]) + '))'
     
     def __int__(self):
         '''
@@ -503,7 +503,7 @@ class RawDataDecorator(DataDecorator):
     ...     print(a)
     ...
     >>> test('abc', 123)
-    RawData(616263)
+    RawData((0x61,0x62,0x63))
     >>> test(1234, 'Hello world!')
     1234
     >>> @RawDataDecorator(args=False, kwargs=True, strict=True)
@@ -511,7 +511,7 @@ class RawDataDecorator(DataDecorator):
     ...     print(b)
     ...
     >>> test(b = 'ab')
-    RawData(6162)
+    RawData((0x61,0x62))
     >>> test(b = 1234) # doctest: +ELLIPSIS
     Traceback (most recent call last):
     TypeError: ...
@@ -520,7 +520,7 @@ class RawDataDecorator(DataDecorator):
     ...     return 'abc'
     ...
     >>> test()
-    RawData(616263)
+    RawData((0x61,0x62,0x63))
     '''
     def _decoratedFunc(self, func, *args, **kwargs):
         if self._dec_args['args']:
