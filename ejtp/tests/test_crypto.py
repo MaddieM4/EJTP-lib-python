@@ -17,13 +17,45 @@ along with the Python EJTP library.  If not, see
 '''
 
 import sys
+from Crypto.Hash import SHA256
 from ejtp.util.compat import unittest, is_py3k
 
+from ejtp.util.py2and3 import RawData
+from ejtp.crypto import make
 from ejtp.crypto.ecc import ECC
 
 
 skipPy3k = unittest.skipIf(is_py3k, 'Python 3.x does not have PyECC dependency.')
 onlyPy3k = unittest.skipUnless(is_py3k, 'Python 2.x have PyECC dependency.')
+
+
+class TestEncryptor(unittest.TestCase):
+
+    def setUp(self):
+        self.re = make(['rotate', 38])
+        self.plaintext = 'hello, world'
+
+    def test_hash(self):
+        self.assertEqual(self.re.hash('hello, world'),
+            RawData('\t\xca~N\xaan\x8a\xe9\xc7\xd2a\x16q)\x18H\x83dM\x07\xdf\xba|\xbf\xbcL\x8a.\x086\r['))
+        self.assertEqual(self.re.hash('a'*300),
+            RawData('\x985\xfak\xf4\xe2\n\x9b\x9e\xa8\x12Pc\x02\xe9\x89\x82r\x1al\xf8\xd2\xca\xe6z\xf5q)\xbf!\xae\x90'))
+
+    def test_hash_obj(self):
+        self.assertIsInstance(self.re.hash_obj('hello, world'), SHA256.SHA256Hash)
+
+    def test_sign(self):
+        sig = self.re.sign(self.plaintext)
+        self.assertEqual(sig,
+            RawData('\xe3\xa4X(\x84Hd\xc3\xa1\xac;\xf0K\x03\xf2"]>\'\xe1\xb9\x94V\x99\x96&d\x08\xe2\x10\xe75'))
+        self.assertEqual(self.re.encrypt(sig),
+            RawData('\t\xca~N\xaan\x8a\xe9\xc7\xd2a\x16q)\x18H\x83dM\x07\xdf\xba|\xbf\xbcL\x8a.\x086\r['))
+        self.assertEqual(self.re.encrypt(sig), self.re.hash(self.plaintext))
+
+    def test_sig_verify(self):
+        sig = self.re.sign(self.plaintext)
+        self.assertTrue(self.re.sig_verify(self.plaintext, sig))
+        self.assertFalse(self.re.sig_verify("other text", sig))
 
 
 class TestECC(unittest.TestCase):
