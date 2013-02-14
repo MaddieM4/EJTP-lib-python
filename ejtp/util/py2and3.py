@@ -30,7 +30,7 @@ class RawData(object):
     This class is supposed to store raw data and behaves similar to str in
     python 2.x and bytes in python 3.x
     '''
-    def __init__(self, value=()):
+    def __init__(self, value=(), accept_intstreams=False):
         '''
         Takes an iterable value that should contain either integers in range(256)
         or corresponding characters.
@@ -53,18 +53,19 @@ class RawData(object):
         if isinstance(value, RawData):
             value = value._data
         else:
-            if isinstance(value, int):
-                # or isinstance(value, long):
-                # Does not percieve leading nullbytes
-                #intvalue = value
-                #value = []
-                #while intvalue:
-                    #last = intvalue % 256
-                    #value.append(last)
-                    #intvalue -= last
-                    #intvalue = intvalue >> 8
-                #value.reverse()
-                value = (value,)
+            if isinstance(value, int) or isinstance(value, long):
+                if accept_intstreams:
+                    # Does not percieve leading nullbytes
+                    intvalue = value
+                    value = []
+                    while intvalue:
+                        last = intvalue % 256
+                        value.append(last)
+                        intvalue -= last
+                        intvalue = intvalue >> 8
+                    value.reverse()
+                else:
+                    value = (value,)
             try:
                 iter(value)
             except TypeError:
@@ -206,7 +207,7 @@ class RawData(object):
         '''
         if not isinstance(byte, RawData):
             try:
-                byte = self.__class__(byte)
+                byte = self.__class__(byte, accept_intstreams=False)
             except (TypeError, ValueError):
                 raise TypeError("can't convert byte to RawData")
         if len(byte) != 1:
@@ -473,6 +474,7 @@ class DataDecorator(object):
         'kwargs': False,
         'ret': False,
         'strict': False,
+        'eat_ints': False,
     }
 
     def __init__(self, **dec_args):
@@ -545,7 +547,8 @@ class RawDataDecorator(DataDecorator):
             for arg in args:
                 if not isinstance(arg, RawData):
                     try:
-                        newargs.append(RawData(arg))
+                        newargs.append(RawData(arg, 
+                            accept_intstreams = self._dec_args['eat_ints']))
                     except (TypeError, ValueError):
                         if self._dec_args['strict']:
                             raise TypeError("can't convert arg %i to RawData" % args.index(arg))
@@ -557,7 +560,8 @@ class RawDataDecorator(DataDecorator):
             for key in kwargs:
                 if not isinstance(kwargs[key], RawData):
                     try:
-                        kwargs[key] = RawData(kwargs[key])
+                        kwargs[key] = RawData(kwargs[key], 
+                            accept_intstreams = self._dec_args['eat_ints'])
                     except (TypeError, ValueError):
                         if self._dec_args['strict']:
                             raise TypeError("can't convert kwarg %s to RawData" % key)
@@ -566,7 +570,7 @@ class RawDataDecorator(DataDecorator):
             ret = func(*args, **kwargs)
             if not isinstance(ret, RawData):
                 try:
-                    ret = RawData(ret)
+                    ret = RawData(ret, accept_intstreams = self._dec_args['eat_ints'])
                 except (TypeError, ValueError):
                     if self._dec_args['strict']:
                         raise TypeError("can't convert return value to RawData")
