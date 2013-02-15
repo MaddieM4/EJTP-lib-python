@@ -19,7 +19,14 @@ along with the Python EJTP library.  If not, see
 import os
 from ejtp.util.compat import unittest
 
+def check_dependencies():
+    try:
+        import pyecc
+    except ImportError:
+        print('WARNING: PyECC not found. Skipping ECC encryptor tests.')
+
 def main():
+    check_dependencies()
     base_path = os.path.split(__file__)[0]
     loader = unittest.TestLoader()
     tests = loader.discover(base_path)
