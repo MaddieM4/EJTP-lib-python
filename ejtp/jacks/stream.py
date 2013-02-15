@@ -147,19 +147,6 @@ class Connection(object):
     def inject(self, newdata):
         '''
         Process new data from the outside world.
-
-        >>> c = Connection()
-        >>> plaintext = "The pursuit of \\x00 happiness"
-        >>> wrapped = c.wrap(plaintext)
-        >>> c.inject(wrapped)
-        >>> c.recv() == plaintext
-        True
-        >>> c.inject(wrapped[:5]) # Simulate a partial recieve
-        >>> c.recv() == None
-        True
-        >>> c.inject(wrapped[5:]) # Finish iiittttt
-        >>> c.recv() == plaintext
-        True
         '''
         self._buffer += newdata
         if RawData(".") not in self._buffer:
