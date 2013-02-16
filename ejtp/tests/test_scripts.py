@@ -7,7 +7,9 @@ import tempfile
 
 from ejtp.util.compat import json, unittest, StringIO
 
-root = os.path.join(os.path.split(__file__)[0], '../..')
+root = os.path.abspath(os.path.join(os.path.split(__file__)[0], '../..'))
+ident_cache_path = os.path.join(root, 'resources/examplecache.json')
+os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
 
 class IOMock(object):
 

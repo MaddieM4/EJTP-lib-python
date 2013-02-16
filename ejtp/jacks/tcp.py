@@ -27,27 +27,7 @@ from ejtp.util.py2and3 import RawDataDecorator
 import socket
 
 class TCPJack(stream.StreamJack):
-    '''
-    >>> from ejtp.jacks import core as jack
-    >>> jack.test_jacks(
-    ...     ['tcp4', ['127.0.0.1', 18999], 'charlie'],
-    ...     ['tcp4', ['127.0.0.1', 19999], 'stacy']
-    ... ) #doctest: +ELLIPSIS
-    Router equality (should be false): False
-    INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 19999)
-    Client ['tcp4', ['127.0.0.1', 19999], 'stacy'] recieved from [...'tcp4', [...'127.0.0.1', 18999], ...'charlie']: String('"A => B"')
-    INFO:ejtp.jacks.tcp: 125 / 125 ('127.0.0.1', ...) -> ('127.0.0.1', 18999)
-    Client ['tcp4', ['127.0.0.1', 18999], 'charlie'] recieved from [...'tcp4', [...'127.0.0.1', 19999], ...'stacy']: String('"B => A"')
-    >>> jack.test_jacks(
-    ...     ['tcp', ['::1', 8999], 'charlie'],
-    ...     ['tcp', ['::1', 9999], 'stacy']
-    ... ) #doctest: +ELLIPSIS
-    Router equality (should be false): False
-    INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 9999, 0, 0)
-    Client ['tcp', ['::1', 9999], 'stacy'] recieved from [...'tcp', [...'::1', 8999], ...'charlie']: String('"A => B"')
-    INFO:ejtp.jacks.tcp: 109 / 109 ('::1', ..., 0, 0) -> ('::1', 8999, 0, 0)
-    Client ['tcp', ['::1', 8999], 'charlie'] recieved from [...'tcp', [...'::1', 9999], ...'stacy']: String('"B => A"')
-    '''
+
     def __init__(self, router, host='::', port=3972, ipv=6):
         if ipv==6:
             ifacetype = "tcp"
