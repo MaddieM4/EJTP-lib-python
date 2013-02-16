@@ -27,21 +27,16 @@ class RawData(object):
         '''
         Takes an iterable value that should contain either integers in range(256)
         or corresponding characters.
+        Some examples for working with RawData:
 
-        >>> RawData(RawData((1, 2, 3))) == RawData((1, 2, 3))
+        >>> r = RawData('Hello world!')
+        >>> r[0]
+        RawData((0x48))
+        >>> byte_tuple = (115, 101, 99, 114, 101, 116)
+        >>> RawData(byte_tuple) == RawData('secret')
         True
-        >>> repr(RawData((1, 2, 3))) == 'RawData((0x01,0x02,0x03))'
-        True
-        >>> repr(RawData('abc')) == 'RawData((0x61,0x62,0x63))'
-        True
-        >>> RawData(String('abc')) == RawData('abc')
-        True
-        >>> RawData((1, 2, 'abc'))
-        Traceback (most recent call last):
-        ValueError: values must be ints
-        >>> RawData((1,2,256))
-        Traceback (most recent call last):
-        ValueError: values not in range(256)
+        >>> RawData('Hello world!').toString()
+        String('Hello world!')
         '''
         if isinstance(value, RawData):
             value = value._data
@@ -80,24 +75,11 @@ class RawData(object):
         self._data = value
 
     def __eq__(self, other):
-        '''
-        >>> RawData('abc') == RawData((97, 98, 99))
-        True
-        >>> RawData('abc') == 'abc'
-        False
-        '''
         if isinstance(other, self.__class__):
             return self._data.__eq__(other._data)
         return NotImplemented
 
     def __add__(self, other):
-        '''
-        >>> RawData('ab') + RawData('c') == RawData('ab') + 99 == RawData('abc')
-        True
-        >>> RawData('ab') + object() # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        TypeError: unsupported operand type(s) for +: 'RawData' and 'object'
-        '''
         if not isinstance(other, self.__class__):        
             try:
                 other = self.__class__(other)
@@ -106,24 +88,12 @@ class RawData(object):
         return self.__class__(self._data.__add__(other._data))
     
     def __len__(self):
-        '''
-        >>> len(RawData('ab')) == 2
-        True
-        '''
         return self._data.__len__()
 
     def __getitem__(self, key):
-        '''
-        >>> RawData('ab')[1] == RawData('b')
-        True
-        '''
         return self.__class__(self._data.__getitem__(key))
 
     def __contains__(self, key):
-        '''
-        >>> 'a' in RawData('abc')
-        True
-        '''
         try:
             key = self.__class__(key)
         except (TypeError, ValueError):
@@ -133,39 +103,17 @@ class RawData(object):
         return self._data.__contains__(key._data[0])
 
     def __iter__(self):
-        '''
-        >>> for c in RawData('abc'):
-        ...     print(c)
-        ...
-        97
-        98
-        99
-        '''
         return self._data.__iter__()
 
     def __hash__(self):
-        '''
-        >>> hash(RawData('abc')) == hash((97,98,99))
-        True
-        '''
         return self._data.__hash__()
 
     def __repr__(self):
-        '''
-        >>> repr(RawData('abc')) == 'RawData((0x61,0x62,0x63))'
-        True
-        '''
         return 'RawData((' + ','.join([format(c, '#04x') for c in self._data]) + '))'
     
     def __int__(self):
         '''
         Converts the data to an int if it contains exactly one byte.
-
-        >>> int(RawData('a')) == 97
-        True
-        >>> int(RawData('abc'))
-        Traceback (most recent call last):
-        TypeError: must be of length 1
         '''
         if self.__len__() != 1:
             raise TypeError('must be of length 1')
@@ -176,16 +124,6 @@ class RawData(object):
         Returns index of byte in RawData.
         Raises ValueError if byte is not in RawData and TypeError if can't be
         converted RawData or its length is not 1.
-
-        >>> r = RawData('abc')
-        >>> r.index(98)
-        1
-        >>> r.index('ab')
-        Traceback (most recent call last):
-        TypeError: byte must be of length 1
-        >>> r.index(1234)
-        Traceback (most recent call last):
-        TypeError: can't convert byte to RawData
         '''
         if not isinstance(byte, RawData):
             try:
@@ -204,11 +142,6 @@ class RawData(object):
     def split(self, byte, maxsplit=-1):
         '''
         Splits RawData on every occurrence of byte.
-
-        >>> RawData('a:b:c').split(':') == [RawData('a'), RawData('b'), RawData('c')]
-        True
-        >>> RawData('a:b:c').split(':', 1) == [RawData('a'), RawData('b:c')]
-        True
         '''
         if (maxsplit == 0):
             return [self]
@@ -219,19 +152,12 @@ class RawData(object):
         return [self.__class__(self._data[:ind])] + self.__class__(self._data[ind+1:]).split(byte, maxsplit-1)
 
     def toString(self):
-        '''
-        >>> RawData('abc').toString() == String('abc')
-        True
-        '''
         return String(self.export().decode('utf-8'))
     
     def export(self):
         '''
         Returns the data as bytes() so that you can use it for methods that
         expect bytes. Don't use this for comparison!
-
-        >>> RawData(RawData('abc').export()) == RawData('abc')
-        True
         '''
         if bytes == str:
             return bytes().join(chr(c) for c in self._data)
@@ -242,16 +168,15 @@ class String(object):
     '''
     This class stores unicode strings and treats them depending on the python
     version.
+    Some examples for working with String:
 
-    >>> String(String('abc')) == String('abc')
-    True
-    >>> String(RawData('abc')) == String('abc')
-    True
-    >>> repr(String('abc')) == "String('abc')"
-    True
-    >>> String(123) # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-    TypeError: string must be of type ...
+    >>> s = String('Hello world!')
+    >>> s
+    String('Hello world!')
+    >>> s[:5]
+    String('Hello')
+    >>> s[:5].toRawData()
+    RawData((0x48,0x65,0x6c,0x6c,0x6f))
     '''
     def __init__(self, string):
         '''
@@ -276,52 +201,21 @@ class String(object):
         self._data = string
 
     def __eq__(self, other):
-        '''
-        >>> String('abc') == String(RawData((97, 98, 99)))
-        True
-        >>> String('abc') == 'abc'
-        False
-        '''
         if isinstance(other, self.__class__):
             return self._data.__eq__(other._data)
         return NotImplemented
 
     def __ne__(self, other):
-        '''
-        >>> String('abc') != String(RawData((97, 98, 99)))
-        False
-        >>> String('abc') != 'abc'
-        True
-        '''
         if isinstance(other, self.__class__):
             return not self._data.__eq__(other._data)
         return NotImplemented
 
     def __lt__(self, other):
-        '''
-        >>> String('abc') < String('bbc')
-        True
-        >>> String('abc') < String('abc')
-        False
-        >>> String('bbc') < String('abc')
-        False
-        '''
         if isinstance(other, self.__class__):
             return self._data < other._data
         return NotImplemented
 
     def __add__(self, other):
-        '''
-        >>> String('a') + String('b') == String('ab')
-        True
-        >>> String('a') + 'b' == String('ab')
-        True
-        >>> String('a') + RawData(98) == String('ab')
-        True
-        >>> String('abc') + object() # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        TypeError: unsupported operand type(s) for +: 'RawData' and 'object'
-        '''
         if not isinstance(other, self.__class__):
             try:
                 other = self.__class__(other)
@@ -330,45 +224,21 @@ class String(object):
         return self.__class__(self._data.__add__(other._data))
 
     def __len__(self):
-        '''
-        >>> len(String('abc')) == 3
-        True
-        '''
         return self._data.__len__()
     
     def __getitem__(self, key):
-        '''
-        >>> String('abc')[1] == String('b')
-        True
-        '''
         return self.__class__(self._data.__getitem__(key))
     
     def __iter__(self):
-        '''
-        >>> val = True
-        >>> for c in String('aaa'):
-        ...     val &= (c == 'a')
-        ...
-        >>> val
-        True
-        '''
         # in python2 unicode somehow only iterates with iter()
         if hasattr(self._data, '__iter__'):
             return self._data.__iter__()
         return iter(self._data)
   
     def __hash__(self):
-        '''
-        >>> hash(String('abc')) == hash(String('abc')._data)
-        True
-        '''
         return self._data.__hash__()
       
     def __repr__(self):
-        '''
-        >>> repr(String('abc')) == "String('abc')"
-        True
-        '''
         rep = self._data.__repr__()
         if rep[0] == 'u':
             # in python2 for unicode
@@ -409,12 +279,6 @@ class String(object):
 
         >>> String(',').join(('a', 'b', 'c')) == String('a,b,c')
         True
-        >>> String('').join(123) # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        TypeError: iterable must be ...
-        >>> String('').join((1,2,3)) # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        TypeError: iterable must be ...
         '''
 
         try:
@@ -423,10 +287,6 @@ class String(object):
             raise TypeError('iterable must be iterable of values that can be converted to String')
  
     def toRawData(self):
-        '''
-        >>> String('abc').toRawData() == RawData('abc')
-        True
-        '''
         return RawData(self._data.encode('utf-8'))
     
     def export(self):
@@ -434,9 +294,6 @@ class String(object):
         Returns unicode representation of the String. Don't use this for
         comparison since it depends on the python version how unicode strings
         are handled!
-
-        >>> String(String('abc').export()) == String('abc')
-        True
         '''
         return self._data
 
