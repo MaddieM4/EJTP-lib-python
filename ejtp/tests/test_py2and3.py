@@ -28,10 +28,10 @@ class TestRawData(unittest.TestCase):
         self.assertEqual(RawData(RawData('abc')), RawData('abc'))
         self.assertEqual(RawData(97), RawData('a'))
         self.assertEqual(RawData([97, 98, 99]), RawData('abc'))
-        self.assertRaises(TypeError, lambda: RawData(object()))
+        self.assertRaises(TypeError, RawData, object())
         self.assertEqual(RawData(String('abc')), RawData('abc'))
-        self.assertRaises(ValueError, lambda: RawData(('a',)))
-        self.assertRaises(ValueError, lambda: RawData(300))
+        self.assertRaises(ValueError, RawData, ('a',))
+        self.assertRaises(ValueError, RawData, 300)
 
     def test_eq(self):
         self.assertEqual(RawData('abc'), RawData((97, 98, 99)))
@@ -66,15 +66,15 @@ class TestRawData(unittest.TestCase):
     
     def test_int(self):
         self.assertEqual(int(RawData('a')), 97)
-        self.assertRaises(TypeError, lambda: int(RawData('abc')))
+        self.assertRaises(TypeError, int, RawData('abc'))
     
     def test_index(self):
         r = RawData('abc')
         self.assertEqual(r.index(RawData('b')), 1)
         self.assertEqual(r.index(99), 2)
-        self.assertRaises(TypeError, lambda: r.index(RawData('ab')))
-        self.assertRaises(TypeError, lambda: r.index(300))
-        self.assertRaises(ValueError, lambda: r.index(RawData('d')))
+        self.assertRaises(TypeError, r.index, RawData('ab'))
+        self.assertRaises(TypeError, r.index, 300)
+        self.assertRaises(ValueError, r.index, RawData('d'))
     
     def test_split(self):
         self.assertEqual(RawData('a:b:c').split(':'), [RawData('a'), RawData('b'), RawData('c')])
@@ -82,7 +82,7 @@ class TestRawData(unittest.TestCase):
 
     def test_tostring(self):
         self.assertEqual(RawData('abc').toString(), String('abc'))
-        self.assertRaises(UnicodeDecodeError, lambda: RawData(b'\xc3').toString())
+        self.assertRaises(UnicodeDecodeError, RawData(0xc3).toString)
 
     def test_export(self):
         self.assertEqual(RawData(RawData('abc').export()), RawData('abc'))
@@ -91,8 +91,8 @@ class TestString(unittest.TestCase):
     def test_init(self):
         self.assertEqual(String(String('abc')), String('abc'))
         self.assertEqual(String(RawData('abc')), String('abc'))
-        self.assertRaises(TypeError, lambda: String(RawData(0xc3)))
-        self.assertRaises(TypeError, lambda: String(123))
+        self.assertRaises(TypeError, String, RawData(0xc3))
+        self.assertRaises(TypeError, String, 123)
     
     def test_eq(self):
         self.assertEqual(String('abc'), String('abc'))
@@ -121,9 +121,15 @@ class TestString(unittest.TestCase):
         self.assertEqual(tuple(iter(String('abc'))), ('a', 'b', 'c'))
   
     def test_hash(self):
-        if (sys.version_info.major == 2):      
+        v = 0
+        if (isinstance(sys.version_info, tuple)):
+            # python <= 2.6
+            v = sys.version_info[0]
+        else:
+            v = sys.version_info.major
+        if (v == 2):      
             self.assertEqual(hash(String('abc')), hash(unicode('abc')))
-        elif (sys.version_info.major >= 3):
+        elif (v >= 3):
             self.assertEqual(hash(String('abc')), hash('abc'))
         
     def test_repr(self):
@@ -133,12 +139,12 @@ class TestString(unittest.TestCase):
         s = String('abc')
         self.assertEqual(s.index('bc'), 1)
         self.assertEqual(s.index(String('bc')), 1)
-        self.assertRaises(TypeError, lambda: s.index(1))
-        self.assertRaises(ValueError, lambda: s.index('d'))
+        self.assertRaises(TypeError, s.index, 1)
+        self.assertRaises(ValueError, s.index, 'd')
     
     def test_join(self):
         self.assertEqual(String(',').join(('a', 'b', 'c')), String('a,b,c'))
-        self.assertRaises(TypeError, lambda: String('').join(123))
+        self.assertRaises(TypeError, String('').join, 123)
     
     def test_torawdata(self):
         self.assertEqual(String('abc').toRawData(), RawData('abc'))
@@ -169,7 +175,7 @@ class TestRawDataDecorator(unittest.TestCase):
             return args
         
         self.assertEqual(func('abc')[0], RawData('abc'))
-        self.assertRaises(TypeError, lambda: func(object()))
+        self.assertRaises(TypeError, func, object())
         
     def test_kwargs(self):
         @RawDataDecorator(kwargs=True)
@@ -184,7 +190,7 @@ class TestRawDataDecorator(unittest.TestCase):
             return kwargs
         
         self.assertEqual(func(a='abc')['a'], RawData('abc'))
-        self.assertRaises(TypeError, lambda: func(a=1234))
+        self.assertRaises(TypeError, func, a=1234)
     
     def test_ret(self):
         @RawDataDecorator(ret=True)
@@ -244,7 +250,7 @@ class TestStringDecorator(unittest.TestCase):
             return args
         
         self.assertEqual(func('abc')[0], String('abc'))
-        self.assertRaises(TypeError, lambda: func(object()))
+        self.assertRaises(TypeError, func, object())
         
     def test_kwargs(self):
         @StringDecorator(kwargs=True)
@@ -259,7 +265,7 @@ class TestStringDecorator(unittest.TestCase):
             return kwargs
         
         self.assertEqual(func(a='abc')['a'], String('abc'))
-        self.assertRaises(TypeError, lambda: func(a=1234))
+        self.assertRaises(TypeError, func, a=1234)
     
     def test_ret(self):
         @StringDecorator(ret=True)
