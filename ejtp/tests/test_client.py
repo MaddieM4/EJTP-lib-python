@@ -18,21 +18,17 @@ along with the Python EJTP library.  If not, see
 
 import logging
 
-from ejtp.util.compat import unittest, StringIO
+from ejtp.tests.tools import TestCaseWithLog
 
-from ejtp import client
-from ejtp.client import Client
+from ejtp.client import Client, logger
 from ejtp.router import Router
-from ejtp.util.py2and3 import RawData
 
 
-class TestClient(unittest.TestCase):
+class TestClient(TestCaseWithLog):
 
     def setUp(self):
-        self.stream = StringIO()
-        handler = logging.StreamHandler(self.stream)
-        client.logger.setLevel(logging.INFO)
-        client.logger.addHandler(handler)
+        TestCaseWithLog.setUp(self)
+        self.listen(logger)
 
     def _assert(self, expected, value):
         self.assertEqual(expected, value.replace("u'", "'"))
@@ -70,6 +66,5 @@ class TestClient(unittest.TestCase):
 
         c1.write_json(c2.interface, "hello")
         c2.write_json(c1.interface, "goodbye")
-        result = self.stream.getvalue().strip().split('\n')
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData((0x22,0x68,0x65,0x6c,0x6c,0x6f,0x22))", result[0])
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData((0x22,0x67,0x6f,0x6f,0x64,0x62,0x79,0x65,0x22))", result[1])
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData((0x22,0x68,0x65,0x6c,0x6c,0x6f,0x22))")
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData((0x22,0x67,0x6f,0x6f,0x64,0x62,0x79,0x65,0x22))")

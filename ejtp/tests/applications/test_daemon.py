@@ -1,12 +1,13 @@
-from ejtp.util.compat import unittest, StringIO
+from ejtp.util.compat import unittest
 
-import logging
-from ejtp.applications.daemon import DaemonClient, ControllerClient, logger
+from ejtp.tests.tools import TestCaseWithLog
 
-class TestDaemon(unittest.TestCase):
+class TestDaemon(TestCaseWithLog):
 
     def setUp(self):
+        TestCaseWithLog.setUp(self)
         from ejtp.router import Router
+        from ejtp.applications.daemon import DaemonClient, ControllerClient, logger
         router  = Router()
         ifaces = {
             'daemon': ['local', None, 'c1'],
@@ -18,28 +19,20 @@ class TestDaemon(unittest.TestCase):
         self.daemon.encryptor_set(self.daemon.interface, ['rotate',  3])
         self.daemon.encryptor_set(self.control.interface, ['rotate', -7])
 
-        self.stream = StringIO()
-        handler = logging.StreamHandler(self.stream)
-        formatter = logging.Formatter('%(levelname)s:%(name)s: %(message)s')
-        handler.setFormatter(formatter)
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
-
-    def _assertInStream(self, value):
-        self.assertIn(value, self.stream.getvalue())
+        self.listen(logger)
 
     def test_client_init_without_interface(self):
         self.control.client_init('ejtp.client', 'Client')
-        self._assertInStream('INFO:ejtp.applications.daemon: Initializing client...')
-        self._assertInStream('ERROR:ejtp.applications.daemon: __init__()')
-        self._assertInStream('ERROR:ejtp.applications.daemon: CLIENT ERROR #502 Command error (Class initialization error)')
-        self._assertInStream('ERROR:ejtp.applications.daemon: Remote error 502 Command error (Class initialization error)')
+        self.assertInLog('INFO:ejtp.applications.daemon: Initializing client...')
+        self.assertInLog('ERROR:ejtp.applications.daemon: __init__()')
+        self.assertInLog('ERROR:ejtp.applications.daemon: CLIENT ERROR #502 Command error (Class initialization error)')
+        self.assertInLog('ERROR:ejtp.applications.daemon: Remote error 502 Command error (Class initialization error)')
 
     def test_client_init_with_interface(self):
         self.control.client_init('ejtp.client', 'Client', ['local', None, 'Exampley'])
-        self._assertInStream('INFO:ejtp.applications.daemon: Initializing client...')
-        self._assertInStream('INFO:ejtp.applications.daemon: SUCCESFUL COMMAND')
-        self._assertInStream('INFO:ejtp.applications.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})')
+        self.assertInLog('INFO:ejtp.applications.daemon: Initializing client...')
+        self.assertInLog('INFO:ejtp.applications.daemon: SUCCESFUL COMMAND')
+        self.assertInLog('INFO:ejtp.applications.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})')
 
     def test_client_instance(self):
         from ejtp.client import Client
@@ -52,8 +45,8 @@ class TestDaemon(unittest.TestCase):
         interface = ['local', None, 'Exampley']
         self.control.client_init('ejtp.client', 'Client', interface)
         self.control.client_destroy(interface)
-        self._assertInStream('INFO:ejtp.applications.daemon: Destroying client...')
-        self._assertInStream('INFO:ejtp.applications.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}')
-        self._assertInStream('INFO:ejtp.applications.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])')
+        self.assertInLog('INFO:ejtp.applications.daemon: Destroying client...')
+        self.assertInLog('INFO:ejtp.applications.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}')
+        self.assertInLog('INFO:ejtp.applications.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])')
 
         self.assertIsNone(self.daemon.router.client(interface))
