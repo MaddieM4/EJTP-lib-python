@@ -66,27 +66,6 @@ class ForwardClient(Client):
     def retrieve(self, hashes=None):
         '''
         Get the current status according to the server.
-
-        >>> from ejtp.util.hasher import strict
-        >>> client, server = test_setup()
-        >>> def on_status(client):
-        ...     print("Status is: " + strict(client.status).export())
-        >>> client.get_status(on_status)
-        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
-
-        >>> len("fakey message")
-        13
-        >>> mhash = server.store_message(client.interface, "fakey message")
-        >>> server.client(client.interface)['messages']
-        {String('4fc5bbbfefe38b84b935fee015c192e397b6eac3'): 'fakey message'}
-        >>> client.get_status(on_status)
-        Status is: {"hashes":["4fc5bbbfefe38b84b935fee015c192e397b6eac3"],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":1,"used_space":13}
-
-        >>> client.retrieve(hashes=[mhash])
-        >>> server.client(client.interface)['messages']
-        {}
-        >>> client.get_status(on_status)
-        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
         '''
         self.upload(
             'ejforward-retrieve',
@@ -98,13 +77,6 @@ class ForwardClient(Client):
     def get_status(self, callback=None):
         '''
         Get the current status according to the server.
-
-        >>> from ejtp.util.hasher import strict
-        >>> client, server = test_setup()
-        >>> def on_status(client):
-        ...     print("Status is: " + strict(client.status).export())
-        >>> client.get_status(on_status)
-        Status is: {"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}
         '''
         if callback:
             self._status_callbacks.append(callback)
