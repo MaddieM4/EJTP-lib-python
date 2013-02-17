@@ -54,6 +54,7 @@ class TestRawData(unittest.TestCase):
         self.assertTrue(RawData('a') in RawData('abc'))
         self.assertTrue('a' in RawData('abc'))
         self.assertTrue(97 in RawData('abc'))
+        self.assertFalse(object() in RawData('abc'))
     
     def test_iter(self):
         self.assertEqual(tuple(iter(RawData('abc'))), (97, 98, 99))
