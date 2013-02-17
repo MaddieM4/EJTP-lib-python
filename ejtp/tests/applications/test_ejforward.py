@@ -3,8 +3,8 @@ import logging
 from ejtp.util.compat import unittest, StringIO
 
 from ejtp.router import Router
-from ejtp.applications.ejforward.client import ForwardClient, logger
-from ejtp.applications.ejforward.server import ForwardServer
+from ejtp.applications.ejforward.client import ForwardClient, logger as client_logger
+from ejtp.applications.ejforward.server import ForwardServer, logger as server_logger
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String
 
@@ -27,8 +27,10 @@ class TestClient(unittest.TestCase):
         handler = logging.StreamHandler(self.stream)
         formatter = logging.Formatter('%(levelname)s:%(name)s: %(message)s')
         handler.setFormatter(formatter)
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
+        client_logger.setLevel(logging.INFO)
+        client_logger.addHandler(handler)
+        server_logger.setLevel(logging.INFO)
+        server_logger.addHandler(handler)
 
     def _assertInStream(self, value):
         self.assertIn(value, self.stream.getvalue())
@@ -56,3 +58,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual({}, messages)
 
         self._assertStatus('{"hashes":[],"total_count":1000,"total_space":32768,"type":"ejforward-notify","used_count":0,"used_space":0}')
+
+    def test_upload(self):
+        self.client.upload("farfagnugen", {})
+        self._assertInStream("WARNING:ejtp.applications.ejforward.server: Unknown message type")

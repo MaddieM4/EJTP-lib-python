@@ -88,9 +88,6 @@ class ForwardClient(Client):
     def upload(self, dtype, data):
         '''
         Send a message to the server.
-
-        >>> client, server = test_setup()
-        >>> client.upload("farfagnugen", {})
         '''
         data['type'] = dtype
         self.write_json(self.serveraddr, data)
