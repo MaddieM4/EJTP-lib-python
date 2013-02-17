@@ -44,7 +44,6 @@ class ForwardServer(Client):
         To send a message through EJForward, simply onion route through the 
         server, client, and destination, in that order.
 
-        >>> from ejtp.applications.ejforward.client import test_setup
         >>> from ejtp.client import Client
         >>> client, server = test_setup()
         >>> dest   = Client(client.router, ['local', None, 'destination'])
@@ -180,4 +179,21 @@ class ForwardServer(Client):
         String('{"chopping_block":[],"messages":{},"status":{"total_count":1000,"total_space":32768,"used_count":0,"used_space":0}}')
         '''
         self.create_client(address, self.default_data)
+
+
+_demo_client_addr = ['local', None, 'client']
+_demo_server_addr = ['local', None, 'server']
+
+def test_setup():
+    # Set up the demo client stuff in this module for further testing
+    from ejtp.applications.ejforward.client import ForwardClient
+    from ejtp.router import Router
+    r = Router()
+    client = ForwardClient(r, _demo_client_addr, _demo_server_addr)
+    server = ForwardServer(r, _demo_server_addr)
+    client.encryptor_set(_demo_client_addr, ['rotate', 5])
+    client.encryptor_set(_demo_server_addr, ['rotate', 3])
+    server.encryptor_cache = client.encryptor_cache
+    server.setup_client(client.interface)
+    return (client, server)
 

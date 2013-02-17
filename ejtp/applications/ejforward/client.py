@@ -24,9 +24,6 @@ from ejtp import frame
 from ejtp.util.hasher import make as hashfunc
 from ejtp.util.py2and3 import RawData
 
-_demo_client_addr = ['local', None, 'client']
-_demo_server_addr = ['local', None, 'server']
-
 class ForwardClient(Client):
     def __init__(self, router, interface, serveraddr, **kwargs):
         '''
@@ -95,17 +92,3 @@ class ForwardClient(Client):
     @property
     def status(self):
         return self._status
-
-def test_setup():
-    # Set up the demo client stuff in this module for further testing
-    from ejtp.applications.ejforward.server import ForwardServer
-    from ejtp.router import Router
-    r = Router()
-    client = ForwardClient(r, _demo_client_addr, _demo_server_addr)
-    server = ForwardServer(r, _demo_server_addr)
-    client.encryptor_set(_demo_client_addr, ['rotate', 5])
-    client.encryptor_set(_demo_server_addr, ['rotate', 3])
-    server.encryptor_cache = client.encryptor_cache
-    server.setup_client(client.interface)
-    return (client, server)
-
