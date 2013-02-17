@@ -27,6 +27,6 @@ __all__ = [
 	'identity',
 	'jacks',
 	'router',
-	'testing',
+	'tests',
 	'util',
 ]

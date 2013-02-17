@@ -98,10 +98,10 @@ class IdentityCache(object):
         '''
         Sync to one or more other cache objects
 
-        >>> from ejtp import testing
+        >>> from ejtp.tests.test_identity import mockup
         >>> cache1 = IdentityCache()
         >>> cache2 = IdentityCache()
-        >>> cache1.update_ident(testing.identity("mitzi"))
+        >>> cache1.update_ident(mockup("mitzi"))
         >>> cache1.sync(cache2)
         >>> cache2.find_by_name("mitzi@lackadaisy.com").location
         ['local', None, 'mitzi']
@@ -112,9 +112,9 @@ class IdentityCache(object):
         '''
         Deserialize IdentityCache from straddr-keyed dict.
 
-        >>> from ejtp import testing
+        >>> from ejtp.tests.test_identity import mockup
         >>> orig_cache = IdentityCache()
-        >>> orig_cache.update_ident(testing.identity("mitzi"))
+        >>> orig_cache.update_ident(mockup("mitzi"))
 
         >>> serialization = orig_cache.serialize()
         >>> new_cache = IdentityCache()
@@ -165,9 +165,9 @@ class IdentityCache(object):
         Save data to a serialization file.
 
         >>> cache = IdentityCache()
-        >>> cache.update_ident(testing.identity("mitzi"))
-        >>> cache.update_ident(testing.identity("atlas"))
-        >>> cache.update_ident(testing.identity("victor"))
+        >>> cache.update_ident(mockup("mitzi"))
+        >>> cache.update_ident(mockup("atlas"))
+        >>> cache.update_ident(mockup("victor"))
         cache.save_to('resources/examplecache.json', indent=4)
         '''
         if not file_object:

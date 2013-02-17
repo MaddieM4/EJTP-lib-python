@@ -22,6 +22,7 @@ setup(
 		'ejtp.crypto',
 		'ejtp.identity',
 		'ejtp.jacks',
+		'ejtp.tests',
 		'ejtp.util',
 		'ejtp.vendor',
 	],
