@@ -5,7 +5,7 @@ import imp
 import sys
 import tempfile
 
-from ejtp.util.compat import json, unittest, StringIO
+from ejtp.util.compat import unittest
 
 root = os.path.abspath(os.path.join(os.path.split(__file__)[0], '../..'))
 ident_cache_path = os.path.join(root, 'resources/examplecache.json')
