@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp import logging
+import logging
 logger = logging.getLogger(__name__)
 
 from ejtp.client import Client
