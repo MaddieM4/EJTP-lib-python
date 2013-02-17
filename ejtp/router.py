@@ -25,7 +25,7 @@ along with the Python EJTP library.  If not, see
     and clients on the other side for internal frame routing.
 '''
 
-from ejtp import logging
+import logging
 logger = logging.getLogger(__name__)
 
 from ejtp.frame import Frame

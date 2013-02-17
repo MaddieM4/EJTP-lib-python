@@ -24,7 +24,7 @@ along with the Python EJTP library.  If not, see
     IPv6 UDP jack, currently programmed quick and dirty to serve forever.
 '''
 
-from ejtp import logging
+import logging
 logger = logging.getLogger(__name__)
 
 from ejtp.jacks import core as jack

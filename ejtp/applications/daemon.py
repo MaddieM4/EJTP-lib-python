@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp import logging
+import logging
 logger = logging.getLogger(__name__)
 
 from ejtp.client import Client
@@ -240,41 +240,3 @@ class ControllerClient(Client):
             'msg':  errorcodes[code],
             'details': details,
         })
-
-def mock_locals(name1='c1', name2='c2'):
-    '''
-    Returns two clients that talk locally through a router.
-    >>> daemon, control = mock_locals()
-    >>> modname, classname, interface = "ejtp.client", "Client", ["local", None, "Exampley"]
-    >>> control.client_init(modname, classname) # doctest: +ELLIPSIS
-    INFO:ejtp.applications.daemon: Initializing client...
-    ERROR:ejtp.applications.daemon: __init__() ...
-    ERROR:ejtp.applications.daemon: CLIENT ERROR #502 Command error (Class initialization error) ...
-    ERROR:ejtp.applications.daemon: Remote error 502 Command error (Class initialization error) ...
-    >>> control.client_init(modname, classname, interface) # doctest: +ELLIPSIS
-    INFO:ejtp.applications.daemon: Initializing client...
-    INFO:ejtp.applications.daemon: SUCCESFUL COMMAND ...
-    INFO:ejtp.applications.daemon: Remote client succesfully initialized (ejtp.client.Client, [["local",null,"Exampley"]], {})
-    >>> daemon.router.client(interface) #doctest: +ELLIPSIS
-    <ejtp.client.Client object at ...>
-    >>> daemon.router.client(interface).interface # doctest: +ELLIPSIS
-    [...'local', None, ...'Exampley']
-    >>> control.client_destroy(interface)
-    INFO:ejtp.applications.daemon: Destroying client...
-    INFO:ejtp.applications.daemon: SUCCESFUL COMMAND {"interface":["local",null,"Exampley"],"type":"ejtpd-client-destroy"}
-    INFO:ejtp.applications.daemon: Remote client succesfully destroyed (["local",null,"Exampley"])
-    >>> repr(daemon.router.client(interface))
-    'None'
-    '''
-    from ejtp.router import Router
-    r  = Router()
-    ifaces = {
-        'daemon':  ['local', None, name1],
-        'control': ['local', None, name2],
-    }
-    daemon  = DaemonClient(    r, ifaces['daemon'], ifaces['control'], make_jack = False)
-    control = ControllerClient(r, ifaces['control'], ifaces['daemon'], make_jack = False)
-    control.encryptor_cache = daemon.encryptor_cache
-    daemon.encryptor_set(daemon.interface,  ['rotate',  3])
-    daemon.encryptor_set(control.interface, ['rotate', -7])
-    return (daemon, control)
