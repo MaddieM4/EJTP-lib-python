@@ -145,3 +145,153 @@ class TestString(unittest.TestCase):
     
     def test_export(self):
         self.assertEqual(String(String('abc').export()), String('abc'))
+
+class TestRawDataDecorator(unittest.TestCase):
+    def test_defaults(self):
+        @RawDataDecorator()
+        def func(*args, **kwargs):
+            return args, kwargs
+        
+        self.assertEqual(func('abc')[0][0], RawData('abc'))
+        self.assertEqual(func(1234)[0][0], 1234)
+        self.assertEqual(func(a='abc')[1]['a'], 'abc')
+    
+    def test_args(self):
+        @RawDataDecorator(args=True)
+        def func(*args):
+            return args
+        
+        self.assertEqual(func('abc')[0], RawData('abc'))
+        self.assertEqual(func(1234)[0], 1234)
+        
+        @RawDataDecorator(args=True, strict=True)
+        def func(*args):
+            return args
+        
+        self.assertEqual(func('abc')[0], RawData('abc'))
+        self.assertRaises(TypeError, lambda: func(object()))
+        
+    def test_kwargs(self):
+        @RawDataDecorator(kwargs=True)
+        def func(**kwargs):
+            return kwargs
+        
+        self.assertEqual(func(a='abc')['a'], RawData('abc'))
+        self.assertEqual(func(a=1234)['a'], 1234)
+        
+        @RawDataDecorator(kwargs=True, strict=True)
+        def func(**kwargs):
+            return kwargs
+        
+        self.assertEqual(func(a='abc')['a'], RawData('abc'))
+        self.assertRaises(TypeError, lambda: func(a=1234))
+    
+    def test_ret(self):
+        @RawDataDecorator(ret=True)
+        def func():
+            return 'abc'
+        
+        self.assertEqual(func(), RawData('abc'))
+        
+        @RawDataDecorator(ret=True)
+        def func():
+            return 1234
+        
+        self.assertEqual(func(), 1234)
+        
+        @RawDataDecorator(ret=True, strict=True)
+        def func():
+            return 'abc'
+        
+        self.assertEqual(func(), RawData('abc'))
+        
+        @RawDataDecorator(ret=True, strict=True)
+        def func():
+            return 1234
+        
+        self.assertRaises(TypeError, func)
+    
+    def test_method(self):
+        class Cls(object):
+            @RawDataDecorator()
+            def func(self, *args):
+                return args
+        
+        obj = Cls()
+        self.assertTrue(obj.func('abc')[0], RawData('abc'))
+        self.assertTrue(obj.func(1234)[0], 1234) 
+
+class TestStringDecorator(unittest.TestCase):
+    def test_defaults(self):
+        @StringDecorator()
+        def func(*args, **kwargs):
+            return args, kwargs
+        
+        self.assertEqual(func('abc')[0][0], String('abc'))
+        self.assertEqual(func(1234)[0][0], 1234)
+        self.assertEqual(func(a='abc')[1]['a'], 'abc')
+    
+    def test_args(self):
+        @StringDecorator(args=True)
+        def func(*args):
+            return args
+        
+        self.assertEqual(func('abc')[0], String('abc'))
+        self.assertEqual(func(1234)[0], 1234)
+        
+        @StringDecorator(args=True, strict=True)
+        def func(*args):
+            return args
+        
+        self.assertEqual(func('abc')[0], String('abc'))
+        self.assertRaises(TypeError, lambda: func(object()))
+        
+    def test_kwargs(self):
+        @StringDecorator(kwargs=True)
+        def func(**kwargs):
+            return kwargs
+        
+        self.assertEqual(func(a='abc')['a'], String('abc'))
+        self.assertEqual(func(a=1234)['a'], 1234)
+        
+        @StringDecorator(kwargs=True, strict=True)
+        def func(**kwargs):
+            return kwargs
+        
+        self.assertEqual(func(a='abc')['a'], String('abc'))
+        self.assertRaises(TypeError, lambda: func(a=1234))
+    
+    def test_ret(self):
+        @StringDecorator(ret=True)
+        def func():
+            return 'abc'
+        
+        self.assertEqual(func(), String('abc'))
+        
+        @StringDecorator(ret=True)
+        def func():
+            return 1234
+        
+        self.assertEqual(func(), 1234)
+        
+        @StringDecorator(ret=True, strict=True)
+        def func():
+            return 'abc'
+        
+        self.assertEqual(func(), String('abc'))
+        
+        @StringDecorator(ret=True, strict=True)
+        def func():
+            return 1234
+        
+        self.assertRaises(TypeError, func)
+    
+    def test_method(self):
+        class Cls(object):
+            @StringDecorator()
+            def func(self, *args):
+                return args
+        
+        obj = Cls()
+        self.assertTrue(obj.func('abc')[0], String('abc'))
+        self.assertTrue(obj.func(1234)[0], 1234) 
