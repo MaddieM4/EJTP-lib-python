@@ -44,8 +44,8 @@ class TestRawData(unittest.TestCase):
     
     def test_len(self):
         for i in range(100):
-            l = randint(1,1000)
-            self.assertEqual(len(RawData((0,)*l)), l)
+            length = randint(1,1000)
+            self.assertEqual(len(RawData((0,)*length)), length)
     
     def test_getitem(self):
         self.assertEqual(RawData('abc')[1], RawData('b'))
@@ -112,8 +112,8 @@ class TestString(unittest.TestCase):
     
     def test_len(self):
         for i in range(100):
-            l = randint(1, 1000)
-            self.assertEqual(len(String('0'*l)), l)
+            length = randint(1, 1000)
+            self.assertEqual(len(String('0'*length)), length)
     
     def test_getitem(self):
         self.assertEqual(String('abc')[1], String('b'))
@@ -122,15 +122,10 @@ class TestString(unittest.TestCase):
         self.assertEqual(tuple(iter(String('abc'))), ('a', 'b', 'c'))
   
     def test_hash(self):
-        v = 0
-        if (isinstance(sys.version_info, tuple)):
-            # python <= 2.6
-            v = sys.version_info[0]
-        else:
-            v = sys.version_info.major
-        if (v == 2):      
+        version_major = sys.version_info[0]
+        if (version_major == 2):      
             self.assertEqual(hash(String('abc')), hash(unicode('abc')))
-        elif (v >= 3):
+        elif (version_major >= 3):
             self.assertEqual(hash(String('abc')), hash('abc'))
         
     def test_repr(self):
