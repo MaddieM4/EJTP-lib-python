@@ -18,21 +18,17 @@ along with the Python EJTP library.  If not, see
 
 import logging
 
-from ejtp.util.compat import unittest, StringIO
+from ejtp.tests.tools import TestCaseWithLog
 
-from ejtp import client
-from ejtp.client import Client
+from ejtp.client import Client, logger
 from ejtp.router import Router
-from ejtp.util.py2and3 import RawData
 
 
-class TestClient(unittest.TestCase):
+class TestClient(TestCaseWithLog):
 
     def setUp(self):
-        self.stream = StringIO()
-        handler = logging.StreamHandler(self.stream)
-        client.logger.setLevel(logging.INFO)
-        client.logger.addHandler(handler)
+        TestCaseWithLog.setUp(self)
+        self.listen(logger)
 
     def _assert(self, expected, value):
         self.assertEqual(expected, value.replace("u'", "'"))
@@ -50,7 +46,7 @@ class TestClient(unittest.TestCase):
         client.encryptor_set(client.interface, ['rotate', 41])
         original = ['catamaran']
         signature = client.sign(original)
-        self.assertEqual('RawData(3a0a0e3b3c39100e0f3d3a380b0c0d0807390f0f0c390e0e083d3a383a3a0b10393d0b090c3a0a0b)', repr(signature))
+        self.assertEqual('RawData((0x3a,0x0a,0x0e,0x3b,0x3c,0x39,0x10,0x0e,0x0f,0x3d,0x3a,0x38,0x0b,0x0c,0x0d,0x08,0x07,0x39,0x0f,0x0f,0x0c,0x39,0x0e,0x0e,0x08,0x3d,0x3a,0x38,0x3a,0x3a,0x0b,0x10,0x39,0x3d,0x0b,0x09,0x0c,0x3a,0x0a,0x0b))', repr(signature))
 
     def test_sig_verify(self):
         client = Client(None, ['demo_interface'])
@@ -70,6 +66,5 @@ class TestClient(unittest.TestCase):
 
         c1.write_json(c2.interface, "hello")
         c2.write_json(c1.interface, "goodbye")
-        result = self.stream.getvalue().strip().split('\n')
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData(2268656c6c6f22)", result[0])
-        self._assert("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData(22676f6f6462796522)", result[1])
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData((0x22,0x68,0x65,0x6c,0x6c,0x6f,0x22))")
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData((0x22,0x67,0x6f,0x6f,0x64,0x62,0x79,0x65,0x22))")

@@ -1,6 +1,5 @@
-import logging
-
-from ejtp.util.compat import unittest, StringIO
+from ejtp.util.compat import unittest
+from ejtp.tests.tools import TestCaseWithLog
 from ejtp import router
 
 class TestRouter(unittest.TestCase):
@@ -26,27 +25,21 @@ class TestRouter(unittest.TestCase):
             'client already loaded', self.router._loadclient, client)
 
 
-class TestRouterStream(unittest.TestCase):
+class TestRouterStream(TestCaseWithLog):
 
     def setUp(self):
+        TestCaseWithLog.setUp(self)
         self.router = router.Router()
-        self.stream = StringIO()
-        handler = logging.StreamHandler(self.stream)
-        router.logger.setLevel(logging.INFO)
-        router.logger.addHandler(handler)
-
-    def _assertInStream(self, expected):
-        value = self.stream.getvalue()
-        self.assertIn(expected, value)
+        self.listen(router.logger)
 
     def _test_message(self, expected, message='Jam and cookies', destination='["local",null,"example"]', format=None):
         data = ''.join([format, destination, '\x00', message])
         self.router.recv(data)
-        self._assertInStream(expected)
+        self.assertInLog(expected)
 
     def test_recv_invalid_message(self):
         self.router.recv('qwerty')
-        self._assertInStream("Router could not parse frame: 'qwerty'")
+        self.assertInLog("Router could not parse frame: 'qwerty'")
 
     def test_client_inexistent(self):
         self._test_message('Router could not deliver frame', format='r')

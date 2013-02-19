@@ -47,8 +47,7 @@ Dependencies
  * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository]((https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
  * For testing:
    * Install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
-   * Install [tox](http://testrun.org/tox/latest/index.html).
-
+   * For developer testing: [tox](http://testrun.org/tox/latest/index.html).
 
 Usage
 =====
@@ -62,8 +61,20 @@ their rcv_callback property to your own preferred callback.
 Testing
 =======
 
+### Normal users
+
+Run `./install_and_test.sh`. This installs (or reinstalls) EJTP according
+to the current contents of the repository, then runs DoctestAll and the
+unittest suite on the installed module.
+
+The only extra software you need to install for this is PyCrypto and
+DoctestAll. Everything else will work with your Python installation and
+standard library.
+
+### Developers
+
 Install the software needed for testing (see Dependencies section above),
-then simply run the command `tox`.
+including Python versions 2.5-3.3, then simply run the `tox` command.
 
     name@machine$ tox
     (a bunch of output ...)
@@ -75,6 +86,12 @@ then simply run the command `tox`.
       py32: commands succeeded
       py33: commands succeeded
       congratulations :)
+
+If you don't want to install any extra Python versions, run a command
+like `tox -e py26,py27` for each version you have installed. It's
+fine, you can leave it up to Travis-CI to do the full test suite.
+
+### I got errors! What do?
 
 Any errors should be reported in a [Github Issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) so I can

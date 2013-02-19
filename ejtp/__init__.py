@@ -18,7 +18,6 @@ along with the Python EJTP library.  If not, see
 
 
 __all__ = [
-	'logging',
 	'address',
 	'applications',
 	'client',
@@ -28,6 +27,6 @@ __all__ = [
 	'identity',
 	'jacks',
 	'router',
-	'testing',
+	'tests',
 	'util',
 ]
