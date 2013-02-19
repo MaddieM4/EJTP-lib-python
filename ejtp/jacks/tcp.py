@@ -28,7 +28,7 @@ import socket
 
 class TCPJack(stream.StreamJack):
 
-    def __init__(self, router, host='::', port=3972, ipv=6):
+    def __init__(self, router, host='::', port=3972, ipv=6, compression=True):
         if ipv==6:
             ifacetype = "tcp"
             self.address = (host, port, 0, 0)
@@ -38,7 +38,7 @@ class TCPJack(stream.StreamJack):
             self.address = (host, port)
             self.sockfamily = socket.AF_INET
 
-        stream.StreamJack.__init__(self, router, (ifacetype, (host, port)))
+        stream.StreamJack.__init__(self, router, (ifacetype, (host, port)), compression)
         self.closed = True
         self.lock_init.release()
 

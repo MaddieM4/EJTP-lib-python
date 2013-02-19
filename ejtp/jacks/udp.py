@@ -27,6 +27,8 @@ along with the Python EJTP library.  If not, see
 import logging
 logger = logging.getLogger(__name__)
 
+from ejtp.frame import compress
+
 from ejtp.jacks import core as jack
 
 from ejtp.util.py2and3 import RawDataDecorator
@@ -35,7 +37,7 @@ import socket
 
 class UDPJack(jack.Jack):
 
-    def __init__(self, router, host='::', port=3972, ipv=6):
+    def __init__(self, router, host='::', port=3972, ipv=6, compression=True):
         if ipv==6:
             ifacetype = "udp"
             self.address = (host, port, 0, 0)
@@ -45,7 +47,7 @@ class UDPJack(jack.Jack):
             self.address = (host, port)
             sockfamily = socket.AF_INET
 
-        jack.Jack.__init__(self, router, (ifacetype, (host, port)))
+        jack.Jack.__init__(self, router, (ifacetype, (host, port)), compression)
         self.sock = socket.socket(sockfamily, socket.SOCK_DGRAM)
         self.sock.bind(self.address)
         self.closed = True
@@ -59,6 +61,10 @@ class UDPJack(jack.Jack):
             addr = (location[0], location[1], 0,0)
         else:
             addr = (location[0], location[1])
+        if self.compression:
+            compressedmsg = compress(msg)
+            if len(compressedmsg.bytes()) < len(msg.bytes()):
+                msg = compressedmsg
         msg = msg.bytes()
         sent = self.sock.sendto(msg.export(), addr)
         logger.info("%d / %d %r -> %r", 

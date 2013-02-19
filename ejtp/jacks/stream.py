@@ -16,6 +16,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.frame import compress
+
 from ejtp.jacks import core as jack
 
 from ejtp.util.py2and3 import RawData, RawDataDecorator
@@ -28,8 +30,8 @@ except ImportError: # in python3.x it's renamed to lowercase queue
     import queue as Queue
 
 class StreamJack(jack.Jack):
-    def __init__(self, router, interface):
-        jack.Jack.__init__(self, router, interface)
+    def __init__(self, router, interface, compression):
+        jack.Jack.__init__(self, router, interface, compression=True)
         self.connections = {}
 
     # SUBCLASS INTERFACE ------------------------------------------------------
@@ -79,6 +81,10 @@ class StreamJack(jack.Jack):
         Send frame to somewhere.
         '''
         conn = self.get_connection(frame.addr)
+        if self.compression:
+            compressedframe = compress(frame)
+            if len(compressedframe.bytes()) < len(frame.bytes()):
+                frame = compressedframe
         conn.send(frame)
 
 class Connection(object):

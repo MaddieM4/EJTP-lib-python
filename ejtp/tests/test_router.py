@@ -49,3 +49,6 @@ class TestRouterStream(TestCaseWithLog):
 
     def test_frame_with_weird_type(self):
         self._test_message('Frame has a type that the router does not understand', format='x')
+
+    def test_corrupt_z_frame(self):
+        self._test_message('Router could not decompress frame', format='z')

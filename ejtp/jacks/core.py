@@ -27,13 +27,14 @@ along with the Python EJTP library.  If not, see
 import threading
 
 class Jack(object):
-    def __init__(self, router, interface):
+    def __init__(self, router, interface, compression=True):
         self.lock_init  = threading.Lock() # Acquirable if init is finished and ready to run
         self.lock_ready = threading.Lock() # Acquirable if running and ready to route/recv
         self.lock_close = threading.Lock() # Acquirable if closed and cleaned up
         self.lock_init.acquire()
         self.lock_ready.acquire()
         self.lock_close.acquire()
+        self.compression = compression
         self.router = router
         self.interface = interface
         self.router._loadjack(self)
@@ -68,7 +69,7 @@ class Jack(object):
     def ifacetype(self):
         return self.interface[0]
 
-def make(router, iface):
+def make(router, iface, compression=True):
     if router:
         existing_jack = router.jack(iface)
         if existing_jack:
@@ -78,21 +79,21 @@ def make(router, iface):
     if t == "udp":
         from ejtp.jacks import udp
         host, port = iface[1]
-        return udp.UDPJack(router, host=host, port=port)
+        return udp.UDPJack(router, host=host, port=port, compression=compression)
     elif t == "udp4":
         from ejtp.jacks import udp
         host, port = iface[1]
-        return udp.UDPJack(router, host=host, port=port, ipv=4)
+        return udp.UDPJack(router, host=host, port=port, ipv=4, compression=compression)
 
     # TCP Jack
     elif t == "tcp":
         from ejtp.jacks import tcp
         host, port = iface[1]
-        return tcp.TCPJack(router, host=host, port=port)
+        return tcp.TCPJack(router, host=host, port=port, compression=compression)
     elif t == "tcp4":
         from ejtp.jacks import tcp
         host, port = iface[1]
-        return tcp.TCPJack(router, host=host, port=port, ipv=4)
+        return tcp.TCPJack(router, host=host, port=port, ipv=4, compression=compression)
 
     # Local, no jack
     elif t == "local":

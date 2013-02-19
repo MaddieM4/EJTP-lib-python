@@ -28,7 +28,7 @@ along with the Python EJTP library.  If not, see
 import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.frame import Frame
+from ejtp.frame import Frame, decompress
 from ejtp.util.crashnicely import Guard
 
 STOPPED = 0
@@ -54,6 +54,13 @@ class Router(object):
             except Exception:
                 logger.info("Router could not parse frame: %s", repr(msg))
                 return
+        if msg.type == msg.T_Z:
+            try:
+                msg = decompress(msg)
+            except Exception as e:
+                logger.info("Router could not decompress frame: %s (%s)", repr(msg), e)
+                return
+            logger.debug("Frame decompressed to: %s", repr(msg))
         if msg.type == msg.T_R:
             recvr = self.client(msg.addr) or self.jack(msg.addr)
             if recvr:

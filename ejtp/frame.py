@@ -27,6 +27,7 @@ from ejtp.util import hasher
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.address import *
 from ejtp.util.compat import json
+import zlib
 
 PACKET_SIZE = 8192
 
@@ -35,6 +36,7 @@ class Frame(object):
     T_J = RawData('j')
     T_R = RawData('r')
     T_S = RawData('s')
+    T_Z = RawData('z')
 
     @RawDataDecorator(strict=True)
     def __init__(self, data):
@@ -45,6 +47,8 @@ class Frame(object):
         sep = data.index('\x00')
         self.straddr = data[1:sep]
         self.ciphercontent = data[sep+1:]
+        if self.type == self.T_Z:
+            self.compressedcontent = self.ciphercontent
         if self.type == self.T_J:
             self.raw_decode()
         if self.straddr:
@@ -131,3 +135,20 @@ def make(type, addr, encryptor, content):
     msg = Frame(type+straddr+'\x00'+ciphercontent)
     msg.content = content
     return msg
+
+def compress(frame):
+    # Returns a compressed Z frame
+    '''
+    >>> f = Frame('r["local",null,"example"]\\x00Jam and cookies')
+    >>> repr(decompress(compress(f))) == repr(f)
+    True
+    '''
+    compressedcontent = zlib.compress(frame.bytes().export())
+    return make(Frame.T_Z, None, None, compressedcontent)
+
+def decompress(frame):
+    # Decompress a Z frame
+    if frame.type == frame.T_Z:
+        return Frame(zlib.decompress(frame.compressedcontent.export()))
+    else:
+        raise TypeError("Cannot decompress frame with type %r" % frame.type)
