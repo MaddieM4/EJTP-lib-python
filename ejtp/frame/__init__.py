@@ -18,6 +18,8 @@ along with the Python EJTP library.  If not, see
 
 __all__ = ['createFrame', 'RegisterFrame']
 
+from ejtp.frame.registration import createFrame, RegisterFrame
+
 # importing all builtin Frames to make them register themselves
 _builtin_frames = ('ejtp.frame.encrypted', 'ejtp.frame.signed', 'ejtp.frame.json')
 try:
@@ -29,19 +31,5 @@ for f in _builtin_frames:
     import_module(f)
 
 
-from ejtp.util.py2and3 import RawDataDecorator
-from ejtp.frame import registration
-
-@RawDataDecorator(strict=True)
-def createFrame(char):
-    '''
-    Returns subclass of BaseFrame represented by char or throws
-    NotImplementedError if char is not registered.
-    '''
-    
-    cls = registration._frametypes.get(char)
-    if cls is None:
-        raise NotImplementedError('char is not registered')
-    return cls
 
 

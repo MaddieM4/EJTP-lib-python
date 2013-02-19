@@ -14,13 +14,32 @@ GNU Lesser Public License for more details.
 You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
+
+Contains categories for storing sender and receiver addresses.
 '''
 
-from ejtp.frame.base import BaseFrame
-from ejtp.frame.registration import RegisterFrame
-from ejtp.frame.address import ReceiverCategory
+from ejtp.frame.base import BaseCategory
+from ejtp.address import py_address
+
+class SenderCategory(BaseCategory):
+    '''
+    Frames of this category contain sender information.
+
+    Frames or subclasses of this category may override the sender property.
+    '''
+
+    @property
+    def sender(self):
+        return py_address(self.header)
 
 
-@RegisterFrame('r')
-class EncryptedFrame(ReceiverCategory, BaseFrame):
-    pass
+class ReceiverCategory(BaseCategory):
+    '''
+    Frames of this category contain receiver information.
+
+    Frames or subclasses of this category may override the receiver property.
+    '''
+
+    @property
+    def receiver(self):
+        return py_address(self.header)

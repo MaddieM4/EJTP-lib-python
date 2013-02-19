@@ -16,7 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import RawData
+__all__ = ['createFrame', 'RegisterFrame']
+
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.frame.base import BaseFrame
 
 # contains all type of frames known to ejtp
@@ -24,9 +26,27 @@ from ejtp.frame.base import BaseFrame
 # values are subclasses from ejtp.frame.base.BaseFrame
 _frametypes = {}
 
+@RawDataDecorator(strict=True)
+def createFrame(data, ancestors = []):
+    '''
+    Returns subclass of BaseFrame represented by data[0] or throws
+    NotImplementedError if char is not registered.
+    '''
+    
+    cls = _frametypes.get(data[0])
+    if cls is None:
+        raise NotImplementedError('%s is not registered' % data[0])
+    return cls(data, ancestors)
+
 class RegisterFrame(object):
     '''
     This class is used as a decorator for subclasses of BaseFrame
+
+    >>> from ejtp.frame.base import BaseFrame
+    >>> @RegisterFrame('x')
+    ... class MyXFrame(BaseFrame):
+    ...     pass
+    ...
     '''
 
     def __init__(self, char):
@@ -36,10 +56,13 @@ class RegisterFrame(object):
         '''
 
         if not isinstance(char, RawData):
-            char = RawData(char)
+            try:
+                char = RawData(char)
+            except (TypeError, ValueError):
+                raise TypeError('char must be convertible to RawData')
         
         if len(char) != 1:
-            raise TypeError('char must be of length 1')
+            raise ValueError('char must be of length 1')
         
         if char in _frametypes:
             raise ValueError('char is already registered')

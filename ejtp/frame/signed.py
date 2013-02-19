@@ -18,7 +18,8 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
+from ejtp.frame.address import SenderCategory
 
 @RegisterFrame('s')
-class SignedFrame(BaseFrame):
+class SignedFrame(SenderCategory, BaseFrame):
     pass
