@@ -63,10 +63,12 @@ class Client(object):
         elif isinstance(msg, frame.address.SenderCategory):
             self.route( msg.unpack(self.encryptor_cache) )
         elif isinstance(msg, frame.json.JSONFrame):
-            self.rcv_callback(msg.unpack(), self)
+            self.rcv_callback(msg, self)
+        else:
+            raise TypeError("Unknown frame type", msg)
 
     def rcv_callback(self, msg, client_obj):
-        logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.addr, msg.content)
+        logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.sender, msg)
 
     def write(self, addr, txt, wrap_sender=True):
         # Write and send a frame to addr
@@ -78,7 +80,7 @@ class Client(object):
         if wrap_sender:
             msg = self.wrap_sender(msg)
         # Onion routing magic
-        for address in hoplist:
+        for address in reversed(hoplist):
             ident = self.encryptor_cache[str_address(address)]
             msg = frame.encrypted.construct(ident, msg.content)
         self.send(msg)
@@ -92,9 +94,7 @@ class Client(object):
 
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
-        sig_s = self.encryptor_get(self.interface)
-        msg   = frame.signed.construct(self.identity, msg.content)
-        return msg
+        return frame.signed.construct(self.identity, msg.content)
 
     @property
     def identity(self):
