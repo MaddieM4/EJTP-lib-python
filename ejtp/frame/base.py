@@ -101,7 +101,20 @@ class BaseFrame(object):
         for ancestor in self._ancestors:
             if isinstance(ancestor, category):
                 return ancestor
-        
+
+    @property
+    def sender(self):
+        from ejtp.frame.address import SenderCategory
+        ancestor = self.last_category(SenderCategory)
+        if ancestor:
+            return ancestor.address
+
+    @property
+    def receiver(self):
+        from ejtp.frame.address import ReceiverCategory
+        ancestor = self.last_category(ReceiverCategory)
+        if ancestor:
+            return ancestor.address
 
 
 class BaseCategory(object):

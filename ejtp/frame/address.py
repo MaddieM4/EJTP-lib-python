@@ -21,25 +21,26 @@ Contains categories for storing sender and receiver addresses.
 from ejtp.frame.base import BaseCategory
 from ejtp.address import py_address
 
-class SenderCategory(BaseCategory):
+class AddressCategory(BaseCategory):
     '''
-    Frames of this category contain sender information.
+    Base category for frames that use addresses as their header information.
 
-    Frames or subclasses of this category may override the sender property.
+    Subclasses may override any method, but aren't likely to need to.
     '''
 
     @property
-    def sender(self):
+    def address(self):
         return py_address(self.header)
 
+
+class SenderCategory(BaseCategory):
+    '''
+    Frames of this category contain sender information.
+    '''
+    pass
 
 class ReceiverCategory(BaseCategory):
     '''
     Frames of this category contain receiver information.
-
-    Frames or subclasses of this category may override the receiver property.
     '''
-
-    @property
-    def receiver(self):
-        return py_address(self.header)
+    pass
