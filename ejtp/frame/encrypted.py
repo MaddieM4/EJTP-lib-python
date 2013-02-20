@@ -16,10 +16,11 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.address import str_address
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import ReceiverCategory
-from ejtp.util.py2and3 import RawDataDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 
 
 @RegisterFrame('r')
@@ -32,3 +33,11 @@ class EncryptedFrame(ReceiverCategory, BaseFrame):
             raise ValueError('could not load Identity from ident_cache')
         # TODO Identity.decrypt is not implemented, yet
         return ident.decrypt(self.body)
+
+def construct(identity, content):
+    return EncryptedFrame(
+        RawData('r') + \
+        RawData(str_address(identity.location)) + \
+        RawData((0,)) + \
+        RawData(identity.encryptor.encrypt(content))
+    )

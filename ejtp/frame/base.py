@@ -85,6 +85,13 @@ class BaseFrame(object):
     def body(self):
         return self._content[self.header_length+1:]
 
+    @property
+    def content(self):
+        '''
+        Returns RawData version of entire frame contents.
+        '''
+        return self._content
+
     def last_category(self, category):
         '''
         Returns last (in terms of inheritance) ancestor of category category.

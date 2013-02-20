@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
-from ejtp.util.py2and3 import StringDecorator
+from ejtp.util.py2and3 import RawData, StringDecorator
 from ejtp.util.hasher import strict
 
 @RegisterFrame('j')

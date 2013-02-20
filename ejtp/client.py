@@ -18,7 +18,6 @@ along with the Python EJTP library.  If not, see
 
 import logging
 logger = logging.getLogger(__name__)
-
 from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
 from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
@@ -90,8 +89,11 @@ class Client(object):
         # The "o" is for onion routing
         if wrap_sender:
             msg = self.wrap_sender(msg)
-        hoplist = [(a, self.encryptor_get(a)) for a in hoplist]
-        self.send(frame.onion(msg, hoplist))
+        # Onion routing magic
+        for address in hoplist:
+            ident = self.encryptor_cache[str_address(address)]
+            msg = frame.encrypted.construct(ident, msg.content)
+        self.send(msg)
 
     def owrite_json(self, hoplist, data, wrap_sender=True):
         msg = frame.json.construct(data)
@@ -103,8 +105,12 @@ class Client(object):
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
         sig_s = self.encryptor_get(self.interface)
-        msg   = frame.createFrame('t', str_address(self.interface) sig_s, msg.bytes())
+        msg   = frame.signed.construct(self.identity, msg.content)
         return msg
+
+    @property
+    def identity(self):
+        return self.encryptor_cache[self.interface]
 
     # Encryption
 

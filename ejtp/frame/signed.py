@@ -16,10 +16,11 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from ejtp.address import str_address
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import SenderCategory
-from ejtp.util.py2and3 import RawDataDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator
 
 @RegisterFrame('s')
 class SignedFrame(SenderCategory, BaseFrame):
@@ -35,3 +36,14 @@ class SignedFrame(SenderCategory, BaseFrame):
         if not ident.verify_signature(body[2:sigsize+2], content):
             raise ValueError('Invalid signature')
         return content
+
+def construct(identity, content):
+    signature = identity.sign(content.export())
+    siglen = len(signature)
+
+    return SignedFrame(
+        RawData('s') + \
+        RawData(str_address(identity.location)) + \
+        RawData((0, siglen // 256, siglen % 256)) + \
+        RawData(content)
+    )
