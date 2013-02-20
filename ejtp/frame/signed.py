@@ -27,7 +27,7 @@ class SignedFrame(SenderCategory, BaseFrame):
     @RawDataDecorator(args=False, ret=True, strict=True)
     def decode(self, ident_cache):
         try:
-            ident = ident_cache[self.receiver]
+            ident = ident_cache[self.address]
         except (KeyError, TypeError):
             raise ValueError('could not load Identity from ident_cache')
         body = self.body

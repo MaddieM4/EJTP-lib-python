@@ -28,7 +28,7 @@ along with the Python EJTP library.  If not, see
 import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.frame import createFrame
+from ejtp import frame
 from ejtp.util.crashnicely import Guard
 
 STOPPED = 0
@@ -50,21 +50,21 @@ class Router(object):
         In the future, we may want to consider non-frames a ValueError
         '''
         logger.debug("Handling frame: %s", repr(msg))
-        if not isinstance(msg, BaseFrame):
+        if not isinstance(msg, frame.base.BaseFrame):
             try:
-                msg = createFrame(msg)
+                msg = frame.createFrame(msg)
             except Exception:
                 logger.info("Router could not parse frame: %s", repr(msg))
                 return
-        if msg.type == msg.T_R:
-            recvr = self.client(msg.addr) or self.jack(msg.addr)
+        if isinstance(msg, frame.address.ReceiverCategory):
+            recvr = self.client(msg.address) or self.jack(msg.address)
             if recvr:
                 with Guard():
                     recvr.route(msg)
             else:
-                logger.info("Router could not deliver frame: %s", str(msg.addr))
-        elif msg.type == msg.T_S:
-            logger.info("Frame recieved directly from %s", str(msg.addr))
+                logger.info("Router could not deliver frame: %s", str(msg.address))
+        elif isinstance(msg, frame.address.SenderCategory):
+            logger.info("Frame recieved directly from %s", str(msg.address))
         else:
             logger.info("Frame has a type that the router does not understand (%s)", msg.type)
 

@@ -55,30 +55,18 @@ class Client(object):
     def route(self, msg):
         # Recieve frame from router (will be type 'r' or 's', which contains message)
         logger.debug("Client routing frame: %s", repr(msg))
-        if msg.type == msg.T_R:
-            if msg.addr != self.interface:
+        if isinstance(msg, frame.address.ReceiverCategory):
+            if msg.address != self.interface:
                 self.relay(msg)
             else:
-                self.route(self.unpack(msg))
-        elif msg.type == msg.T_S:
-            self.route(self.unpack(msg))
-        elif msg.type == msg.T_J:
-            self.rcv_callback(msg, self)
+                self.route( msg.unpack(self.encryptor_cache) )
+        elif isinstance(msg, frame.address.SenderCategory):
+            self.route( msg.unpack(self.encryptor_cache) )
+        elif isinstance(msg, frame.json.JSONFrame):
+            self.rcv_callback(msg.unpack(), self)
 
     def rcv_callback(self, msg, client_obj):
         logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.addr, msg.content)
-
-    def unpack(self, msg):
-        # Return the frame inside a Type R or S
-        encryptor = self.encryptor_get(msg.addr)
-        if encryptor == None:
-            msg.raw_decode()
-        else:
-            msg.decode(encryptor)
-        result = frame.Frame(msg.content)
-        if result.addr == None:
-            result.addr = msg.addr
-        return result
 
     def write(self, addr, txt, wrap_sender=True):
         # Write and send a frame to addr

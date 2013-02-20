@@ -33,13 +33,13 @@ class AddressCategory(BaseCategory):
         return py_address(self.header)
 
 
-class SenderCategory(BaseCategory):
+class SenderCategory(AddressCategory):
     '''
     Frames of this category contain sender information.
     '''
     pass
 
-class ReceiverCategory(BaseCategory):
+class ReceiverCategory(AddressCategory):
     '''
     Frames of this category contain receiver information.
     '''
