@@ -38,7 +38,7 @@ class SignedFrame(SenderCategory, BaseFrame):
         return content
 
 def construct(identity, content):
-    signature = identity.sign(content.export())
+    signature = identity.sign(content)
     siglen = len(signature)
 
     return SignedFrame(

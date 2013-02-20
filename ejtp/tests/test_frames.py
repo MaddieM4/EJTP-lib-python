@@ -17,7 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.compat import unittest 
-from ejtp.util.py2and3 import RawData, StringDecorator
+from ejtp.util.py2and3 import RawData, String, StringDecorator
 
 from ejtp import frame
 
@@ -145,4 +145,54 @@ class TestBaseFrame(unittest.TestCase):
         class MyCategory(frame.base.BaseCategory):
             pass
         self.assertTrue(f2.last_category(MyCategory) is None)
- 
+
+
+class TestJsonFrame(unittest.TestCase):
+    def test_registration(self):
+        self.assertEqual(frame.createFrame('j\x00'), frame.json.JSONFrame('j\x00'))
+
+    def test_construct(self):
+        from ejtp.util.hasher import strict
+        self.assertEqual(frame.json.construct((1,2,3)), frame.json.JSONFrame(RawData('j\x00') + strict((1,2,3))))
+    
+    def test_decode(self):
+        self.assertEqual(frame.json.JSONFrame('j\x00[1,2,3]').decode(), String('[1,2,3]'))
+
+
+class TestEncryptedFrame(unittest.TestCase):
+    def test_registration(self):
+        self.assertEqual(frame.createFrame('r\x00'), frame.encrypted.EncryptedFrame('r\x00'))
+    
+    def test_construct(self):
+        from ejtp.identity import Identity
+        ident = Identity('joe', ['rotate', 1], ['testing'])
+        self.assertEqual(frame.encrypted.construct(ident, 'foo'), frame.encrypted.EncryptedFrame('r["testing"]\x00gpp'))
+    
+    def test_decode(self):
+        from ejtp.identity import Identity, IdentityCache
+        cache = IdentityCache()
+        cache[['testing']] = Identity('joe', ['rotate', 1], ['testing'])
+        self.assertEqual(frame.encrypted.EncryptedFrame('r["testing"]\x00gpp').decode(cache), RawData('foo'))
+
+
+class TestSignedFrame(unittest.TestCase):
+    def test_registration(self):
+        self.assertEqual(frame.createFrame('s\x00'), frame.signed.SignedFrame('s\x00'))
+
+    def test_construct(self):
+        from ejtp.identity import Identity
+        ident = Identity('joe', ['rotate', 1], ['testing'])
+        signature = ident.sign('foo')
+        siglen = len(signature)
+        self.assertEqual(frame.signed.construct(ident, 'foo'), frame.signed.SignedFrame(RawData('s["testing"]\x00') + (siglen//256, siglen%256) + signature + 'foo'))
+    
+    def test_decode(self):
+        from ejtp.identity import Identity, IdentityCache
+        ident = Identity('joe', ['rotate', 1], ['testing'])
+        cache = IdentityCache()
+        cache[['testing']] = ident
+        signature = ident.sign('foo')
+        siglen = len(signature)
+        signed_content = RawData('s["testing"]\x00') + (siglen//256, siglen%256) + signature + 'foo'
+        self.assertEqual(frame.signed.SignedFrame(signed_content).decode(cache), RawData('foo'))
+        self.assertRaises(ValueError, frame.signed.SignedFrame('s["testing"]\x00\x00\x07invalidfoo').decode, cache)
