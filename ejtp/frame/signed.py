@@ -19,7 +19,19 @@ along with the Python EJTP library.  If not, see
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import SenderCategory
+from ejtp.util.py2and3 import RawDataDecorator
 
 @RegisterFrame('s')
 class SignedFrame(SenderCategory, BaseFrame):
-    pass
+    @RawDataDecorator(args=False, ret=True, strict=True)
+    def decode(self, ident_cache):
+        try:
+            ident = ident_cache[self.receiver]
+        except KeyError, TypeError:
+            raise ValueError('could not load Identity from ident_cache')
+        body = self.body
+        sigsize = int(body[0]) * 256 + int(body[1])
+        content = body[sigsize+2:]
+        if not ident.verify_signature(body[2:sigsize+2], content):
+            raise ValueError('Invalid signature')
+        return content

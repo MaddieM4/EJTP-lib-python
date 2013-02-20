@@ -39,16 +39,19 @@ class BaseFrame(object):
         else:
             self._ancestors = ancestors[:]
 
+    def __repr__(self):
+        return '%s: %s' % (self.__class__.__name__, repr(self._content))
+
     @StringDecorator(args=False, ret=True)
     @RawDataDecorator(args=False, ret=True, strict=True)
-    def decode(self, ident_cache):
+    def decode(self, ident_cache = None):
         '''
         Decodes the content of the frame with ident_cache and returns RawData if the content
         is another Frame or String if it is a json encoded string.
         '''
         raise NotImplementedError('Each subclass of BaseFrame must implement decode')
    
-    def unpack(self, ident_cache):
+    def unpack(self, ident_cache = None):
         '''
         Returns a Frame or json-parsed object decoded from the content.
         '''
@@ -59,6 +62,8 @@ class BaseFrame(object):
             return createFrame(decoded, [self.crop()] + self._ancestors)
         elif isinstance(decoded, String):
             return json.loads(decoded)
+        else:
+            TypeError('decoded data of frame must be of type RawData or String')
 
     def crop(self):
         '''

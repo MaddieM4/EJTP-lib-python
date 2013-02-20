@@ -19,8 +19,16 @@ along with the Python EJTP library.  If not, see
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import ReceiverCategory
+from ejtp.util.py2and3 import RawDataDecorator
 
 
 @RegisterFrame('r')
 class EncryptedFrame(ReceiverCategory, BaseFrame):
-    pass
+    @RawDataDecorator(args=False, ret=True, strict=True)
+    def decode(self, ident_cache):
+        try:
+            ident = ident_cache[self.receiver]
+        except KeyError, TypeError:
+            raise ValueError('could not load Identity from ident_cache')
+        # TODO Identity.decrypt is not implemented, yet
+        return ident.decrypt(self.body)

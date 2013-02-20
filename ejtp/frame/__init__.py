@@ -22,14 +22,14 @@ from ejtp.frame.registration import createFrame, RegisterFrame
 
 # importing all builtin Frames to make them register themselves
 _builtin_frames = ('ejtp.frame.encrypted', 'ejtp.frame.signed', 'ejtp.frame.json')
-try:
-    from importlib import import_module
-except ImportError:
-    import_module = __import__
 
-for f in _builtin_frames:
-    import_module(f)
+def init():
+    try:
+        from importlib import import_module
+    except ImportError:
+        import_module = __import__
 
+    for f in _builtin_frames:
+        import_module(f)
 
-
-
+init()
