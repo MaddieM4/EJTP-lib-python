@@ -27,7 +27,7 @@ class SignedFrame(SenderCategory, BaseFrame):
     def decode(self, ident_cache):
         try:
             ident = ident_cache[self.receiver]
-        except KeyError, TypeError:
+        except (KeyError, TypeError):
             raise ValueError('could not load Identity from ident_cache')
         body = self.body
         sigsize = int(body[0]) * 256 + int(body[1])

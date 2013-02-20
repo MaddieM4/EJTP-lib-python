@@ -28,7 +28,7 @@ class EncryptedFrame(ReceiverCategory, BaseFrame):
     def decode(self, ident_cache):
         try:
             ident = ident_cache[self.receiver]
-        except KeyError, TypeError:
+        except (KeyError, TypeError):
             raise ValueError('could not load Identity from ident_cache')
         # TODO Identity.decrypt is not implemented, yet
         return ident.decrypt(self.body)
