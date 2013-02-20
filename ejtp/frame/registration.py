@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 __all__ = ['createFrame', 'RegisterFrame']
+__doctestall__ = []
 
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.frame.base import BaseFrame

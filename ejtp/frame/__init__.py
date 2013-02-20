@@ -19,12 +19,21 @@ along with the Python EJTP library.  If not, see
 __all__ = [
     'createFrame',
     'RegisterFrame',
+    'address',
     'base',
     'encrypted',
     'signed',
     'json',
     'registration',
+]
+
+__doctestall__ = [
     'address',
+    'base',
+    'encrypted',
+    'signed',
+    'json',
+    'registration',
 ]
 
 from ejtp.frame.registration import createFrame, RegisterFrame
