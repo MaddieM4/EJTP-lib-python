@@ -45,5 +45,6 @@ def construct(identity, content):
         RawData('s') + \
         RawData(str_address(identity.location)) + \
         RawData((0, siglen // 256, siglen % 256)) + \
+        RawData(signature) + \
         RawData(content)
     )

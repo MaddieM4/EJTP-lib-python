@@ -61,7 +61,7 @@ class BaseFrame(object):
             from ejtp.frame.registration import createFrame
             return createFrame(decoded, [self.crop()] + self._ancestors)
         elif isinstance(decoded, String):
-            return json.loads(decoded)
+            return json.loads(decoded.export())
         else:
             TypeError('decoded data of frame must be of type RawData or String')
 
