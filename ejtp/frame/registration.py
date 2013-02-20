@@ -26,13 +26,15 @@ from ejtp.frame.base import BaseFrame
 # values are subclasses from ejtp.frame.base.BaseFrame
 _frametypes = {}
 
-@RawDataDecorator(strict=True)
-def createFrame(data, ancestors = []):
+@RawDataDecorator()
+def createFrame(data, ancestors = None):
     '''
     Returns subclass of BaseFrame represented by data[0] or throws
     NotImplementedError if char is not registered.
     '''
     
+    if not isinstance(data, RawData):
+        raise TypeError('data must be of type RawData')
     cls = _frametypes.get(data[0])
     if cls is None:
         raise NotImplementedError('%s is not registered' % data[0])
