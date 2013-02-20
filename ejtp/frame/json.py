@@ -19,6 +19,7 @@ along with the Python EJTP library.  If not, see
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.util.py2and3 import StringDecorator
+from ejtp.util.hasher import strict
 
 @RegisterFrame('j')
 class JSONFrame(BaseFrame):
@@ -26,3 +27,10 @@ class JSONFrame(BaseFrame):
     @StringDecorator(args=False, ret=True, strict=True)
     def decode(self, ident_cache = None):
         return self.body
+
+
+def construct(content):
+    return JSONFrame(
+        RawData('j\x00') + \
+        RawData(strict(content))
+    )

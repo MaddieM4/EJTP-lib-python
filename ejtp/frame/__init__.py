@@ -16,7 +16,16 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-__all__ = ['createFrame', 'RegisterFrame', 'base', 'encrypted', 'signed', 'json', 'registration', 'address']
+__all__ = [
+    'createFrame',
+    'RegisterFrame',
+    'base',
+    'encrypted',
+    'signed',
+    'json',
+    'registration',
+    'address',
+]
 
 from ejtp.frame.registration import createFrame, RegisterFrame
 

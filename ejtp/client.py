@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
-from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
 
 from ejtp.address import *
 from ejtp import frame
@@ -94,7 +94,7 @@ class Client(object):
         self.send(frame.onion(msg, hoplist))
 
     def owrite_json(self, hoplist, data, wrap_sender=True):
-        msg = frame.make(frame.Frame.T_J, None, None, strict(data))
+        msg = frame.json.construct(data)
         self.owrite(hoplist, msg, wrap_sender)
 
     def write_json(self, addr, data, wrap_sender=True):
@@ -103,7 +103,7 @@ class Client(object):
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
         sig_s = self.encryptor_get(self.interface)
-        msg   = frame.make(frame.Frame.T_S, self.interface, sig_s, msg.bytes())
+        msg   = frame.createFrame('t', str_address(self.interface) sig_s, msg.bytes())
         return msg
 
     # Encryption

@@ -20,6 +20,7 @@ setup(
 		'ejtp.applications',
 		'ejtp.applications.ejforward',
 		'ejtp.crypto',
+		'ejtp.frame',
 		'ejtp.identity',
 		'ejtp.jacks',
 		'ejtp.tests',

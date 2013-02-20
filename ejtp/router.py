@@ -28,7 +28,7 @@ along with the Python EJTP library.  If not, see
 import logging
 logger = logging.getLogger(__name__)
 
-from ejtp.frame import Frame
+from ejtp.frame import createFrame
 from ejtp.util.crashnicely import Guard
 
 STOPPED = 0
@@ -46,11 +46,13 @@ class Router(object):
     def recv(self, msg):
         '''
         Accepts string or frame.Frame
+
+        In the future, we may want to consider non-frames a ValueError
         '''
         logger.debug("Handling frame: %s", repr(msg))
-        if not isinstance(msg, Frame):
+        if not isinstance(msg, BaseFrame):
             try:
-                msg = Frame(msg)
+                msg = createFrame(msg)
             except Exception:
                 logger.info("Router could not parse frame: %s", repr(msg))
                 return
