@@ -34,10 +34,17 @@ class BaseFrame(object):
         if not isinstance(data, RawData):
             raise TypeError('data must be of type RawData') 
         self._content = data
-        if ancestors is None:
-            self._ancestors = []
-        else:
-            self._ancestors = ancestors[:]
+        self._ancestors = []
+        if ancestors is not None:
+            for a in ancestors:
+                if not isinstance(a, BaseFrame):
+                    raise TypeError('ancestors must be list of Frames')
+                self._ancestors.append(a.crop())
+
+    def __eq__(self, other):
+        if isinstance(other, BaseFrame):
+            return (self._content == other._content) and (self._ancestors == other._ancestors)
+        return NotImplemented
 
     def __repr__(self):
         return '%s: %s' % (self.__class__.__name__, repr(self._content))
@@ -63,27 +70,27 @@ class BaseFrame(object):
         elif isinstance(decoded, String):
             return json.loads(decoded.export())
         else:
-            TypeError('decoded data of frame must be of type RawData or String')
+            raise TypeError('decoded data of frame must be of type RawData or String')
 
     def crop(self):
         '''
         Returns a copy of this frame only containing the header.
         '''
-        return self.__class__(self._content[:1+self.header_length])
+        return self.__class__(self._content[0] + self.header + '\x00')
  
     @property
     def header_length(self):
         if 0 in self._content:
-            return self._content.index(0)
-        return 0
+            return self._content.index(0) - 1
+        return -1
 
     @property
     def header(self):
-        return self._content[1:self.header_length]
+        return self._content[1:self.header_length+1]
 
     @property
     def body(self):
-        return self._content[self.header_length+1:]
+        return self._content[self.header_length+2:]
 
     @property
     def content(self):
