@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 __all__ = ['createFrame', 'RegisterFrame']
+__doctestall__ = []
 
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.frame.base import BaseFrame
@@ -37,7 +38,7 @@ def createFrame(data, ancestors = None):
         raise TypeError('data must be of type RawData')
     cls = _frametypes.get(data[0])
     if cls is None:
-        raise NotImplementedError('%s is not registered' % data[0])
+        raise ValueError('%s is not registered' % data[0])
     return cls(data, ancestors)
 
 class RegisterFrame(object):

@@ -52,13 +52,13 @@ class DaemonClient(Client):
         self.filter = re.compile(filter_text)
 
     def rcv_callback(self, msg, client_obj):
-        sender = msg.addr
+        sender = msg.sender
         if sender != self.controller:
             # Not the controller, reject it
             return self.error(sender, 300, {'controller':self.controller, 'sender':sender})
         data = None
         try:
-            data = msg.jsoncontent
+            data = msg.unpack()
         except:
             return self.error(sender,400)
         if not isinstance(data, dict):
@@ -165,13 +165,13 @@ class ControllerClient(Client):
         self.target = py_address(target)
 
     def rcv_callback(self, msg, client_obj):
-        sender = msg.addr
+        sender = msg.sender
         if sender != self.target:
             # Not the daemon, drop it
             return
         data = None
         try:
-            data = msg.jsoncontent
+            data = msg.unpack()
         except:
             return self.error(sender,400)
         if not isinstance(data, dict):

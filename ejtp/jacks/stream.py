@@ -78,7 +78,7 @@ class StreamJack(jack.Jack):
         '''
         Send frame to somewhere.
         '''
-        conn = self.get_connection(frame.addr)
+        conn = self.get_connection(frame.address)
         conn.send(frame)
 
 class Connection(object):
@@ -124,7 +124,7 @@ class Connection(object):
         self._running = False
 
     def send(self, frame):
-        self._send(self.wrap(frame.bytes()))
+        self._send(self.wrap(frame.content))
 
     def recv(self, timeout=0):
         '''

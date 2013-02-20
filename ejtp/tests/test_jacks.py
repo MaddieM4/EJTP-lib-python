@@ -49,7 +49,7 @@ class TestJacks(unittest.TestCase):
 
         def rcv_callback(msg, client_obj):
             transfer_condition.acquire()
-            received.append((client_obj.interface, msg.addr, msg.content.toString()))
+            received.append((client_obj.interface, msg.sender, msg.unpack()))
             transfer_condition.notifyAll()
             transfer_condition.release()
         clientA.rcv_callback = clientB.rcv_callback = rcv_callback
@@ -68,8 +68,8 @@ class TestJacks(unittest.TestCase):
         transfer_condition.wait(timeout)
         transfer_condition.release()
 
-        self.assertEqual((ifaceB, ifaceA, String('"%s"' % messageAB)), received[0])
-        self.assertEqual((ifaceA, ifaceB, String('"%s"' % messageBA)), received[1])
+        self.assertEqual((ifaceB, ifaceA, messageAB), received[0])
+        self.assertEqual((ifaceA, ifaceB, messageBA), received[1])
 
     def tearDown(self):
         self.routerA.stop_all()

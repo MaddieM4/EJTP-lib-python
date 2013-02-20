@@ -77,11 +77,11 @@ class Interactive(object):
         self.messages.append(ReceiveEvent(*args, **kwargs))
 
     def rcv_callback(self, msg, client):
-        content = msg.jsoncontent
+        content = msg.unpack()
         try:
-            sender = self.identity_cache.find_by_location(msg.addr).name
+            sender = self.identity_cache.find_by_location(msg.sender).name
         except KeyError:
-            sender = json.dumps(msg.addr)
+            sender = json.dumps(msg.sender)
         self.receive(content, sender)
 
     def read_type(self, rt):
