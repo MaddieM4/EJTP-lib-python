@@ -46,10 +46,11 @@ class RegisterFrame(object):
     This class is used as a decorator for subclasses of BaseFrame
 
     >>> from ejtp.frame.base import BaseFrame
-    >>> @RegisterFrame('x')
-    ... class MyXFrame(BaseFrame):
+    >>> class MyXFrame(BaseFrame):
     ...     pass
     ...
+    >>> RegisterFrame('x')(MyXFrame)
+    <class 'ejtp.frame.registration.MyXFrame'>
     '''
 
     def __init__(self, char):

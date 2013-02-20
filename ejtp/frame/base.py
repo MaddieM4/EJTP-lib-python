@@ -127,10 +127,11 @@ class BaseCategory(object):
     ...     pass
     ...
     >>> from ejtp.frame import RegisterFrame
-    >>> @RegisterFrame('b')
-    ... class BarFrame(BaseFrame, FooCategory):
+    >>> class BarFrame(BaseFrame, FooCategory):
     ...     pass
     ...
+    >>> RegisterFrame('b')(BarFrame)
+    <class 'ejtp.frame.base.BarFrame'>
     '''
 
     pass

@@ -22,7 +22,6 @@ from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import SenderCategory
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 
-@RegisterFrame('s')
 class SignedFrame(SenderCategory, BaseFrame):
     @RawDataDecorator(args=False, ret=True, strict=True)
     def decode(self, ident_cache):
@@ -36,6 +35,8 @@ class SignedFrame(SenderCategory, BaseFrame):
         if not ident.verify_signature(body[2:sigsize+2], content):
             raise ValueError('Invalid signature')
         return content
+
+RegisterFrame('s')(SignedFrame)
 
 def construct(identity, content):
     signature = identity.sign(content.export())
