@@ -70,7 +70,7 @@ class TestRegistration(unittest.TestCase):
         
         f = frame.registration.createFrame('afoobar')
         self.assertTrue(isinstance(f, MyAFrame))
-        self.assertRaises(NotImplementedError, frame.registration.createFrame,  'qfoobar')
+        self.assertRaises(ValueError, frame.registration.createFrame,  'qfoobar')
         self.assertRaises(TypeError, frame.registration.createFrame, 1234)
 
         
