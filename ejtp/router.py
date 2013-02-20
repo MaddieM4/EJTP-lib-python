@@ -66,7 +66,7 @@ class Router(object):
         elif isinstance(msg, frame.address.SenderCategory):
             logger.info("Frame recieved directly from %s", str(msg.address))
         else:
-            logger.info("Frame has a type that the router does not understand (%s)", msg.type)
+            logger.info("Frame has a type that the router does not understand (%r)", msg)
 
     def jack(self, addr):
         # Return jack registered at addr, or None

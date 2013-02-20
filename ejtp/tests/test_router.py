@@ -48,4 +48,4 @@ class TestRouterStream(TestCaseWithLog):
         self._test_message('Frame recieved directly from', format='s')
 
     def test_frame_with_weird_type(self):
-        self._test_message('Frame has a type that the router does not understand', format='x')
+        self._test_message('Router could not parse frame: \'x["local",null,"example"]\\x00Jam and cookies\'', format='x')

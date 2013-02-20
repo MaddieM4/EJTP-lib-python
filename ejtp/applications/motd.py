@@ -30,7 +30,7 @@ class MOTDServer(Client):
         self.message  = message
 
     def rcv_callback(self, msg, client_obj):
-        sender = msg.addr
+        sender = msg.sender
         response = None
         try:
             with open(self.filename) as rfile:
@@ -57,7 +57,7 @@ class MOTDClient(Client):
         })
 
     def rcv_callback(self, msg, client_obj):
-        sender = msg.addr
+        sender = msg.sender
         strsender = str_address(sender)
         if strsender not in self.callbacks:
             logger.info("Message from stranger: %r" % sender)
