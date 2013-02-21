@@ -18,10 +18,9 @@ along with the Python EJTP library.  If not, see
 
 import logging
 logger = logging.getLogger(__name__)
-
 from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
-from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
 
 from ejtp.address import *
 from ejtp import frame
@@ -56,30 +55,20 @@ class Client(object):
     def route(self, msg):
         # Recieve frame from router (will be type 'r' or 's', which contains message)
         logger.debug("Client routing frame: %s", repr(msg))
-        if msg.type == msg.T_R:
-            if msg.addr != self.interface:
+        if isinstance(msg, frame.address.ReceiverCategory):
+            if msg.address != self.interface:
                 self.relay(msg)
             else:
-                self.route(self.unpack(msg))
-        elif msg.type == msg.T_S:
-            self.route(self.unpack(msg))
-        elif msg.type == msg.T_J:
+                self.route( msg.unpack(self.encryptor_cache) )
+        elif isinstance(msg, frame.address.SenderCategory):
+            self.route( msg.unpack(self.encryptor_cache) )
+        elif isinstance(msg, frame.json.JSONFrame):
             self.rcv_callback(msg, self)
+        else:
+            raise TypeError("Unknown frame type", msg)
 
     def rcv_callback(self, msg, client_obj):
-        logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.addr, msg.content)
-
-    def unpack(self, msg):
-        # Return the frame inside a Type R or S
-        encryptor = self.encryptor_get(msg.addr)
-        if encryptor == None:
-            msg.raw_decode()
-        else:
-            msg.decode(encryptor)
-        result = frame.Frame(msg.content)
-        if result.addr == None:
-            result.addr = msg.addr
-        return result
+        logger.info("Client %r recieved from %r: %r", client_obj.interface, msg.sender, msg)
 
     def write(self, addr, txt, wrap_sender=True):
         # Write and send a frame to addr
@@ -90,11 +79,14 @@ class Client(object):
         # The "o" is for onion routing
         if wrap_sender:
             msg = self.wrap_sender(msg)
-        hoplist = [(a, self.encryptor_get(a)) for a in hoplist]
-        self.send(frame.onion(msg, hoplist))
+        # Onion routing magic
+        for address in reversed(hoplist):
+            ident = self.encryptor_cache[str_address(address)]
+            msg = frame.encrypted.construct(ident, msg.content)
+        self.send(msg)
 
     def owrite_json(self, hoplist, data, wrap_sender=True):
-        msg = frame.make(frame.Frame.T_J, None, None, strict(data))
+        msg = frame.json.construct(data)
         self.owrite(hoplist, msg, wrap_sender)
 
     def write_json(self, addr, data, wrap_sender=True):
@@ -102,9 +94,11 @@ class Client(object):
 
     def wrap_sender(self, msg):
         # Encapsulate a message within a sender frame
-        sig_s = self.encryptor_get(self.interface)
-        msg   = frame.make(frame.Frame.T_S, self.interface, sig_s, msg.bytes())
-        return msg
+        return frame.signed.construct(self.identity, msg.content)
+
+    @property
+    def identity(self):
+        return self.encryptor_cache[self.interface]
 
     # Encryption
 

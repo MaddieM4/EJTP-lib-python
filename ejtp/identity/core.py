@@ -43,6 +43,14 @@ class Identity(object):
     def __delitem__(self, i):
         del self._contents[i]
 
+    # Encryptor shortcuts
+
+    def encrypt(self, plaintext):
+        return self.encryptor.encrypt(plaintext)
+
+    def decrypt(self, ciphertext):
+        return self.encryptor.decrypt(ciphertext)
+
     def sign(self, plaintext):
         return self.encryptor.sign(plaintext)
 
@@ -62,6 +70,8 @@ class Identity(object):
 
     def can_encrypt(self):
         return self.encryptor.can_encrypt()
+
+    # Inner property and serialization stuff
 
     def serialize(self):
         '''
