@@ -47,10 +47,10 @@ class Compressor(object):
         '''
         Compresses given data.
         '''
-        raise NotImplementedError('each subclass of Compressor must implement decompress')
+        raise NotImplementedError('each subclass of Compressor must implement compress')
 
     @RawDataDecorator(args=False, ret=True, strict=True)   
-    def compress(self):
+    def decompress(self):
         '''
         Decompresses given data.
         '''

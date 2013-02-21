@@ -101,12 +101,12 @@ class TestBaseFrame(unittest.TestCase):
 
         self.assertEqual(MyFrame('[1,2,3]').unpack(), [1,2,3])
 
-        @frame.RegisterFrame('c')
+        @frame.RegisterFrame('q')
         class MyFrame(frame.base.BaseFrame):
             def decode(self, ident_cache = None):
                 return self._content
        
-        f = MyFrame('cfoobar') 
+        f = MyFrame('qfoobar') 
         self.assertEqual(f.unpack(), MyFrame(f.content, [f.crop()]))
 
         class MyFrame(frame.base.BaseFrame):
