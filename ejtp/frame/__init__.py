@@ -24,6 +24,7 @@ __all__ = [
     'encrypted',
     'signed',
     'json',
+    'compressed',
     'registration',
 ]
 
@@ -39,7 +40,7 @@ __doctestall__ = [
 from ejtp.frame.registration import createFrame, RegisterFrame
 
 # importing all builtin Frames to make them register themselves
-_builtin_frames = ('ejtp.frame.encrypted', 'ejtp.frame.signed', 'ejtp.frame.json')
+_builtin_frames = ('ejtp.frame.encrypted', 'ejtp.frame.signed', 'ejtp.frame.json', 'ejtp.frame.compressed')
 
 def init():
     try:
