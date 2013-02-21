@@ -22,7 +22,7 @@ from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import ReceiverCategory
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 
-
+@RegisterFrame('r')
 class EncryptedFrame(ReceiverCategory, BaseFrame):
     @RawDataDecorator(args=False, ret=True, strict=True)
     def decode(self, ident_cache):
@@ -31,8 +31,6 @@ class EncryptedFrame(ReceiverCategory, BaseFrame):
         except (KeyError, TypeError):
             raise ValueError('could not load Identity from ident_cache')
         return ident.decrypt(self.body)
-
-RegisterFrame('r')(EncryptedFrame)
 
 def construct(identity, content):
     return EncryptedFrame(

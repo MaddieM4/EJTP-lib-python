@@ -46,11 +46,10 @@ class RegisterFrame(object):
     This class is used as a decorator for subclasses of BaseFrame
 
     >>> from ejtp.frame.base import BaseFrame
-    >>> class MyXFrame(BaseFrame):
+    >>> @RegisterFrame('x')
+    ... class MyXFrame(BaseFrame):
     ...     pass
     ...
-    >>> RegisterFrame('x')(MyXFrame)
-    <class 'ejtp.frame.registration.MyXFrame'>
     '''
 
     def __init__(self, char):
@@ -69,7 +68,7 @@ class RegisterFrame(object):
             raise ValueError('char must be of length 1')
         
         if char in _frametypes:
-            raise ValueError('char is already registered')
+            raise ValueError('char is already registered', char)
         
         self._char = char
     

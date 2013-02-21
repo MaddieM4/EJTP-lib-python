@@ -21,13 +21,12 @@ from ejtp.frame.registration import RegisterFrame
 from ejtp.util.py2and3 import RawData, StringDecorator
 from ejtp.util.hasher import strict
 
+@RegisterFrame('j')
 class JSONFrame(BaseFrame):
     
     @StringDecorator(args=False, ret=True, strict=True)
     def decode(self, ident_cache = None):
         return self.body
-
-RegisterFrame('j')(JSONFrame)
 
 def construct(content):
     return JSONFrame(
