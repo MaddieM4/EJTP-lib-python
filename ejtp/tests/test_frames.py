@@ -21,7 +21,7 @@ from ejtp.util.py2and3 import RawData, String, StringDecorator
 
 from ejtp import frame
 
-class TestRegistration(unittest.TestCase):
+class RegistrationPreservingTest(unittest.TestCase):
     def setUp(self):
         '''
         Stores all previously registered frame types
@@ -35,6 +35,9 @@ class TestRegistration(unittest.TestCase):
         '''
         frame.registration._frametypes = self._old_frametypes
 
+
+class TestRegistration(RegistrationPreservingTest):
+    
     def test_register_frame(self):
         self.assertRaises(TypeError, frame.RegisterFrame, 1234)
         self.assertRaises(ValueError, frame.RegisterFrame, 'ab')
@@ -74,7 +77,7 @@ class TestRegistration(unittest.TestCase):
         self.assertRaises(TypeError, frame.registration.createFrame, 1234)
 
         
-class TestBaseFrame(unittest.TestCase):
+class TestBaseFrame(RegistrationPreservingTest):
     def test_init(self):
         self.assertEqual(frame.base.BaseFrame('foobar')._content, RawData('foobar'))
         self.assertRaises(TypeError, frame.base.BaseFrame, 1234)
