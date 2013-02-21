@@ -17,5 +17,5 @@ class TestMotd(unittest.TestCase):
 
     def test_response(self):
         def assert_response(msg, c):
-            self.assertEqual(msg.jsoncontent['content'], 'Example message')
+            self.assertEqual(msg.unpack()['content'], 'Example message')
         self.client.request(self.server.interface, assert_response)

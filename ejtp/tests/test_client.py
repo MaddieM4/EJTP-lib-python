@@ -66,5 +66,5 @@ class TestClient(TestCaseWithLog):
 
         c1.write_json(c2.interface, "hello")
         c2.write_json(c1.interface, "goodbye")
-        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: RawData((0x22,0x68,0x65,0x6c,0x6c,0x6f,0x22))")
-        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: RawData((0x22,0x67,0x6f,0x6f,0x64,0x62,0x79,0x65,0x22))")
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c2'] recieved from ['udp', ['127.0.0.1', 555], 'c1']: JSONFrame: RawData((0x6a,0x00,0x22,0x68,0x65,0x6c,0x6c,0x6f,0x22))")
+        self.assertInLog("Client ['udp', ['127.0.0.1', 555], 'c1'] recieved from ['udp', ['127.0.0.1', 555], 'c2']: JSONFrame: RawData((0x6a,0x00,0x22,0x67,0x6f,0x6f,0x64,0x62,0x79,0x65,0x22))")

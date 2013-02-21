@@ -53,7 +53,7 @@ class ForwardServer(Client):
         >>> dest.encryptor_cache = sender.encryptor_cache = client.encryptor_cache
 
         >>> def rcv_callback(msg, client):
-        ...     print(msg.jsoncontent)
+        ...     print(msg.unpack())
         >>> message = {'type':'example'}
         >>> dest.rcv_callback = rcv_callback
         >>> sender.owrite_json(
@@ -62,17 +62,17 @@ class ForwardServer(Client):
         ... ) # doctest: +ELLIPSIS
         {...'type': ...'example'}
         '''
-        address = str_address(msg.addr)
+        address = str_address(msg.address)
         if address in self.client_data:
-            mhash = self.store_message(address, msg.bytes())
+            mhash = self.store_message(address, msg.content.export())
             self.message(address, mhash)
         else:
             self.send(msg)
 
     def rcv_callback(self, msg, client_obj):
-        data   = msg.jsoncontent
+        data   = msg.unpack()
         mtype  = data['type']
-        target = msg.addr
+        target = msg.sender
         if mtype=='ejforward-get-status':
             self.notify(target)
         elif mtype=='ejforward-retrieve':

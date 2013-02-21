@@ -35,7 +35,7 @@ class ForwardClient(Client):
         self._status_callbacks = []
 
     def rcv_callback(self, msg, client_obj):
-        data = msg.jsoncontent
+        data = msg.unpack()
         mtype = data['type']
         if mtype=='ejforward-notify':
             self._status = data
@@ -46,7 +46,7 @@ class ForwardClient(Client):
             internal = RawData(data['data'])
             self.ack([hashfunc(internal)])
             try:
-                self.send(frame.Frame(internal)) # forward to router
+                self.send(frame.createFrame(internal)) # forward to router
             except ValueError:
                 logger.warning("Invalid frame, discarding")
         else:

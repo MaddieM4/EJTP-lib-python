@@ -54,18 +54,19 @@ class UDPJack(jack.Jack):
     def route(self, msg):
         # Send frame to somewhere
         with self.lock_ready: pass # Make sure socket is ready
-        location = msg.addr[1]
+        address = msg.address
+        location = address[1]
         if self.ifacetype == 'udp':
-            addr = (location[0], location[1], 0,0)
+            address = (location[0], location[1], 0,0)
         else:
-            addr = (location[0], location[1])
-        msg = msg.bytes()
-        sent = self.sock.sendto(msg.export(), addr)
+            address = (location[0], location[1])
+        msg = msg.content
+        sent = self.sock.sendto(msg.export(), address)
         logger.info("%d / %d %r -> %r", 
             sent, 
             len(msg), 
             self.address,
-            addr,
+            address,
         )
 
     def run(self):
