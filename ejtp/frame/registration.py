@@ -22,7 +22,7 @@ __doctestall__ = []
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.frame.base import BaseFrame
 
-# contains all type of frames known to ejtp
+# contains all types of frames known to ejtp
 # keys are RawData of length 1
 # values are subclasses from ejtp.frame.base.BaseFrame
 _frametypes = {}
@@ -52,23 +52,18 @@ class RegisterFrame(object):
     ...
     '''
 
+    @RawDataDecorator(strict=True)
     def __init__(self, char):
         '''
         char is a RawData of length 1 (or convertible to RawData) that will represent
         the character used in raw transmission of frames.
         '''
 
-        if not isinstance(char, RawData):
-            try:
-                char = RawData(char)
-            except (TypeError, ValueError):
-                raise TypeError('char must be convertible to RawData')
-        
         if len(char) != 1:
             raise ValueError('char must be of length 1')
         
         if char in _frametypes:
-            raise ValueError('char is already registered', char)
+            raise ValueError('char %s is already registered' % char)
         
         self._char = char
     

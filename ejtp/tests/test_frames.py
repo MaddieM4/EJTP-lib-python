@@ -39,7 +39,6 @@ class RegistrationPreservingTest(unittest.TestCase):
 class TestRegistration(RegistrationPreservingTest):
     
     def test_register_frame(self):
-        self.assertRaises(TypeError, frame.RegisterFrame, 1234)
         self.assertRaises(ValueError, frame.RegisterFrame, 'ab')
 
         self.assertFalse(frame.registration._frametypes.get('x', False))
