@@ -27,11 +27,14 @@ an administrator account. This is standard procedure for most
 Python libraries, and is how this one works as well.
 
 The latest stable version (and the first community-developed stable
-version yet available) is [Version 0.9.2](
+version yet available) is [Version 0.9.3](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has bug fixes, Python 3.X support, and the identity system
-migrated from DEJE, which forms the new standard format for storing
-encryption identity metadata.
+which has bug fixes, an updated testing framework, elliptic curve
+support, compressed frame support, lots of structural reorganization
+and refactoring, the ejtp-crypto script, and the ejtp.config module.
+
+You can read more about this release in [this blog entry](
+http://roaming-initiative.net/blog/blog/ejtp-0.9.3.html).
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
@@ -74,12 +77,11 @@ standard library.
 ### Developers
 
 Install the software needed for testing (see Dependencies section above),
-including Python versions 2.5-3.3, then simply run the `tox` command.
+including Python versions 2.6-3.3, then simply run the `tox` command.
 
     name@machine$ tox
     (a bunch of output ...)
     ____________ summary ______________
-      py25: commands succeeded
       py26: commands succeeded
       py27: commands succeeded
       py31: commands succeeded
