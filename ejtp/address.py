@@ -15,11 +15,10 @@ You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
 '''
+from json import loads
 
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String, StringDecorator
-from ejtp.util.compat import json
-loads = json.loads
 
 @StringDecorator()
 def str_address(address):

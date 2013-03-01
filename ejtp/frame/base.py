@@ -17,6 +17,7 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
+# TODO: use default json after rename package json module
 from ejtp.util.compat import json
 
 class BaseFrame(object):

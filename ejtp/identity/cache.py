@@ -16,11 +16,12 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import json
+
 from ejtp.address import *
 from ejtp.util.py2and3  import String, StringDecorator, JSONBytesEncoder
 from ejtp.identity.core import Identity, deserialize
 
-from ejtp.util.compat import json
 
 class IdentityCache(object):
     def __init__(self, source={}):
