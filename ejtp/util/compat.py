@@ -28,9 +28,6 @@ import json
 # Same as sys.version_info.major, but supports pre-2.7
 is_py3k = sys.version_info[0] == 3
 
-def get_exception():
-    return sys.exc_info()[1]
-
 # Python 3+ moved cStringIO to io module
 try:
     from cStringIO import StringIO
