@@ -388,7 +388,7 @@ class RawDataDecorator(DataDecorator):
                         newargs.append(RawData(arg))
                     except (TypeError, ValueError):
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to RawData" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to RawData" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
@@ -450,7 +450,7 @@ class StringDecorator(DataDecorator):
                         newargs.append(String(arg))
                     except TypeError:
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to String" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to String" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
