@@ -17,7 +17,8 @@ along with the Python EJTP library.  If not, see
 '''
 
 import os
-from ejtp.util.compat import unittest, json
+import json
+from ejtp.util.compat import unittest
 
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor

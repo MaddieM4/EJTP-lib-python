@@ -17,7 +17,8 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
-from ejtp.util.compat import json
+
+json = __import__('json', {})
 
 class BaseFrame(object):
     '''

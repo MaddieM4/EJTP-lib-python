@@ -16,8 +16,6 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.compat import format, bytes
-
 class RawData(object):
     '''
     This class is supposed to store raw data and behaves similar to str in
@@ -133,9 +131,7 @@ class RawData(object):
         if len(byte) != 1:
             raise TypeError('byte must be of length 1')
         try:
-            _data = self._data if isinstance(self._data, tuple) and hasattr(self._data, 'index') \
-                else list(self._data)
-            return _data.index(byte._data[0])
+            return self._data.index(byte._data[0])
         except ValueError:
             raise ValueError('byte not in RawData')
 
@@ -388,7 +384,7 @@ class RawDataDecorator(DataDecorator):
                         newargs.append(RawData(arg))
                     except (TypeError, ValueError):
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to RawData" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to RawData" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
@@ -450,7 +446,7 @@ class StringDecorator(DataDecorator):
                         newargs.append(String(arg))
                     except TypeError:
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to String" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to String" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)

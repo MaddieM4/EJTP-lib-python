@@ -1,4 +1,3 @@
-from __future__ import with_statement
 from ejtp.util.compat import unittest
 
 import threading

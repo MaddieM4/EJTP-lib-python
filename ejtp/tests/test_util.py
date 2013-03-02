@@ -1,4 +1,3 @@
-from __future__ import with_statement
 '''
 This file is part of the Python EJTP library.
 
@@ -18,11 +17,12 @@ along with the Python EJTP library.  If not, see
 '''
 
 import sys
+import json
 
 from ejtp.util.py2and3 import RawData, String
 from ejtp.util import hasher
 from ejtp.util.crashnicely import Guard
-from ejtp.util.compat import json, unittest, StringIO
+from ejtp.util.compat import unittest, StringIO
 
 class TestHasherMake(unittest.TestCase):
 

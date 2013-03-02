@@ -23,7 +23,6 @@ from ejtp.client import Client
 from ejtp.util.hasher import strict
 from ejtp.util.py2and3 import String
 from ejtp.address import *
-from ejtp.util.compat import get_exception
 import re
 
 errorcodes = {
@@ -73,8 +72,7 @@ class DaemonClient(Client):
                 self.client_destroy(data)
             else:
                 return self.error(sender,403,command)
-        except Exception:
-            e = get_exception()
+        except Exception as e:
             logger.error(e)
             return self.error(sender, 100, data)
 
@@ -116,8 +114,7 @@ class DaemonClient(Client):
         client = None
         try:
             client = client_class(self.router, *args, **kwargs)
-        except Exception:
-            e = get_exception()
+        except Exception as e:
             logger.error(e)
             data['exception'] = repr(e)
             return self.error(self.controller, 502, data)
@@ -187,8 +184,7 @@ class ControllerClient(Client):
                 self.response_callback(False, data)
             else:
                 return self.error(sender,403,command)
-        except Exception:
-            e = get_exception()
+        except Exception as e:
             logger.error(e)
             return self.error(sender, 100, data)
 
