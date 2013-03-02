@@ -19,13 +19,13 @@ along with the Python EJTP library.  If not, see
 '''
 
 import os
+import json
 import datetime
 
 from ejtp.router import Router
 from ejtp.client import Client
 from ejtp.identity import IdentityCache
 from ejtp.config import configure_identity_cache
-from ejtp.util.compat import json
 
 commands = (
     'messages',
@@ -36,6 +36,7 @@ commands = (
 )
 
 # Python 3 Renames raw_input to input
+
 try: input = raw_input
 except: pass
 
