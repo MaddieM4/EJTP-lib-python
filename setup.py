@@ -22,13 +22,13 @@ For more technical and in-depth information, visit the `Github project <https://
 
 setup(
 	name = 'ejtp',
-	version = '0.9.3m2',
+	version = '0.9.3m3',
 	description = 'Encrypted JSON Transport Protocol library',
     long_description = long_desc,
 	author = 'Philip Horger',
 	author_email = 'philip.horger@gmail.com',
 	url = 'https://github.com/campadrenalin/EJTP-lib-python/',
-    requires = [
+    install_requires = [
         'Crypto',
     ],
     classifiers = [
