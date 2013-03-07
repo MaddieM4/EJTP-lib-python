@@ -34,7 +34,7 @@ http://roaming-initiative.net/blog/blog/ejtp-0.9.3.html).
 Installation
 ============
 
-## Easy way (via pip)
+### Easy way (via pip)
 
 You can easily install the stable version of EJTP with just a few
 commands, now that it's available on PyPI.
@@ -50,7 +50,7 @@ with EJTP, but only if it can compile.
 
 After that finishes, install via pip.
 
-    $ pip install ejtp
+    $ sudo pip install ejtp
 
 You'll probably need to run that as sudo to install systemwide, but
 should not use sudo when installing EJTP into a virtualenv environment.
@@ -58,7 +58,7 @@ should not use sudo when installing EJTP into a virtualenv environment.
 You won't need to manually install any mandatory dependencies, but
 still need to manually install any optional ones you want, like PyECC.
 
-## Less easy way (via git)
+### Less easy way (via git)
 
 Download, clone, or transmodulate the source code to your computer,
 go into the uncompressed directory, and run "./setup.py install" as
@@ -76,7 +76,7 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
- * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository]((https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
+ * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository](https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
  * For testing:
    * Install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
    * For developer testing: [tox](http://testrun.org/tox/latest/index.html).
