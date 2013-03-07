@@ -18,13 +18,8 @@ who goes by the name of Bluethulu.
 
 ![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/stable/resources/bluethulu.png)
 
-Installation
-============
-
-Download, clone, or transmodulate the source code to your computer,
-go into the uncompressed directory, and run "./setup.py install" as
-an administrator account. This is standard procedure for most
-Python libraries, and is how this one works as well.
+Latest version
+==============
 
 The latest stable version (and the first community-developed stable
 version yet available) is [Version 0.9.3](
@@ -35,6 +30,40 @@ and refactoring, the ejtp-crypto script, and the ejtp.config module.
 
 You can read more about this release in [this blog entry](
 http://roaming-initiative.net/blog/blog/ejtp-0.9.3.html).
+
+Installation
+============
+
+## Easy way (via pip)
+
+You can easily install the stable version of EJTP with just a few
+commands, now that it's available on PyPI.
+
+Make sure you have the headers for Python/C binding compilation:
+
+    $ sudo apt-get install python-dev
+
+For platforms other than Ubuntu/Debian, replace with the appropriate
+package manager invocation as necessary. This is necessary because
+of our dependency on PyCrypto, which will automatically install
+with EJTP, but only if it can compile.
+
+After that finishes, install via pip.
+
+    $ pip install ejtp
+
+You'll probably need to run that as sudo to install systemwide, but
+should not use sudo when installing EJTP into a virtualenv environment.
+
+You won't need to manually install any mandatory dependencies, but
+still need to manually install any optional ones you want, like PyECC.
+
+## Less easy way (via git)
+
+Download, clone, or transmodulate the source code to your computer,
+go into the uncompressed directory, and run "./setup.py install" as
+an administrator account. This is standard procedure for most
+Python libraries, and is how this one works as well.
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
