@@ -3,8 +3,9 @@
 from distutils.core import setup
 
 long_desc = '''
+
 Encrypted JSON Transport Protocol
-=================================
+---------------------------------
 
 EJTP is an overlay protocol that allows the pluggable use of underlying transports, such as UDP, TCP, HTTP, IRC, Email and carrier pigeon to provide a cryptographically secure network of unreliable message forwarding. You can think of it as a bit like a more general-purpose and security-minded successor to XMPP, using JSON rather than XML as its frame medium.
 
@@ -14,14 +15,14 @@ The intention of EJTP is to make it trivial to establish secure and NAT-obliviou
 
 Optionally supports elliptic curve cryptography if the PyECC_ module is installed.
 
-For more technical and in-depth information, visit the `Github project <https://github.com/campadrenalin/EJTP-lib-python>`.
+For more technical and in-depth information, visit the `Github project <https://github.com/campadrenalin/EJTP-lib-python>`_.
 
 .. _PyECC: https://pypi.python.org/pypi/PyECC
 '''
 
 setup(
 	name = 'ejtp',
-	version = '0.9.3m1',
+	version = '0.9.3m2',
 	description = 'Encrypted JSON Transport Protocol library',
     long_description = long_desc,
 	author = 'Philip Horger',
