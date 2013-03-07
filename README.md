@@ -93,6 +93,24 @@ their rcv_callback property to your own preferred callback.
 Testing
 =======
 
+### People who installed via pip
+
+Sad news for you folks. The PyPI builds don't contain the stuff you need
+for testing. You still need the repository downloaded, even if you didn't
+install from there.
+
+From inside the root of the downloaded repository, you can then run:
+
+    $ doctestall ejtp
+    $ python -m ejtp.tests.runner
+
+It's possible we can work around the "needing to download the repository"
+part at some future date, although it means increasing the download size
+of the PyPI builds. That wouldn't be too substantial, though, and probably
+worth it for ease of testing.
+
+This work in progress is discussed [in ticket #117](https://github.com/campadrenalin/EJTP-lib-python/issues/117).
+
 ### Normal users
 
 Run `./install_and_test.sh`. This installs (or reinstalls) EJTP according
