@@ -29,7 +29,7 @@ setup(
 	author_email = 'philip.horger@gmail.com',
 	url = 'https://github.com/campadrenalin/EJTP-lib-python/',
     install_requires = [
-        'Crypto',
+        'pycrypto',
     ],
     classifiers = [
         'Development Status :: 4 - Beta',
