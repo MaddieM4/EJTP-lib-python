@@ -16,6 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import os
 import os.path
 
 def testing_path(path):
@@ -25,8 +26,19 @@ def testing_path(path):
     )
 
 def script_path(path):
-    return os.path.join(
-        os.path.abspath(os.path.split(__file__)[0]),
-        '../../scripts',
-        path
-    )
+    # Attempt local version before resorting to global path
+    return search_path(path,
+        os.path.join(
+            os.path.split(__file__)[0],
+            '../../scripts',
+        )
+    ) or which(path)
+
+def search_path(filename, search_path):
+    for path in search_path.split(os.pathsep):
+        potential_match = os.path.abspath(os.path.join(path, filename))
+        if os.path.exists(potential_match):
+            return potential_match
+
+def which(execname):
+    return search_path(execname, os.environ['PATH'])
