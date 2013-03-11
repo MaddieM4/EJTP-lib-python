@@ -1,11 +1,15 @@
 import os
+import os.path
 
 from ejtp.util.compat import unittest
 from ejtp import config
 
 class TestConfig(unittest.TestCase):
 
-    config_file = 'resources/examplecache.json'
+    config_file = os.path.join(
+        os.path.dirname(__file__),
+        'examplecache.json'
+    )
 
     def test_test_filenames(self):
         self.assertEqual([self.config_file],
