@@ -4,9 +4,9 @@ import sys
 import tempfile
 
 from ejtp.util.compat import unittest
+from ejtp.tests.resource_path import *
 
-root = os.path.abspath(os.path.join(os.path.split(__file__)[0], '../..'))
-ident_cache_path = os.path.join(root, 'resources/examplecache.json')
+ident_cache_path = testing_path('examplecache.json')
 os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
 
 class IOMock(object):
@@ -58,7 +58,7 @@ class IOMock(object):
 class TestConsole(unittest.TestCase):
 
     def _import(self):
-        filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-console'))
+        filename = script_path('ejtp-console')
         with open(filename, 'rb') as fp:
             module = imp.new_module('ejtp-console')
             exec(fp.read(), module.__dict__)
@@ -148,7 +148,7 @@ class TestConsole(unittest.TestCase):
 class TestCrypto(unittest.TestCase):
 
     def _import(self):
-        filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-crypto'))
+        filename = script_path('ejtp-crypto')
         with open(filename, 'rb') as fp:
             module = imp.new_module('ejtp-crypto')
             exec(fp.read(), module.__dict__)

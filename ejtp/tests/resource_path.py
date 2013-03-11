@@ -24,3 +24,9 @@ def testing_path(path):
         path
     )
 
+def script_path(path):
+    return os.path.join(
+        os.path.abspath(os.path.split(__file__)[0]),
+        '../../scripts',
+        path
+    )
