@@ -41,8 +41,10 @@ def configure_identity_cache(cache, filenames=['~/.ejtp/idents.json', '~/.ejtp/c
     '''
     Configure cache loading filenames.
     '''
-    for filename in test_filenames(filenames, 'EJTP_IDENTITY_CACHE_PATH'):
+    filenames = test_filenames(filenames, 'EJTP_IDENTITY_CACHE_PATH')
+    for filename in filenames:
         cache.load_from(filename)
+    return filenames
 
 def configure_ejtpd(filenames):
     raise NotImplementedError()

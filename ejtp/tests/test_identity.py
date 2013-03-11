@@ -19,6 +19,7 @@ along with the Python EJTP library.  If not, see
 import os
 import json
 from ejtp.util.compat import unittest
+from ejtp.tests.resource_path import testing_path
 
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor
@@ -165,7 +166,7 @@ class TestIdentityCache(unittest.TestCase):
         self.assertRaisesRegexp(ValueError, 'Must provide either file_path or file_object', self.cache.load_from)
 
     def test_load(self):
-        self.cache.load_from('resources/examplecache.json')
+        self.cache.load_from(testing_path('examplecache.json'))
         atlas_location = self.cache.find_by_name("atlas@lackadaisy.com").location
         self.assertListEqual(self.atlas_ident.location, atlas_location)
 

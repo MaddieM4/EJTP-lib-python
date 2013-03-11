@@ -1,15 +1,12 @@
 import os
-import os.path
 
+from ejtp.tests.resource_path import testing_path
 from ejtp.util.compat import unittest
 from ejtp import config
 
 class TestConfig(unittest.TestCase):
 
-    config_file = os.path.join(
-        os.path.dirname(__file__),
-        'examplecache.json'
-    )
+    config_file = testing_path('examplecache.json')
 
     def test_test_filenames(self):
         self.assertEqual([self.config_file],
@@ -23,7 +20,12 @@ class TestConfig(unittest.TestCase):
     def test_configure_identity_cache(self):
         from ejtp.identity.cache import IdentityCache
         cache = IdentityCache()
-        config.configure_identity_cache(cache, [self.config_file])
+
+        # Clear environment variable
+        del os.environ['EJTP_IDENTITY_CACHE_PATH']
+
+        filenames = config.configure_identity_cache(cache, [self.config_file])
+        self.assertEqual([self.config_file], filenames)
         self.assertEqual(['local', None, 'mitzi'],
             cache.find_by_name('mitzi@lackadaisy.com').location)
 
