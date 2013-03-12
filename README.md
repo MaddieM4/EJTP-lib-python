@@ -95,21 +95,20 @@ Testing
 
 ### People who installed via pip
 
-Sad news for you folks. The PyPI builds don't contain the stuff you need
-for testing. You still need the repository downloaded, even if you didn't
-install from there.
-
-From inside the root of the downloaded repository, you can then run:
+To test EJTP, just run the following commands from any location.
 
     $ doctestall ejtp
     $ python -m ejtp.tests.runner
 
-It's possible we can work around the "needing to download the repository"
-part at some future date, although it means increasing the download size
-of the PyPI builds. That wouldn't be too substantial, though, and probably
-worth it for ease of testing.
+If you run into import errors, it means you need to install some things to
+make tests work (the PyPI package only installs the requirements you need
+to _use_ EJTP, not test it). Depending on your platform and Python version,
+this is usually unittest2 and DoctestAll. Install whatever's missing, until
+you don't have import errors in your output:
 
-This work in progress is discussed [in ticket #117](https://github.com/campadrenalin/EJTP-lib-python/issues/117).
+    $ sudo pip install doctestall unittest2
+
+If you still have errors, see the paragraph a few down from this one.
 
 ### Normal users
 
