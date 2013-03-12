@@ -6,8 +6,9 @@ import tempfile
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import *
 
-ident_cache_path = testing_path('examplecache.json')
-os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
+def set_environ():
+    ident_cache_path = testing_path('examplecache.json')
+    os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
 
 class IOMock(object):
 
@@ -65,6 +66,7 @@ class TestConsole(unittest.TestCase):
             return module
 
     def setUp(self):
+        set_environ()
         self.io = IOMock()
         self.console = self._import()
         self.inter = self.console.Interactive()
@@ -155,6 +157,7 @@ class TestCrypto(unittest.TestCase):
             return module
 
     def setUp(self):
+        set_environ()
         self.crypto = self._import()
         self.io = IOMock()
 
