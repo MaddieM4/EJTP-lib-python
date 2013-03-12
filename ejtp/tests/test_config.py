@@ -22,7 +22,9 @@ class TestConfig(unittest.TestCase):
         cache = IdentityCache()
 
         # Clear environment variable
-        del os.environ['EJTP_IDENTITY_CACHE_PATH']
+        key = 'EJTP_IDENTITY_CACHE_PATH'
+        if key in os.environ:
+            del os.environ[key]
 
         filenames = config.configure_identity_cache(cache, [self.config_file])
         self.assertEqual([self.config_file], filenames)
