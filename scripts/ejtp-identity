@@ -23,6 +23,7 @@ A simple little script for EJTP identity management from the command line.
 
 Usage:
     ejtp-identity ( list )
+    ejtp-identity ( details ) <name>
     ejtp-identity -h | --help
     ejtp-identity --version
 
@@ -39,14 +40,22 @@ def list_identities(data):
     for identity in data.values():
         print '%s (%s)' % (identity['name'], identity['encryptor'][0])
 
+def identity_details(data, name):
+    for identity in data.values():
+        if identity['name'] == name:
+            print json.dumps(identity, indent=2)
+
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
 
     data = json.load(open('ejtp/tests/examplecache.json'))
 
-    if 'list' in arguments:
+    if arguments.get('list'):
         list_identities(data)
+
+    if arguments.get('details'):
+        identity_details(data, arguments['<name>'])
 
 if __name__ == '__main__':
     main(sys.argv)

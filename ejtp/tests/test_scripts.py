@@ -1,6 +1,7 @@
 import os
 import imp
 import sys
+import json
 import tempfile
 
 from ejtp.util.compat import unittest
@@ -232,3 +233,16 @@ class TestIdentity(unittest.TestCase):
             'victor@lackadaisy.com (rsa)',
             'atlas@lackadaisy.com (rsa)'
         ]), self.io.get_value())
+
+    def test_details(self):
+        argv = ['ejtp-identity', 'details', 'mitzi@lackadaisy.com']
+        with self.io:
+            self.identity.main(argv)
+
+        json_output = self.io.get_value()
+        data = json.loads(json_output)
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
