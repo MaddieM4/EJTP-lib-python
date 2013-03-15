@@ -22,7 +22,7 @@ __doc__ = '''ejtp-identity
 A simple little script for EJTP identity management from the command line.
 
 Usage:
-    ejtp-identity ( list ) [(--by-file|--cache-source=<cache-source>)]
+    ejtp-identity ( list ) [--by-file|--cache-source=<cache-source>]
     ejtp-identity ( details ) <name> [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
@@ -52,8 +52,10 @@ def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
         with open(fname) as f:
             yield fname, json.load(f)
 
-def list_identities(cache_source):
+def list_identities(cache_source, by_file):
     for fname, data in data_per_file(cache_source):
+        if by_file:
+            print(os.path.relpath(fname))
         for identity in data.values():
             print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
 
@@ -97,11 +99,10 @@ def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
 
-    # TODO: environment var must not be here
     cache_source = arguments.get('--cache-source')
 
     if arguments.get('list'):
-        list_identities(cache_source)
+        list_identities(cache_source, by_file=arguments.get('--by-file'))
 
     if arguments.get('details'):
         identity_details(cache_source, arguments['<name>'])

@@ -233,6 +233,16 @@ class TestIdentity(unittest.TestCase):
         self.assertIn('victor@lackadaisy.com (rsa)', records)
         self.assertIn('atlas@lackadaisy.com (rsa)', records)
 
+    def test_list_by_file(self):
+        argv = ['ejtp-identity', 'list', '--by-file']
+        with self.io:
+            self.identity.main(argv)
+        records = self.io.get_value().strip().split('\n')
+        self.assertIn('examplecache.json', records[0])
+        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
+        self.assertIn('victor@lackadaisy.com (rsa)', records)
+        self.assertIn('atlas@lackadaisy.com (rsa)', records)
+
     def test_details(self):
         argv = ['ejtp-identity', 'details', 'mitzi@lackadaisy.com']
         with self.io:
