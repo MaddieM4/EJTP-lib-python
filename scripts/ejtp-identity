@@ -22,33 +22,46 @@ __doc__ = '''ejtp-identity
 A simple little script for EJTP identity management from the command line.
 
 Usage:
-    ejtp-identity ( list ) [options]
-    ejtp-identity ( details ) <name> [options]
+    ejtp-identity ( list ) [(--by-file|--cache-source=<cache-source>)]
+    ejtp-identity ( details ) <name> [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
-    ejtp-identity ( set ) <name> --args=<args> [options]
+    ejtp-identity ( set ) <name> --args=<args> [--cache-source=<cache-source>]
     ejtp-identity -h | --help
     ejtp-identity --version
 
 Options:
     -h --help       Show this help message
-    --cache-source=<cache-source>
 '''
 
 import os
 import sys
 import json
 
+from ejtp.config import test_filenames
 from ejtp.vendor.docopt import docopt
 
-def list_identities(data):
-    for identity in data.values():
-        print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
+def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
+    files = []
+    if cache_source:
+        files = test_filenames([cache_source])
+    if not files:
+        files = test_filenames(None, env_var=env_var)
 
-def identity_details(data, name):
-    for identity in data.values():
-        if identity['name'] == name:
-            print(json.dumps(identity, indent=2))
+    for fname in files:
+        with open(fname) as f:
+            yield fname, json.load(f)
+
+def list_identities(cache_source):
+    for fname, data in data_per_file(cache_source):
+        for identity in data.values():
+            print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
+
+def identity_details(cache_source, name):
+    for fname, data in data_per_file(cache_source):
+        for identity in data.values():
+            if identity['name'] == name:
+                print(json.dumps(identity, indent=2))
 
 def new_identity(name, location, encryptor, **kwargs):
     data = {
@@ -68,32 +81,30 @@ def merge(filename, data_to_merge):
     with open(filename, 'w') as f:
         json.dump(data, f)
 
-def set_attribute(filename, name, **kwargs):
-    with open(filename, 'r') as f:
-        data = json.load(f)
-
-    for identity in data.values():
-        if identity['name'] == name:
-            identity.update(**kwargs)
-
-    with open(filename, 'w') as f:
-        json.dump(data, f)
-
+def set_attribute(cache_source, name, **kwargs):
+    found = False
+    for fname, data in data_per_file(cache_source):
+        with open(fname, 'r') as f:
+            for identity in data.values():
+                if identity['name'] == name:
+                    identity.update(**kwargs)
+                    found = True
+        if found:
+            with open(fname, 'w') as f:
+                json.dump(data, f)
 
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
 
     # TODO: environment var must not be here
-    filename = arguments.get('--cache-source') or os.environ['EJTP_IDENTITY_CACHE_PATH']
+    cache_source = arguments.get('--cache-source')
 
     if arguments.get('list'):
-        data = json.load(open(filename))
-        list_identities(data)
+        list_identities(cache_source)
 
     if arguments.get('details'):
-        data = json.load(open(filename))
-        identity_details(data, arguments['<name>'])
+        identity_details(cache_source, arguments['<name>'])
 
     if arguments.get('new'):
         name = arguments.get('--name')
@@ -107,8 +118,8 @@ def main(argv):
         merge(filename, data_to_merge)
 
     if arguments.get('set'):
-        args = json.loads(arguments.get('--args')[0])
-        set_attribute(filename, arguments.get('<name>'), **args)
+        args = json.loads(arguments.get('--args'))
+        set_attribute(cache_source, arguments.get('<name>'), **args)
 
 if __name__ == '__main__':
     main(sys.argv)
