@@ -255,7 +255,25 @@ class TestIdentity(unittest.TestCase):
             self.identity.main(argv)
 
         json_output = self.io.get_value()
-        data = json.loads(json_output)
+        data = json.loads(json_output)['["local", null, "freckle"]']
         self.assertEqual('freckle@lackadaisy.com', data['name'])
         self.assertEqual(['local', None, 'freckle'], data['location'])
         self.assertEqual(['rotate', 5], data['encryptor'])
+
+    def test_list_with_cache_source(self):
+        tmp, fname = tempfile.mkstemp()
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+        json_output = self.io.get_value()
+        with open(fname, 'w') as f:
+            f.write(json_output)
+
+        self.io.clear()
+        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertEqual('freckle@lackadaisy.com (rotate)', self.io.get_value())

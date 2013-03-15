@@ -22,7 +22,7 @@ __doc__ = '''ejtp-identity
 A simple little script for EJTP identity management from the command line.
 
 Usage:
-    ejtp-identity ( list )
+    ejtp-identity ( list ) [--cache-source=<cache-source>]
     ejtp-identity ( details ) <name>
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity -h | --help
@@ -32,6 +32,7 @@ Options:
     -h --help       Show this help message
 '''
 
+import os
 import sys
 import json
 
@@ -53,18 +54,21 @@ def new_identity(name, location, encryptor, **kwargs):
         'encryptor': encryptor
     }
     data.update(kwargs)
-    print json.dumps(data, indent=2)
+    print json.dumps({json.dumps(data['location']): data}, indent=2)
 
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
 
-    data = json.load(open('../ejtp/tests/examplecache.json'))
+    # TODO: environment var must not be here
+    filename = arguments.get('--cache-source') or os.environ['EJTP_IDENTITY_CACHE_PATH']
 
     if arguments.get('list'):
+        data = json.load(open(filename))
         list_identities(data)
 
     if arguments.get('details'):
+        data = json.load(open(filename))
         identity_details(data, arguments['<name>'])
 
     if arguments.get('new'):
