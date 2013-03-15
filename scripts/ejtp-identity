@@ -22,15 +22,17 @@ __doc__ = '''ejtp-identity
 A simple little script for EJTP identity management from the command line.
 
 Usage:
-    ejtp-identity ( list ) [--cache-source=<cache-source>]
-    ejtp-identity ( details ) <name>
+    ejtp-identity ( list ) [options]
+    ejtp-identity ( details ) <name> [options]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
+    ejtp-identity ( set ) <name> --args=<args> [options]
     ejtp-identity -h | --help
     ejtp-identity --version
 
 Options:
     -h --help       Show this help message
+    --cache-source=<cache-source>
 '''
 
 import os
@@ -66,6 +68,18 @@ def merge(filename, data_to_merge):
     with open(filename, 'w') as f:
         json.dump(data, f)
 
+def set_attribute(filename, name, **kwargs):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+    for identity in data.values():
+        if identity['name'] == name:
+            identity.update(**kwargs)
+
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
+
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
@@ -91,6 +105,10 @@ def main(argv):
         filename = arguments.get('<filename>')
         data_to_merge = json.load(sys.stdin)
         merge(filename, data_to_merge)
+
+    if arguments.get('set'):
+        args = json.loads(arguments.get('--args')[0])
+        set_attribute(filename, arguments.get('<name>'), **args)
 
 if __name__ == '__main__':
     main(sys.argv)

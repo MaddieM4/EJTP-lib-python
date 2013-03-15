@@ -300,3 +300,21 @@ class TestIdentity(unittest.TestCase):
             data = json.load(f)
 
         self.assertEqual(4, len(data))
+
+    def test_set_attribute(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ['EJTP_IDENTITY_CACHE_PATH']).read())
+
+        argv = ['ejtp-identity', 'set', 'atlas@lackadaisy.com', '--args={"noob":true}', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+
+        argv = ['ejtp-identity', 'details', 'atlas@lackadaisy.com', '--cache-source=' + fname]
+        self.io.clear()
+        with self.io:
+            self.identity.main(argv)
+
+        data = json.loads(self.io.get_value())
+        self.assertEqual(True, data['noob'])
