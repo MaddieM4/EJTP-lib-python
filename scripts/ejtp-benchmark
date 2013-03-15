@@ -32,8 +32,35 @@ Options:
 
 import sys
 import timeit
+from multiprocessing import Process
 
 from ejtp.vendor.docopt import docopt
+from ejtp.identity import IdentityCache
+from ejtp.router import Router
+from ejtp.client import Client
+
+
+idents = {
+    "[\"udp4\",[\"127.0.0.1\",9001],\"ping\"]": {
+        "encryptor": ["rsa", "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDAZQNip0GPxFZsyxcgIgyvuPTHsruu66DBsESG5/Pfbcye3g4W\nwfg+dBP3IfUnLB4QXGzK42BAd57fCBXOtalSOkFoze/C2q74gYFBMvIPbEfef8yQ\n83uoNkYAFBVp6yNlT51IQ2mY19KpqoyxMZftxwdtImthE5UG1knZE64sIwIDAQAB\nAoGAIGjjyRqj0LQiWvFbU+5odLGTipBxTWYkDnzDDnbEfj7g2WJOvUavqtWjB16R\nDahA6ECpkwP6kuGTwb567fdsLkLApwwqAtpjcu96lJpbRC1nq1zZjwNB+ywssqfV\nV3R2/rgIEE6hsWS1wBHufJeqBZtlkeUp/VEx/uopyuR/WgECQQDJOaFSutj1q1dt\nNO23Q6w3Ie4uMQ59rWeRxXA5+KjDZCxrizzo/Bew5ZysJzHB2n8QQ15WJ7gTSjwJ\nMQdl/7SJAkEA9MQG/6JivkhUNh45xMYqnMHuutyIeGE17QndSfknU+8CX9UBLjsL\nw1QU+llJ3iYfMPEDaydn0HJ8+iinyyAISwJAe7Z2vEorwT5KTdXQoG92nZ66tKNs\naVAG8NQWH04FU7tuo9/C3uq+Ff/UxvKB4NDYdcM1aHqa7SEir/P4vHjtIQJAFKc9\n1/BB2MCNqoteYIZALj4HAOl+8nlxbXD5pTZK5UAzuRZmJRqCYZcEtiM2onIhC6Yq\nna4Tink+pnUrw24OhQJBAIjujQS5qwOf2p5yOqU3UYsBv7PS8IitmYFARTlcYh1G\nrmcIPHRtkxIwNuFxy3ZRRPEDGFa82id5QHUJT8sJbqY=\n-----END RSA PRIVATE KEY-----"], 
+        "name": "ping", 
+        "location": ["udp4", ["127.0.0.1", 9001], "ping"]
+    },
+    "[\"udp4\",[\"127.0.0.1\",9002],\"pong\"]": {
+        "encryptor": ["rsa","-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQC6efOadLJZpX837OIpAlqO2NQEfOA1DE8lfC1q8fKGtMlEl8Oq\nR9lbEiMdsbg5M902Gi33UMlJuap+5TaGEBJDBJZNr3d2LFOjlEPGyJeqiu5PnBjX\n3vZx97y+NUm71rsL7k1KRjzAQnuCPSSqQdo5GLdNODgTa2ljXQ4Khd/9CwIDAQAB\nAoGARbSkfQ42RRB6N7uS5uV8WH1w86SCYxIQ2+BJUfrTP8uAmOVqPNLSyxpCii0O\nwkNC46BxoktOkwKWWwzvjrmfOU2hEga3ny/S1r2VU6nfex29ozl+gUD7zEkB8MaV\nQqnRF18gkeGvHcCMU5nSbjYaosp39yj9qBcRDePQIWN3aRECQQDCj8FWSyrP/zoN\n+6YR3j/0Ty6b43KDU3fcvG/+IvHhB+OFawiPlR3uPGYVJG0CfbWC/QEtx90VcGi5\nOnaQRtsXAkEA9VyYg5+5ZzfbfGqZZZRvPHk08rsquAXnGWkT67lobkBtWvx0TxYo\nTKi8PwLZ8paLA3wf2VDJ6/Ufn5APOtSWLQJAP5cUrcurlofoxaE2SijF5mfq5/CT\nAPFK/85nHDz3qYEWkAjHp4YpXjBHfSmGp4XGyaU/uWLVk6hF0iSVk9pUyQJACNya\nSY64RIkY7UpwVeHhjp6WEfo+lbzo1tsbtBTTN8At8u5RSRX0yKgDfIce1gsn5C1U\nfSXU1SfaR4oNcsOA1QJBAKDEQ4PATuH46E7e3Ie+A5AUVSyLqO5H2SC0yg6zduG6\npxbmsfpVLOfko+j9YrH+OdD5WIAjN/wL1CtmVhqSLr8=\n-----END RSA PRIVATE KEY-----"], 
+        "name": "pong", 
+        "location": ["udp4", ["127.0.0.1", 9002], "pong"]
+    },
+}
+
+def ping(ident_name, count):
+    router = Router()
+    cache = IdentityCache()
+    cache.deserialize(idents)
+    client = Client(router, cache.find_by_name('ping').location, cache)
+    pong_interface = cache.find_by_name('pong').location
+    for i in range(count):
+        client.write_json(pong_interface, '"ping"')
 
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
@@ -41,6 +68,11 @@ def run(argv):
 
     count = int(arguments['<count>'])
     types = arguments['<type>']
+
+    if 'ping' in types:
+        process = Process(target=ping, args=('ping', count))
+        process.start()
+        process.join()
 
 def main(argv):
     t = timeit.Timer('run(%s)' % argv, setup='from __main__ import run')
