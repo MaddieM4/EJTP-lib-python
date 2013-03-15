@@ -10,6 +10,14 @@ def set_environ():
     ident_cache_path = testing_path('examplecache.json')
     os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
 
+def import_as_module(script_name):
+    filename = script_path(script_name)
+    with open(filename, 'rb') as fp:
+        module = imp.new_module(script_name)
+        exec(fp.read(), module.__dict__)
+        return module
+
+
 class IOMock(object):
 
     def __init__(self):
@@ -58,17 +66,10 @@ class IOMock(object):
 
 class TestConsole(unittest.TestCase):
 
-    def _import(self):
-        filename = script_path('ejtp-console')
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-console')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
         set_environ()
         self.io = IOMock()
-        self.console = self._import()
+        self.console = import_as_module('ejtp-console')
         self.inter = self.console.Interactive()
 
     def _assertCLI(self, expected):
@@ -149,16 +150,9 @@ class TestConsole(unittest.TestCase):
 
 class TestCrypto(unittest.TestCase):
 
-    def _import(self):
-        filename = script_path('ejtp-crypto')
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-crypto')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
         set_environ()
-        self.crypto = self._import()
+        self.crypto = import_as_module('ejtp-crypto')
         self.io = IOMock()
 
 
@@ -220,3 +214,21 @@ class TestCrypto(unittest.TestCase):
             self.crypto.main(argv)
 
         self.assertEqual('True', self.io.get_value())
+
+
+class TestIdentity(unittest.TestCase):
+
+    def setUp(self):
+        set_environ()
+        self.identity = import_as_module('ejtp-identity')
+        self.io = IOMock()
+
+    def test_list(self):
+        argv = ['ejtp-identity', 'list']
+        with self.io:
+            self.identity.main(argv)
+        self.assertEqual('\n'.join([
+            'mitzi@lackadaisy.com (rsa)',
+            'victor@lackadaisy.com (rsa)',
+            'atlas@lackadaisy.com (rsa)'
+        ]), self.io.get_value())
