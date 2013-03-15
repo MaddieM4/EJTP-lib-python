@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+'''
+This file is part of the Python EJTP library.
+
+The Python EJTP library is free software: you can redistribute it 
+and/or modify it under the terms of the GNU Lesser Public License as
+published by the Free Software Foundation, either version 3 of the 
+License, or (at your option) any later version.
+
+the Python EJTP library is distributed in the hope that it will be 
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser Public License for more details.
+
+You should have received a copy of the GNU Lesser Public License
+along with the Python EJTP library.  If not, see 
+<http://www.gnu.org/licenses/>.
+'''
+
+__doc__ = '''ejtp-benchmark
+
+A benchmark tool to EJTP.
+
+Usage:
+    ejtp-benchmark <count> <type>...
+    ejtp-benchmark -h | --help
+    ejtp-benchmark --version
+
+Options:
+    -h --help       Show this help message
+'''
+
+import sys
+import timeit
+
+from ejtp.vendor.docopt import docopt
+
+def run(argv):
+    arguments = docopt(__doc__, argv=argv,
+        version='ejtp-benchmark 0.9.4')
+
+    count = int(arguments['<count>'])
+    types = arguments['<type>']
+
+def main(argv):
+    t = timeit.Timer('run(%s)' % argv, setup='from __main__ import run')
+    return t.timeit(1)
+
+if __name__ == '__main__':
+    print main(sys.argv[1:])
