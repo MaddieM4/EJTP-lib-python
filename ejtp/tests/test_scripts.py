@@ -228,11 +228,10 @@ class TestIdentity(unittest.TestCase):
         argv = ['ejtp-identity', 'list']
         with self.io:
             self.identity.main(argv)
-        self.assertEqual('\n'.join([
-            'mitzi@lackadaisy.com (rsa)',
-            'victor@lackadaisy.com (rsa)',
-            'atlas@lackadaisy.com (rsa)'
-        ]), self.io.get_value())
+        records = self.io.get_value().strip().split('\n')
+        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
+        self.assertIn('victor@lackadaisy.com (rsa)', records)
+        self.assertIn('atlas@lackadaisy.com (rsa)', records)
 
     def test_details(self):
         argv = ['ejtp-identity', 'details', 'mitzi@lackadaisy.com']
