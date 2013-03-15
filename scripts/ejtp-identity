@@ -43,12 +43,12 @@ from ejtp.vendor.docopt import docopt
 
 def list_identities(data):
     for identity in data.values():
-        print '%s (%s)' % (identity['name'], identity['encryptor'][0])
+        print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
 
 def identity_details(data, name):
     for identity in data.values():
         if identity['name'] == name:
-            print json.dumps(identity, indent=2)
+            print(json.dumps(identity, indent=2))
 
 def new_identity(name, location, encryptor, **kwargs):
     data = {
@@ -57,7 +57,7 @@ def new_identity(name, location, encryptor, **kwargs):
         'encryptor': encryptor
     }
     data.update(kwargs)
-    print json.dumps({json.dumps(data['location']): data}, indent=2)
+    print(json.dumps({json.dumps(data['location']): data}, indent=2))
 
 def merge(filename, data_to_merge):
     with open(filename, 'r') as f:
