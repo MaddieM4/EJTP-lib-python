@@ -1,7 +1,8 @@
 #!/bin/sh
-echo '10 ping'
-python scripts/ejtp-benchmark 10 ping
-echo '10 ping/pong'
-python scripts/ejtp-benchmark 10 ping pong
-echo '10 ping/pong/done'
-python scripts/ejtp-benchmark 10 ping pong done
+count=${1-10}
+echo '$' $count ping
+python scripts/ejtp-benchmark $count ping
+echo '$' $count ping pong
+python scripts/ejtp-benchmark $count ping pong
+echo '$' $count ping pong done
+python scripts/ejtp-benchmark $count ping pong done
