@@ -51,7 +51,24 @@ idents = {
         "name": "pong", 
         "location": ["udp4", ["127.0.0.1", 9002], "pong"]
     },
+    "[\"udp4\",[\"127.0.0.1\",9003],\"done\"]": {
+        "encryptor": ["rsa", "-----BEGIN RSA PRIVATE KEY-----\nMIICXgIBAAKBgQCvCM8MTSOSeA8G62b9Fg2Ic18JoHoswqn7kmU+qmYxJnTd0rSS\nYaQWiSflchTBgGcbItR4jsktYifOSfp7Cl1k5IHXqGKLHtIt8Fo02k/ajR5DzGJN\n2yAJfbBCi43ifOaVKwjuJqcFKhuPUqNJecFn8m62QOQehrIlUAlnnM7OXQIDAQAB\nAoGBAJGrVRU5xZcKUAdENkv+5Hhg/AE5CzThNTJnXddPXQkepjhOOXVxyWvv7cIo\ntVltEWImFInY21jnzZUDQHDR6XLCe8B3LRlOWrkv7+byesIFkNH9C7uvheD5xxiG\nzPpOkpwcms3QW+/FmhN5Wia+4oeHB4J9uAjJmNoaddfqAhWBAkEAwdEjMzJaKIx5\n6OIyYAEnC6lvVI6Qx/ssKQH7GhaItxzLZRaIaK4XUgrL5q1OHNNCCFgREw7nhyu3\nZnt8v833rQJBAOcw/wQ0iQktluqKoT4i73hRkGk7MTB2Y/4e2YTVnypUtQC+jxs1\nND3CJj59oJojfA3SJg0M0pWXcMKIIhRxx3ECQQCVl6zafBeYSmxhsgx9iwYu+xSh\np/PZVmTMNeowRYo6AvB90nlwikYXnZupLMQofWnu9MIg+pT7AGPqpo8vn3J1AkAU\nowEAhRf+Y71m7jz6aO/rU4yKeCgp5UeDtYlBHDh69Ni7Wkc37IXfRWdYiKo/WA+I\nxEt1OsHJbJ06ICC6pnVhAkEAio1qXj8vLi9t9xocRe8LIthaYBslw4B8yY69fRhd\nuQifuvld7xjeXsfCWRmA4t72SmcAyzMaG5wnqhLNeCXXYw==\n-----END RSA PRIVATE KEY-----"], 
+        "name": "done", 
+        "location": ["udp4", ["127.0.0.1", 9003], "done"]
+    }
 }
+
+class Counter(object):
+
+    def __init__(self, value=0):
+        self.value = value
+
+    def __add__(self, value):
+        self.value += value
+
+    def __cmp__(self, value):
+        return cmp(self.value, value)
+
 
 def ping(ident_name, count):
     router = Router()
@@ -62,6 +79,19 @@ def ping(ident_name, count):
     for i in range(count):
         client.write_json(pong_interface, '"ping"')
 
+def pong(ident_name, count):
+    def callback(msg, client_obj, counter):
+        client.write_json(done_interface, '"pong"')
+        counter += 1
+    router = Router()
+    cache = IdentityCache()
+    cache.deserialize(idents)
+    done_interface = cache.find_by_name('done').location
+    client = Client(router, cache.find_by_name('pong').location, cache)
+    counter = Counter()
+    client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
+    while counter < count: pass
+
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
         version='ejtp-benchmark 0.9.4')
@@ -69,9 +99,18 @@ def run(argv):
     count = int(arguments['<count>'])
     types = arguments['<type>']
 
+    processes = []
     if 'ping' in types:
-        process = Process(target=ping, args=('ping', count))
+        ping_process = Process(target=ping, args=('ping', count))
+        processes.append(ping_process)
+    if 'pong' in types:
+        pong_process = Process(target=pong, args=('pong', count))
+        processes.append(pong_process)
+
+    processes.reverse()
+    for process in processes:
         process.start()
+    for process in processes:
         process.join()
 
 def main(argv):
