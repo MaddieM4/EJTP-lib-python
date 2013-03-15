@@ -25,6 +25,7 @@ Usage:
     ejtp-identity ( list ) [--cache-source=<cache-source>]
     ejtp-identity ( details ) <name>
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
+    ejtp-identity ( merge ) <filename>
     ejtp-identity -h | --help
     ejtp-identity --version
 
@@ -56,6 +57,15 @@ def new_identity(name, location, encryptor, **kwargs):
     data.update(kwargs)
     print json.dumps({json.dumps(data['location']): data}, indent=2)
 
+def merge(filename, data_to_merge):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+    data.update(**data_to_merge)
+
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
@@ -76,6 +86,11 @@ def main(argv):
         location = json.loads(arguments.get('--location'))
         encryptor = json.loads(arguments.get('--encryptor'))
         new_identity(name, location, encryptor)
+
+    if arguments.get('merge'):
+        filename = arguments.get('<filename>')
+        data_to_merge = json.load(sys.stdin)
+        merge(filename, data_to_merge)
 
 if __name__ == '__main__':
     main(sys.argv)

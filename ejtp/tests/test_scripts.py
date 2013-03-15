@@ -261,7 +261,7 @@ class TestIdentity(unittest.TestCase):
         self.assertEqual(['rotate', 5], data['encryptor'])
 
     def test_list_with_cache_source(self):
-        tmp, fname = tempfile.mkstemp()
+        _, fname = tempfile.mkstemp()
         argv = ['ejtp-identity', 'new',
             '--name=freckle@lackadaisy.com',
             '--location=["local", null, "freckle"]',
@@ -277,3 +277,26 @@ class TestIdentity(unittest.TestCase):
         with self.io:
             self.identity.main(argv)
         self.assertEqual('freckle@lackadaisy.com (rotate)', self.io.get_value())
+
+    def test_merge_files(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ['EJTP_IDENTITY_CACHE_PATH']).read())
+
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+
+        argv = ['ejtp-identity', 'merge', fname]
+        self.io.pipe()
+        with self.io:
+            self.identity.main(argv)
+
+        with open(fname, 'r') as f:
+            data = json.load(f)
+
+        self.assertEqual(4, len(data))
