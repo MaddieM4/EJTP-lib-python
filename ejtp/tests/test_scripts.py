@@ -246,3 +246,16 @@ class TestIdentity(unittest.TestCase):
         self.assertEqual('rsa', encryptor[0])
         self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
 
+    def test_new_identity_with_required_parameters(self):
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+
+        json_output = self.io.get_value()
+        data = json.loads(json_output)
+        self.assertEqual('freckle@lackadaisy.com', data['name'])
+        self.assertEqual(['local', None, 'freckle'], data['location'])
+        self.assertEqual(['rotate', 5], data['encryptor'])
