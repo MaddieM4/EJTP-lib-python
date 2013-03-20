@@ -1,5 +1,9 @@
 #!/bin/sh
-count=${1-10}
+default_count=10
+count=$1
+if [ "$count" = "" ]; then
+    count=$default_count;
+fi
 echo '$' $count ping
 python scripts/ejtp-benchmark $count ping
 echo '$' $count ping pong
