@@ -22,16 +22,18 @@ __doc__ = '''ejtp-benchmark
 A benchmark tool to EJTP.
 
 Usage:
-    ejtp-benchmark <count> <type>...
+    ejtp-benchmark <count> <type>... [options]
     ejtp-benchmark -h | --help
     ejtp-benchmark --version
 
 Options:
     -h --help       Show this help message
+    --cprofile      Show cprofile profiling instead of timeit summary
 '''
 
 import sys
 import timeit
+import cProfile
 from multiprocessing import Process
 
 from ejtp.vendor.docopt import docopt
@@ -103,6 +105,16 @@ def done(ident_name, count):
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
     while counter < count: pass
 
+def run_process(process_type, count, cprofile=False):
+    process_func = globals()[process_type]
+    if cprofile:
+        profile = cProfile.Profile()
+        profile.runcall(process_func, process_type, count)
+        print("Stats for " + process_type)
+        profile.print_stats(sort="cumulative")
+    else:
+        process_func(process_type, count)
+
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
         version='ejtp-benchmark 0.9.4')
@@ -110,15 +122,19 @@ def run(argv):
     count = int(arguments['<count>'])
     types = arguments['<type>']
 
+    kwargs = {
+        'cprofile': arguments['--cprofile'],
+    }
+
     processes = []
     if 'ping' in types:
-        ping_process = Process(target=ping, args=('ping', count))
+        ping_process = Process(target=run_process, args=('ping', count), kwargs = kwargs)
         processes.append(ping_process)
     if 'pong' in types:
-        pong_process = Process(target=pong, args=('pong', count))
+        pong_process = Process(target=run_process, args=('pong', count), kwargs = kwargs)
         processes.append(pong_process)
     if 'done' in types:
-        done_process = Process(target=done, args=('done', count))
+        done_process = Process(target=run_process, args=('done', count), kwargs = kwargs)
         processes.append(done_process)
 
     processes.reverse()
