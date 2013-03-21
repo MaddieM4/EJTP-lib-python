@@ -65,12 +65,10 @@ class Counter(object):
 
     def __init__(self, value=0, release=0):
         self.value = value
+        self.release = release
         self.lock = Lock()
+        self.lock.acquire()
         self.released = False
-
-    def release(self):
-        self.lock.release()
-        self.released = True
 
     def wait(self):
         with self.lock:
@@ -78,8 +76,9 @@ class Counter(object):
 
     def __add__(self, value):
         self.value += value
-        if not self.released and self.value > self.release:
-            self.release()
+        if (not self.released) and self.value >= self.release:
+            self.lock.release()
+            self.released = True
 
     def __cmp__(self, value):
         return cmp(self.value, value)
@@ -103,7 +102,7 @@ def pong(ident_name, count):
     cache.deserialize(idents)
     done_interface = cache.find_by_name('done').location
     client = Client(router, cache.find_by_name('pong').location, cache)
-    counter = Counter()
+    counter = Counter(release=count)
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
     counter.wait()
 
@@ -114,7 +113,7 @@ def done(ident_name, count):
     cache = IdentityCache()
     cache.deserialize(idents)
     client = Client(router, cache.find_by_name('done').location, cache)
-    counter = Counter()
+    counter = Counter(release=count)
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
     counter.wait()
 
@@ -129,7 +128,12 @@ def run_process(process_type, count, cprofile=False):
         process_func(process_type, count)
 
 def create_process(process_type, count, kwargs):
-    return Process(target=run_process, args=(process_type, count), kwargs = kwargs)
+    return Process(
+        name=process_type,
+        target=run_process,
+        args=(process_type, count),
+        kwargs = kwargs
+    )
 
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
