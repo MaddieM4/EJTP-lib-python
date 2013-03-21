@@ -115,6 +115,9 @@ def run_process(process_type, count, cprofile=False):
     else:
         process_func(process_type, count)
 
+def create_process(process_type, count, kwargs):
+    return Process(target=run_process, args=(process_type, count), kwargs = kwargs)
+
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
         version='ejtp-benchmark 0.9.4')
@@ -128,14 +131,11 @@ def run(argv):
 
     processes = []
     if 'ping' in types:
-        ping_process = Process(target=run_process, args=('ping', count), kwargs = kwargs)
-        processes.append(ping_process)
+        processes.append(create_process('ping', count, kwargs))
     if 'pong' in types:
-        pong_process = Process(target=run_process, args=('pong', count), kwargs = kwargs)
-        processes.append(pong_process)
+        processes.append(create_process('pong', count, kwargs))
     if 'done' in types:
-        done_process = Process(target=run_process, args=('done', count), kwargs = kwargs)
-        processes.append(done_process)
+        processes.append(create_process('done', count, kwargs))
 
     processes.reverse()
     for process in processes:
