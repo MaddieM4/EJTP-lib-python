@@ -41,17 +41,17 @@ class RawData(object):
         else:
             if isinstance(value, int):
                 value = (value,)
-            try:
-                iter(value)
-            except TypeError:
+            if not (hasattr(value, '__iter__') or hasattr(value, '__getitem__')):
                 raise TypeError('value must be iterable')
             if isinstance(value, bytes):
                 # this makes sure that iterating over value gives one byte at a time
                 # in python 2 and 3
                 if bytes == str:
                     # in python 2 iterating over bytes gives characters instead of integers
-                    value = (ord(c) for c in value)
-                value = tuple(value)
+                    value = tuple(map(ord, value))
+                else:
+                    # Only tuple-ify if not already tuple-ified by map above
+                    value = tuple(value)
             elif bytes==str and isinstance(value, unicode):
                     value = tuple((ord(c) for c in value.encode('utf-8')))
             elif isinstance(value, str):
@@ -156,7 +156,7 @@ class RawData(object):
         expect bytes. Don't use this for comparison!
         '''
         if bytes == str:
-            return bytes().join(chr(c) for c in self._data)
+            return bytes().join(map(chr,self._data))
         return bytes(self._data)
 
 
