@@ -17,6 +17,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import print_function
+
 __doc__ = '''ejtp-benchmark
 
 A benchmark tool to EJTP.
@@ -31,6 +33,14 @@ Options:
     --cprofile      Show cprofile profiling instead of timeit summary
     --sort=<field>  cProfile sort field [default: cumtime]
 '''
+
+try:
+    import gevent.monkey; gevent.monkey.patch_all()
+except:
+    print(
+"""Could not import gevent.
+Benchmark times will be better, but profiling will not be accurate
+for 'pong' or 'done'.""")
 
 import sys
 import timeit
@@ -174,4 +184,4 @@ def main(argv):
     return t.timeit(1)
 
 if __name__ == '__main__':
-    print main(sys.argv[1:])
+    print(main(sys.argv[1:]))
