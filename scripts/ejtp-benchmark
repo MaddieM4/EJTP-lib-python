@@ -17,6 +17,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import print_function
+
 __doc__ = '''ejtp-benchmark
 
 A benchmark tool to EJTP.
@@ -29,7 +31,16 @@ Usage:
 Options:
     -h --help       Show this help message
     --cprofile      Show cprofile profiling instead of timeit summary
+    --sort=<field>  cProfile sort field [default: cumtime]
 '''
+
+try:
+    import gevent.monkey; gevent.monkey.patch_all()
+except:
+    print(
+"""Could not import gevent.
+Benchmark times will be better, but profiling will not be accurate
+for 'pong' or 'done'.""")
 
 import sys
 import timeit
@@ -117,13 +128,20 @@ def done(ident_name, count):
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
     counter.wait()
 
-def run_process(process_type, count, cprofile=False):
+def run_process(process_type, count, cprofile=False, cprofile_sort="cumtime"):
     process_func = globals()[process_type]
     if cprofile:
         profile = cProfile.Profile()
         profile.runcall(process_func, process_type, count)
         print("Stats for " + process_type)
-        profile.print_stats(sort="cumulative")
+        sort_substitutions = {
+            'cumtime' : 'cumulative',
+            'tottime' : 'time',
+            'total'   : 'time',
+        }
+        if cprofile_sort in sort_substitutions:
+            cprofile_sort = sort_substitutions[cprofile_sort]
+        profile.print_stats(sort=cprofile_sort)
     else:
         process_func(process_type, count)
 
@@ -144,6 +162,7 @@ def run(argv):
 
     kwargs = {
         'cprofile': arguments['--cprofile'],
+        'cprofile_sort': arguments['--sort'],
     }
 
     processes = []
@@ -165,4 +184,4 @@ def main(argv):
     return t.timeit(1)
 
 if __name__ == '__main__':
-    print main(sys.argv[1:])
+    print(main(sys.argv[1:]))
