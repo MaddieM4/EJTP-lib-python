@@ -35,6 +35,7 @@ import sys
 import timeit
 import cProfile
 from multiprocessing import Process
+from threading import Lock
 
 from ejtp.vendor.docopt import docopt
 from ejtp.identity import IdentityCache
@@ -62,11 +63,23 @@ idents = {
 
 class Counter(object):
 
-    def __init__(self, value=0):
+    def __init__(self, value=0, release=0):
         self.value = value
+        self.lock = Lock()
+        self.released = False
+
+    def release(self):
+        self.lock.release()
+        self.released = True
+
+    def wait(self):
+        with self.lock:
+            pass
 
     def __add__(self, value):
         self.value += value
+        if not self.released and self.value > self.release:
+            self.release()
 
     def __cmp__(self, value):
         return cmp(self.value, value)
@@ -92,7 +105,7 @@ def pong(ident_name, count):
     client = Client(router, cache.find_by_name('pong').location, cache)
     counter = Counter()
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
-    while counter < count: pass
+    counter.wait()
 
 def done(ident_name, count):
     def callback(msg, client_obj, counter):
@@ -103,7 +116,7 @@ def done(ident_name, count):
     client = Client(router, cache.find_by_name('done').location, cache)
     counter = Counter()
     client.rcv_callback = lambda msg, client_obj: callback(msg, client_obj, counter)
-    while counter < count: pass
+    counter.wait()
 
 def run_process(process_type, count, cprofile=False):
     process_func = globals()[process_type]
