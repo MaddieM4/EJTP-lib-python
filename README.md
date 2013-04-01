@@ -5,7 +5,7 @@ EJTP-lib-python
 
 [![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
 
-Encrypted JSON Transport Protocol library for Python 2.x.
+Encrypted JSON Transport Protocol library for Python 2.6-3.3.
 
 EJTP is a data transfer protocol that allows JSON exchange over a
 very wide and infinitely extensible set of underlying transports.
@@ -22,14 +22,13 @@ Latest version
 ==============
 
 The latest stable version (and the first community-developed stable
-version yet available) is [Version 0.9.3](
+version yet available) is [Version 0.9.4](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has bug fixes, an updated testing framework, elliptic curve
-support, compressed frame support, lots of structural reorganization
-and refactoring, the ejtp-crypto script, and the ejtp.config module.
+which has benchmarking tools, performance enhancements, pip support,
+and various improvements to the test suite.
 
 You can read more about this release in [this blog entry](
-http://roaming-initiative.net/blog/blog/ejtp-0.9.3.html).
+http://roaming-initiative.net/blog/blog/ejtp-0.9.4.html).
 
 Installation
 ============
