@@ -359,7 +359,7 @@ class TestIdentity(unittest.TestCase):
         os.environ[ENV_VAR] = ':'.join([fname1, fname2])
         try:
             output = self._run('rm', 'mitzi@lackadaisy.com', error=True)
-            self.assertIn('Multiple mitzi@lackadaisy.com identities found', output)
+            self.assertIn('Identity mitzi@lackadaisy.com found in multiple files', output)
         finally:
             os.environ[ENV_VAR] = self._curr_var
 

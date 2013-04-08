@@ -53,12 +53,15 @@ def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
         with open(fname) as f:
             yield fname, json.load(f)
 
-def list_identities(cache_source, by_file):
+def list_identities(cache_source, by_file=False, name=None):
     for fname, data in data_per_file(cache_source):
-        if by_file:
-            print(os.path.relpath(fname))
+        fname_printed = False
         for identity in data.values():
-            print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
+            if by_file and not fname_printed:
+                print(os.path.relpath(fname))
+                fname_printed = True
+            if not name or name == identity['name']:
+                print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
 
 def identity_details(cache_source, name):
     for fname, data in data_per_file(cache_source):
@@ -104,8 +107,9 @@ def rm_identities(cache_source, rm_all=False, *names):
             name = identity['name']
             if name in names:
                 if not rm_all and name in names_found:
-                    print('Multiple %s identities found.' % name)
-                    print('Use --cache-source to specify which file to delete' +
+                    print('Identity %s found in multiple files:\n' % name)
+                    list_identities(cache_source, by_file=True, name=name)
+                    print('\nUse --cache-source to specify which file to delete ' +
                         'from or use -A to delete from all sources.')
                     quit(1)
                 else:
