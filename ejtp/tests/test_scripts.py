@@ -221,113 +221,93 @@ class TestCrypto(unittest.TestCase):
 
 class TestIdentity(unittest.TestCase):
 
+    def _run(self, command, *args, **kwargs):
+        argv = ['ejtp-identity']
+        argv.append(command)
+        argv.extend(args)
+        with self.io:
+            try:
+                self.identity.main(argv)
+            except SystemExit:
+                if not kwargs.get('error'):
+                    raise
+        return self.io.get_value()
+
+    def _tmp_file_with_env_cache(self):
+        _, fname = tempfile.mkstemp()
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        return fname
+
     def setUp(self):
         set_environ()
         self.identity = import_as_module('ejtp-identity')
         self.io = IOMock()
 
     def test_list(self):
-        argv = ['ejtp-identity', 'list']
-        with self.io:
-            self.identity.main(argv)
-        records = self.io.get_value().strip().split('\n')
-        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
-        self.assertIn('victor@lackadaisy.com (rsa)', records)
-        self.assertIn('atlas@lackadaisy.com (rsa)', records)
+        records = self._run('list').strip().split('\n')
+        for name in ('mitzi', 'victor', 'atlas'):
+            self.assertIn(name + '@lackadaisy.com (rsa)', records)
 
     def test_list_by_file(self):
-        argv = ['ejtp-identity', 'list', '--by-file']
-        with self.io:
-            self.identity.main(argv)
-        records = self.io.get_value().strip().split('\n')
+        records = self._run('list', '--by-file').strip().split('\n')
         self.assertIn('examplecache.json', records[0])
-        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
-        self.assertIn('victor@lackadaisy.com (rsa)', records)
-        self.assertIn('atlas@lackadaisy.com (rsa)', records)
+        for name in ('mitzi', 'victor', 'atlas'):
+            self.assertIn(name + '@lackadaisy.com (rsa)', records)
 
     def test_details(self):
-        argv = ['ejtp-identity', 'details', 'mitzi@lackadaisy.com']
-        with self.io:
-            self.identity.main(argv)
-
-        json_output = self.io.get_value()
-        data = json.loads(json_output)
+        data = json.loads(self._run('details', 'mitzi@lackadaisy.com'))
         self.assertEqual('mitzi@lackadaisy.com', data['name'])
         encryptor = data['encryptor']
         self.assertEqual('rsa', encryptor[0])
         self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
 
     def test_new_identity_with_required_parameters(self):
-        argv = ['ejtp-identity', 'new',
+        output = self._run('new',
             '--name=freckle@lackadaisy.com',
             '--location=["local", null, "freckle"]',
-            '--encryptor=["rotate", 5]']
-        with self.io:
-            self.identity.main(argv)
-
-        json_output = self.io.get_value()
-        data = json.loads(json_output)['["local", null, "freckle"]']
+            '--encryptor=["rotate", 5]')
+        data = json.loads(output)['["local", null, "freckle"]']
         self.assertEqual('freckle@lackadaisy.com', data['name'])
         self.assertEqual(['local', None, 'freckle'], data['location'])
         self.assertEqual(['rotate', 5], data['encryptor'])
 
     def test_list_with_cache_source(self):
         _, fname = tempfile.mkstemp()
-        argv = ['ejtp-identity', 'new',
+        output = self._run('new',
             '--name=freckle@lackadaisy.com',
             '--location=["local", null, "freckle"]',
-            '--encryptor=["rotate", 5]']
-        with self.io:
-            self.identity.main(argv)
-        json_output = self.io.get_value()
+            '--encryptor=["rotate", 5]')
         with open(fname, 'w') as f:
-            f.write(json_output)
-
+            f.write(output)
         self.io.clear()
-        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-        self.assertEqual('freckle@lackadaisy.com (rotate)', self.io.get_value())
+        output = self._run('list', '--cache-source=' + fname)
+        self.assertEqual('freckle@lackadaisy.com (rotate)', output)
 
     def test_merge_files(self):
-        _, fname = tempfile.mkstemp()
-
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-
-        argv = ['ejtp-identity', 'new',
+        fname = self._tmp_file_with_env_cache()
+        self._run('new',
             '--name=freckle@lackadaisy.com',
             '--location=["local", null, "freckle"]',
-            '--encryptor=["rotate", 5]']
-        with self.io:
-            self.identity.main(argv)
-
-        argv = ['ejtp-identity', 'merge', fname]
+            '--encryptor=["rotate", 5]')
         self.io.pipe()
-        with self.io:
-            self.identity.main(argv)
+        self._run('merge', fname)
 
         with open(fname, 'r') as f:
             data = json.load(f)
-
         self.assertEqual(4, len(data))
 
     def test_set_attribute(self):
-        _, fname = tempfile.mkstemp()
-
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-
-        argv = ['ejtp-identity', 'set', 'atlas@lackadaisy.com', '--args={"noob":true}', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-
-        argv = ['ejtp-identity', 'details', 'atlas@lackadaisy.com', '--cache-source=' + fname]
+        fname = self._tmp_file_with_env_cache()
+        self._run('set',
+            'atlas@lackadaisy.com',
+            '--args={"noob":true}',
+            '--cache-source=' + fname)
         self.io.clear()
-        with self.io:
-            self.identity.main(argv)
-
-        data = json.loads(self.io.get_value())
+        output = self._run('details',
+            'atlas@lackadaisy.com',
+            '--cache-source=' + fname)
+        data = json.loads(output)
         self.assertEqual(True, data['noob'])
 
     def test_without_env_var(self):
@@ -335,108 +315,61 @@ class TestIdentity(unittest.TestCase):
         if ENV_VAR in os.environ:
             self.env_data = os.environ.pop(ENV_VAR)
         try:
-            self.identity = import_as_module('ejtp-identity')
-            self.io = IOMock()
-            argv = ['ejtp-identity', 'list']
-            with self.io:
-                self.identity.main(argv)
+            self._run('list')
         finally:
             if self.env_data:
                 os.environ[ENV_VAR] = self.env_data
 
     def test_rm_valid_name(self):
-        _, fname = tempfile.mkstemp()
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'atlas@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, output)
 
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-
-        argv = ['ejtp-identity', 'rm', 'atlas@lackadaisy.com', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, self.io.get_value())
-
-        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
         self.io.clear()
-        with self.io:
-            self.identity.main(argv)
+        output = self._run('list', '--cache-source=' + fname)
         self.assertNotIn('atlas@lackadaisy.com', self.io.get_value())
 
     def test_rm_two_valid_names(self):
-        _, fname = tempfile.mkstemp()
+        fname = self._tmp_file_with_env_cache()
+        names = ('atlas@lackadaisy.com', 'victor@lackadaisy.com')
 
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
+        data = self._run('rm', '--cache-source=' + fname, *names)
+        for name in names:
+            self.assertIn(name + ' removed from file %s' % fname, data)
 
-        argv = ['ejtp-identity', 'rm', 'atlas@lackadaisy.com', 'victor@lackadaisy.com', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-        data = self.io.get_value()
-        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, data)
-        self.assertIn('victor@lackadaisy.com removed from file %s' % fname, data)
-
-        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
         self.io.clear()
-        with self.io:
-            self.identity.main(argv)
-        data = self.io.get_value()
-        self.assertNotIn('atlas@lackadaisy.com', data)
-        self.assertNotIn('victor@lackadaisy.com', data)
+        data = self._run('list', '--cache-source=' + fname)
+        for name in names:
+            self.assertNotIn(name, data)
 
     def test_rm_invalid_name(self):
-        _, fname = tempfile.mkstemp()
-
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-
-        argv = ['ejtp-identity', 'rm', 'none@lackadaisy.com', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-        self.assertIn('none@lackadaisy.com not found in any cache file', self.io.get_value())
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'none@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('none@lackadaisy.com not found in any cache file', output)
 
     def test_rm_invalid_name(self):
-        _, fname = tempfile.mkstemp()
-
-        with open(fname, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-
-        argv = ['ejtp-identity', 'rm', 'none@lackadaisy.com', '--cache-source=' + fname]
-        with self.io:
-            self.identity.main(argv)
-        self.assertIn('none@lackadaisy.com not found in any cache file', self.io.get_value())
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'none@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('none@lackadaisy.com not found in any cache file', output)
 
     def test_rm_error_with_name_repeated_across_files(self):
-        _, fname1 = tempfile.mkstemp()
-        _, fname2 = tempfile.mkstemp()
-
-        with open(fname1, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-        with open(fname2, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
+        fname1 = self._tmp_file_with_env_cache()
+        fname2 = self._tmp_file_with_env_cache()
         self._curr_var = os.environ[ENV_VAR]
         os.environ[ENV_VAR] = ':'.join([fname1, fname2])
-        argv = ['ejtp-identity', 'rm', 'mitzi@lackadaisy.com']
         try:
-            with self.io:
-                self.assertRaises(SystemExit, self.identity.main, argv)
-            self.assertIn('Multiple mitzi@lackadaisy.com identities found', self.io.get_value())
+            output = self._run('rm', 'mitzi@lackadaisy.com', error=True)
+            self.assertIn('Multiple mitzi@lackadaisy.com identities found', output)
         finally:
             os.environ[ENV_VAR] = self._curr_var
 
     def test_rm_name_in_all_files(self):
-        _, fname1 = tempfile.mkstemp()
-        _, fname2 = tempfile.mkstemp()
-
-        with open(fname1, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
-        with open(fname2, 'w') as f:
-            f.write(open(os.environ[ENV_VAR]).read())
+        fname1 = self._tmp_file_with_env_cache()
+        fname2 = self._tmp_file_with_env_cache()
         self._curr_var = os.environ[ENV_VAR]
         os.environ[ENV_VAR] = ':'.join([fname1, fname2])
-        argv = ['ejtp-identity', 'rm', 'mitzi@lackadaisy.com', '-A']
         try:
-            with self.io:
-                self.identity.main(argv)
-            data = self.io.get_value()
+            data = self._run('rm', 'mitzi@lackadaisy.com', '-A')
             self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname1, data)
             self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname2, data)
         finally:
