@@ -360,3 +360,23 @@ class TestIdentity(unittest.TestCase):
         with self.io:
             self.identity.main(argv)
         self.assertNotIn('atlas@lackadaisy.com', self.io.get_value())
+
+    def test_rm_two_valid_names(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'rm', 'atlas@lackadaisy.com', 'victor@lackadaisy.com', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, self.io.get_value())
+        self.assertIn('victor@lackadaisy.com removed from file %s' % fname, self.io.get_value())
+
+        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
+        self.io.clear()
+        with self.io:
+            self.identity.main(argv)
+        data = self.io.get_value()
+        self.assertNotIn('atlas@lackadaisy.com', data)
+        self.assertNotIn('victor@lackadaisy.com', data)
