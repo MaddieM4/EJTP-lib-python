@@ -97,19 +97,35 @@ def set_attribute(cache_source, name, **kwargs):
                 json.dump(data, f)
 
 def rm_identities(cache_source, *names):
-    not_found = set(names)
+    names_found = {}
+    keys_per_file = {}
     for fname, data in list(data_per_file(cache_source)):
         for key, identity in data.items():
             name = identity['name']
             if name in names:
-                data.pop(key)
-                not_found.remove(name)
-                print('%s removed from file %s' % (name, fname))
-                with open(fname, 'w') as f:
-                    json.dump(data, f)
+                if name in names_found:
+                    print('Multiple %s identities found.' % name)
+                    print('Use --cache-source to specify which file to delete' +
+                        'from or use -A to delete from all sources.')
+                    quit(1)
+                else:
+                    names_found[name] = []
+                names_found[name].append(fname)
+                if fname not in keys_per_file:
+                    keys_per_file[fname] = []
+                keys_per_file[fname].append(key)
 
-    for name in not_found:
-        print('%s was not found in any cache file' % name)
+    for fname, keys in keys_per_file.items():
+        with open(fname) as f:
+            data = json.load(f)
+        for key in keys:
+            identity = data.pop(key)
+            print('%s removed from file %s' % (identity['name'], fname))
+        with open(fname, 'w') as f:
+            json.dump(data, f)
+
+    for name in set(names) - set(names_found.keys()):
+        print('%s not found in any cache file' % name)
 
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],

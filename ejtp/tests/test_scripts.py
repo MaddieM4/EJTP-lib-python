@@ -390,4 +390,33 @@ class TestIdentity(unittest.TestCase):
         argv = ['ejtp-identity', 'rm', 'none@lackadaisy.com', '--cache-source=' + fname]
         with self.io:
             self.identity.main(argv)
-        self.assertIn('none@lackadaisy.com was not found in any cache file', self.io.get_value())
+        self.assertIn('none@lackadaisy.com not found in any cache file', self.io.get_value())
+
+    def test_rm_invalid_name(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'rm', 'none@lackadaisy.com', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertIn('none@lackadaisy.com not found in any cache file', self.io.get_value())
+
+    def test_rm_error_when_name_repeated_across_files(self):
+        _, fname1 = tempfile.mkstemp()
+        _, fname2 = tempfile.mkstemp()
+
+        with open(fname1, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        with open(fname2, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        self._curr_var = os.environ[ENV_VAR]
+        os.environ[ENV_VAR] = ':'.join([fname1, fname2])
+        argv = ['ejtp-identity', 'rm', 'mitzi@lackadaisy.com']
+        try:
+            with self.io:
+                self.assertRaises(SystemExit, self.identity.main, argv)
+            self.assertIn('Multiple mitzi@lackadaisy.com identities found', self.io.get_value())
+        finally:
+            os.environ[ENV_VAR] = self._curr_var
