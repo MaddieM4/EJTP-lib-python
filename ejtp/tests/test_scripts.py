@@ -266,7 +266,7 @@ class TestIdentity(unittest.TestCase):
         dict_data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '-e'))
         self.assertIsInstance(dict_data, dict)
         self.assertEqual(1, len(dict_data))
-        location, data = dict_data.items()[0]
+        location, data = list(dict_data.items())[0]
         self.assertEqual('["local", null, "mitzi"]', location)
         self.assertEqual('mitzi@lackadaisy.com', data['name'])
         encryptor = data['encryptor']
