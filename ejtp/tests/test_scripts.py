@@ -343,3 +343,20 @@ class TestIdentity(unittest.TestCase):
         finally:
             if self.env_data:
                 os.environ[ENV_VAR] = self.env_data
+
+    def test_rm_valid_name(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'rm', 'atlas@lackadaisy.com', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, self.io.get_value())
+
+        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
+        self.io.clear()
+        with self.io:
+            self.identity.main(argv)
+        self.assertNotIn('atlas@lackadaisy.com', self.io.get_value())

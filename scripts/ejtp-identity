@@ -24,6 +24,7 @@ A simple little script for EJTP identity management from the command line.
 Usage:
     ejtp-identity ( list ) [--by-file|--cache-source=<cache-source>]
     ejtp-identity ( details ) <name> [--cache-source=<cache-source>]
+    ejtp-identity ( rm ) <names>... [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
     ejtp-identity ( set ) <name> --args=<args> [--cache-source=<cache-source>]
@@ -95,6 +96,21 @@ def set_attribute(cache_source, name, **kwargs):
             with open(fname, 'w') as f:
                 json.dump(data, f)
 
+def rm_identities(cache_source, *names):
+    not_found = set(names)
+    for fname, data in list(data_per_file(cache_source)):
+        for key, identity in data.items():
+            name = identity['name']
+            if name in names:
+                data.pop(key)
+                not_found.remove(name)
+                print('%s removed from file %s' % (name, fname))
+                with open(fname, 'w') as f:
+                    json.dump(data, f)
+
+    for name in not_found:
+        print('%s was not found in any cache file')
+
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
         version='ejtp-identity 0.9.5')
@@ -121,6 +137,9 @@ def main(argv):
     if arguments.get('set'):
         args = json.loads(arguments.get('--args'))
         set_attribute(cache_source, arguments.get('<name>'), **args)
+
+    if arguments.get('rm'):
+        rm_identities(cache_source, *arguments.get('<names>'))
 
 if __name__ == '__main__':
     main(sys.argv)
