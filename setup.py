@@ -58,7 +58,8 @@ setup(
         'scripts/ejtpd',
         'scripts/ejtp-keygen',
         'scripts/ejtp-console',
-        'scripts/ejtp-crypto'
+        'scripts/ejtp-crypto',
+        'scripts/ejtp-identity',
     ],
 	packages = [
 		'ejtp',
