@@ -23,7 +23,7 @@ A simple little script for EJTP identity management from the command line.
 
 Usage:
     ejtp-identity ( list ) [--by-file|--cache-source=<cache-source>]
-    ejtp-identity ( details ) <name> [--cache-source=<cache-source>]
+    ejtp-identity ( details ) [-e] <name> [--cache-source=<cache-source>]
     ejtp-identity ( rm ) [-A] <names>... [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
@@ -33,6 +33,7 @@ Usage:
 
 Options:
     -h --help       Show this help message
+    -e --export     Wrap identity in the cache structure
 '''
 
 import os
@@ -63,11 +64,14 @@ def list_identities(cache_source, by_file=False, name=None):
             if not name or name == identity['name']:
                 print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
 
-def identity_details(cache_source, name):
+def identity_details(cache_source, name, export=False):
     for fname, data in data_per_file(cache_source):
         for identity in data.values():
             if identity['name'] == name:
-                print(json.dumps(identity, indent=2))
+                obj = identity
+                if export:
+                    obj = {json.dumps(identity.get('location')): identity}
+                print(json.dumps(obj, indent=2))
 
 def new_identity(name, location, encryptor, **kwargs):
     data = {
@@ -141,7 +145,7 @@ def main(argv):
         list_identities(cache_source, by_file=arguments.get('--by-file'))
 
     if arguments.get('details'):
-        identity_details(cache_source, arguments['<name>'])
+        identity_details(cache_source, arguments['<name>'], arguments['--export'])
 
     if arguments.get('new'):
         name = arguments.get('--name')
