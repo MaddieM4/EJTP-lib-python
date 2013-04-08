@@ -1,14 +1,25 @@
 import os
 import imp
 import sys
+import json
 import tempfile
 
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import *
 
+ENV_VAR = 'EJTP_IDENTITY_CACHE_PATH'
+
 def set_environ():
     ident_cache_path = testing_path('examplecache.json')
-    os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
+    os.environ[ENV_VAR] = ident_cache_path
+
+def import_as_module(script_name):
+    filename = script_path(script_name)
+    with open(filename, 'rb') as fp:
+        module = imp.new_module(script_name)
+        exec(fp.read(), module.__dict__)
+        return module
+
 
 class IOMock(object):
 
@@ -58,17 +69,10 @@ class IOMock(object):
 
 class TestConsole(unittest.TestCase):
 
-    def _import(self):
-        filename = script_path('ejtp-console')
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-console')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
         set_environ()
         self.io = IOMock()
-        self.console = self._import()
+        self.console = import_as_module('ejtp-console')
         self.inter = self.console.Interactive()
 
     def _assertCLI(self, expected):
@@ -149,16 +153,9 @@ class TestConsole(unittest.TestCase):
 
 class TestCrypto(unittest.TestCase):
 
-    def _import(self):
-        filename = script_path('ejtp-crypto')
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-crypto')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
         set_environ()
-        self.crypto = self._import()
+        self.crypto = import_as_module('ejtp-crypto')
         self.io = IOMock()
 
 
@@ -220,3 +217,129 @@ class TestCrypto(unittest.TestCase):
             self.crypto.main(argv)
 
         self.assertEqual('True', self.io.get_value())
+
+
+class TestIdentity(unittest.TestCase):
+
+    def setUp(self):
+        set_environ()
+        self.identity = import_as_module('ejtp-identity')
+        self.io = IOMock()
+
+    def test_list(self):
+        argv = ['ejtp-identity', 'list']
+        with self.io:
+            self.identity.main(argv)
+        records = self.io.get_value().strip().split('\n')
+        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
+        self.assertIn('victor@lackadaisy.com (rsa)', records)
+        self.assertIn('atlas@lackadaisy.com (rsa)', records)
+
+    def test_list_by_file(self):
+        argv = ['ejtp-identity', 'list', '--by-file']
+        with self.io:
+            self.identity.main(argv)
+        records = self.io.get_value().strip().split('\n')
+        self.assertIn('examplecache.json', records[0])
+        self.assertIn('mitzi@lackadaisy.com (rsa)', records)
+        self.assertIn('victor@lackadaisy.com (rsa)', records)
+        self.assertIn('atlas@lackadaisy.com (rsa)', records)
+
+    def test_details(self):
+        argv = ['ejtp-identity', 'details', 'mitzi@lackadaisy.com']
+        with self.io:
+            self.identity.main(argv)
+
+        json_output = self.io.get_value()
+        data = json.loads(json_output)
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
+    def test_new_identity_with_required_parameters(self):
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+
+        json_output = self.io.get_value()
+        data = json.loads(json_output)['["local", null, "freckle"]']
+        self.assertEqual('freckle@lackadaisy.com', data['name'])
+        self.assertEqual(['local', None, 'freckle'], data['location'])
+        self.assertEqual(['rotate', 5], data['encryptor'])
+
+    def test_list_with_cache_source(self):
+        _, fname = tempfile.mkstemp()
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+        json_output = self.io.get_value()
+        with open(fname, 'w') as f:
+            f.write(json_output)
+
+        self.io.clear()
+        argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertEqual('freckle@lackadaisy.com (rotate)', self.io.get_value())
+
+    def test_merge_files(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]']
+        with self.io:
+            self.identity.main(argv)
+
+        argv = ['ejtp-identity', 'merge', fname]
+        self.io.pipe()
+        with self.io:
+            self.identity.main(argv)
+
+        with open(fname, 'r') as f:
+            data = json.load(f)
+
+        self.assertEqual(4, len(data))
+
+    def test_set_attribute(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'set', 'atlas@lackadaisy.com', '--args={"noob":true}', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+
+        argv = ['ejtp-identity', 'details', 'atlas@lackadaisy.com', '--cache-source=' + fname]
+        self.io.clear()
+        with self.io:
+            self.identity.main(argv)
+
+        data = json.loads(self.io.get_value())
+        self.assertEqual(True, data['noob'])
+
+    def test_without_env_var(self):
+        self.env_data = None
+        if ENV_VAR in os.environ:
+            self.env_data = os.environ.pop(ENV_VAR)
+        try:
+            self.identity = import_as_module('ejtp-identity')
+            self.io = IOMock()
+            argv = ['ejtp-identity', 'list']
+            with self.io:
+                self.identity.main(argv)
+        finally:
+            if self.env_data:
+                os.environ[ENV_VAR] = self.env_data
