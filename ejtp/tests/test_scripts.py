@@ -370,8 +370,9 @@ class TestIdentity(unittest.TestCase):
         argv = ['ejtp-identity', 'rm', 'atlas@lackadaisy.com', 'victor@lackadaisy.com', '--cache-source=' + fname]
         with self.io:
             self.identity.main(argv)
-        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, self.io.get_value())
-        self.assertIn('victor@lackadaisy.com removed from file %s' % fname, self.io.get_value())
+        data = self.io.get_value()
+        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, data)
+        self.assertIn('victor@lackadaisy.com removed from file %s' % fname, data)
 
         argv = ['ejtp-identity', 'list', '--cache-source=' + fname]
         self.io.clear()
@@ -403,7 +404,7 @@ class TestIdentity(unittest.TestCase):
             self.identity.main(argv)
         self.assertIn('none@lackadaisy.com not found in any cache file', self.io.get_value())
 
-    def test_rm_error_when_name_repeated_across_files(self):
+    def test_rm_error_with_name_repeated_across_files(self):
         _, fname1 = tempfile.mkstemp()
         _, fname2 = tempfile.mkstemp()
 
@@ -418,5 +419,25 @@ class TestIdentity(unittest.TestCase):
             with self.io:
                 self.assertRaises(SystemExit, self.identity.main, argv)
             self.assertIn('Multiple mitzi@lackadaisy.com identities found', self.io.get_value())
+        finally:
+            os.environ[ENV_VAR] = self._curr_var
+
+    def test_rm_name_in_all_files(self):
+        _, fname1 = tempfile.mkstemp()
+        _, fname2 = tempfile.mkstemp()
+
+        with open(fname1, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        with open(fname2, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        self._curr_var = os.environ[ENV_VAR]
+        os.environ[ENV_VAR] = ':'.join([fname1, fname2])
+        argv = ['ejtp-identity', 'rm', 'mitzi@lackadaisy.com', '-A']
+        try:
+            with self.io:
+                self.identity.main(argv)
+            data = self.io.get_value()
+            self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname1, data)
+            self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname2, data)
         finally:
             os.environ[ENV_VAR] = self._curr_var
