@@ -380,3 +380,14 @@ class TestIdentity(unittest.TestCase):
         data = self.io.get_value()
         self.assertNotIn('atlas@lackadaisy.com', data)
         self.assertNotIn('victor@lackadaisy.com', data)
+
+    def test_rm_invalid_name(self):
+        _, fname = tempfile.mkstemp()
+
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+
+        argv = ['ejtp-identity', 'rm', 'none@lackadaisy.com', '--cache-source=' + fname]
+        with self.io:
+            self.identity.main(argv)
+        self.assertIn('none@lackadaisy.com was not found in any cache file', self.io.get_value())

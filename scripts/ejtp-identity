@@ -109,7 +109,7 @@ def rm_identities(cache_source, *names):
                     json.dump(data, f)
 
     for name in not_found:
-        print('%s was not found in any cache file')
+        print('%s was not found in any cache file' % name)
 
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
