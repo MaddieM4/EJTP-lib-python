@@ -7,9 +7,11 @@ import tempfile
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import *
 
+ENV_VAR = 'EJTP_IDENTITY_CACHE_PATH'
+
 def set_environ():
     ident_cache_path = testing_path('examplecache.json')
-    os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
+    os.environ[ENV_VAR] = ident_cache_path
 
 def import_as_module(script_name):
     filename = script_path(script_name)
@@ -291,7 +293,7 @@ class TestIdentity(unittest.TestCase):
         _, fname = tempfile.mkstemp()
 
         with open(fname, 'w') as f:
-            f.write(open(os.environ['EJTP_IDENTITY_CACHE_PATH']).read())
+            f.write(open(os.environ[ENV_VAR]).read())
 
         argv = ['ejtp-identity', 'new',
             '--name=freckle@lackadaisy.com',
@@ -314,7 +316,7 @@ class TestIdentity(unittest.TestCase):
         _, fname = tempfile.mkstemp()
 
         with open(fname, 'w') as f:
-            f.write(open(os.environ['EJTP_IDENTITY_CACHE_PATH']).read())
+            f.write(open(os.environ[ENV_VAR]).read())
 
         argv = ['ejtp-identity', 'set', 'atlas@lackadaisy.com', '--args={"noob":true}', '--cache-source=' + fname]
         with self.io:
@@ -327,3 +329,17 @@ class TestIdentity(unittest.TestCase):
 
         data = json.loads(self.io.get_value())
         self.assertEqual(True, data['noob'])
+
+    def test_without_env_var(self):
+        self.env_data = None
+        if ENV_VAR in os.environ:
+            self.env_data = os.environ.pop(ENV_VAR)
+        try:
+            self.identity = import_as_module('ejtp-identity')
+            self.io = IOMock()
+            argv = ['ejtp-identity', 'list']
+            with self.io:
+                self.identity.main(argv)
+        finally:
+            if self.env_data:
+                os.environ[ENV_VAR] = self.env_data

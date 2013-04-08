@@ -46,7 +46,7 @@ def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
     if cache_source:
         files = test_filenames([cache_source])
     if not files:
-        files = test_filenames(None, env_var=env_var)
+        files = test_filenames([], env_var=env_var)
 
     for fname in files:
         with open(fname) as f:
