@@ -140,7 +140,10 @@ class RSA(encryptor.Encryptor):
 
     def public(self):
         key = self.key.publickey()
-        return ['rsa', key.exportKey()]
+        exported = key.exportKey()
+        if isinstance(exported, bytes):
+            exported = exported.decode('utf-8')
+        return ['rsa', exported]
 
     def can_encrypt(self):
         return self.key.has_private()
