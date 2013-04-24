@@ -262,6 +262,24 @@ class TestIdentity(unittest.TestCase):
         self.assertEqual('rsa', encryptor[0])
         self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
 
+    def test_details_export(self):
+        dict_data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '-e'))
+        self.assertIsInstance(dict_data, dict)
+        self.assertEqual(1, len(dict_data))
+        location, data = list(dict_data.items())[0]
+        self.assertEqual('["local", null, "mitzi"]', location)
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
+    def test_details_public(self):
+        data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '--public'))
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN PUBLIC KEY-----'))
+
     def test_new_identity_with_required_parameters(self):
         output = self._run('new',
             '--name=freckle@lackadaisy.com',

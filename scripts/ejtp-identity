@@ -23,7 +23,7 @@ A simple little script for EJTP identity management from the command line.
 
 Usage:
     ejtp-identity ( list ) [--by-file|--cache-source=<cache-source>]
-    ejtp-identity ( details ) <name> [--cache-source=<cache-source>]
+    ejtp-identity ( details ) [-ep] <name> [--cache-source=<cache-source>]
     ejtp-identity ( rm ) [-A] <names>... [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( merge ) <filename>
@@ -33,6 +33,8 @@ Usage:
 
 Options:
     -h --help       Show this help message
+    -e --export     Wrap identity in the cache structure [default: False]
+    -p --public     Convert the encryptor to its public counterpart [default: False]
 '''
 
 import os
@@ -40,7 +42,18 @@ import sys
 import json
 
 from ejtp.config import test_filenames
+from ejtp.util.py2and3 import JSONBytesEncoder
+from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt
+
+class JSONEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except TypeError:
+            return JSONBytesEncoder(obj)
+
 
 def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
     files = []
@@ -63,11 +76,17 @@ def list_identities(cache_source, by_file=False, name=None):
             if not name or name == identity['name']:
                 print('%s (%s)' % (identity['name'], identity['encryptor'][0]))
 
-def identity_details(cache_source, name):
+def identity_details(cache_source, name, export=False, public=False):
     for fname, data in data_per_file(cache_source):
         for identity in data.values():
             if identity['name'] == name:
-                print(json.dumps(identity, indent=2))
+                if public:
+                    encryptor = make(identity.get('encryptor'))
+                    identity['encryptor'] = encryptor.public()
+                obj = identity
+                if export:
+                    obj = {json.dumps(identity.get('location')): identity}
+                print(json.dumps(obj, indent=2, cls=JSONEncoder))
 
 def new_identity(name, location, encryptor, **kwargs):
     data = {
@@ -76,7 +95,7 @@ def new_identity(name, location, encryptor, **kwargs):
         'encryptor': encryptor
     }
     data.update(kwargs)
-    print(json.dumps({json.dumps(data['location']): data}, indent=2))
+    print(json.dumps({json.dumps(data['location']): data}, indent=2, cls=JSONEncoder))
 
 def merge(filename, data_to_merge):
     with open(filename, 'r') as f:
@@ -141,7 +160,7 @@ def main(argv):
         list_identities(cache_source, by_file=arguments.get('--by-file'))
 
     if arguments.get('details'):
-        identity_details(cache_source, arguments['<name>'])
+        identity_details(cache_source, arguments['<name>'], arguments['--export'], arguments['--public'])
 
     if arguments.get('new'):
         name = arguments.get('--name')
