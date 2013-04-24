@@ -22,7 +22,7 @@ try:
 except ImportError: # in python3.x it's renamed to _thread
     import _thread as thread
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawDataDecorator, StringDecorator
+from ejtp.util.py2and3 import RawDataDecorator
 
 from   Crypto.PublicKey import RSA as rsalib
 from   Crypto.Cipher import PKCS1_OAEP as Cipher
@@ -140,10 +140,7 @@ class RSA(encryptor.Encryptor):
 
     def public(self):
         key = self.key.publickey()
-        exported = key.exportKey()
-        if isinstance(exported, bytes):
-            exported = exported.decode('utf-8')
-        return ['rsa', exported]
+        return ['rsa', key.exportKey()]
 
     def can_encrypt(self):
         return self.key.has_private()

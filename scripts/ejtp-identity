@@ -42,8 +42,18 @@ import sys
 import json
 
 from ejtp.config import test_filenames
+from ejtp.util.py2and3 import JSONBytesEncoder
 from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt
+
+class JSONEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except TypeError:
+            return JSONBytesEncoder(obj)
+
 
 def data_per_file(cache_source, env_var='EJTP_IDENTITY_CACHE_PATH'):
     files = []
@@ -76,7 +86,7 @@ def identity_details(cache_source, name, export=False, public=False):
                 obj = identity
                 if export:
                     obj = {json.dumps(identity.get('location')): identity}
-                print(json.dumps(obj, indent=2))
+                print(json.dumps(obj, indent=2, cls=JSONEncoder))
 
 def new_identity(name, location, encryptor, **kwargs):
     data = {
@@ -85,7 +95,7 @@ def new_identity(name, location, encryptor, **kwargs):
         'encryptor': encryptor
     }
     data.update(kwargs)
-    print(json.dumps({json.dumps(data['location']): data}, indent=2))
+    print(json.dumps({json.dumps(data['location']): data}, indent=2, cls=JSONEncoder))
 
 def merge(filename, data_to_merge):
     with open(filename, 'r') as f:
