@@ -262,16 +262,35 @@ class TestIdentity(unittest.TestCase):
         self.assertEqual('rsa', encryptor[0])
         self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
 
+    def test_details_multi(self):
+        atlas = self._run('details', 'atlas@lackadaisy.com')
+        self.io.clear()
+        mitzi = self._run('details', 'mitzi@lackadaisy.com')
+        self.io.clear()
+        both  = self._run('details', 'mitzi@lackadaisy.com', 'atlas@lackadaisy.com')
+        self.assertIn(atlas, both)
+        self.assertIn(mitzi, both)
+
     def test_details_export(self):
         dict_data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '-e'))
         self.assertIsInstance(dict_data, dict)
         self.assertEqual(1, len(dict_data))
         location, data = list(dict_data.items())[0]
-        self.assertEqual('["local", null, "mitzi"]', location)
+        self.assertEqual('["local",null,"mitzi"]', location)
         self.assertEqual('mitzi@lackadaisy.com', data['name'])
         encryptor = data['encryptor']
         self.assertEqual('rsa', encryptor[0])
         self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
+    def test_details_multi_export(self):
+        atlas = json.loads(self._run('details', 'atlas@lackadaisy.com'))
+        self.io.clear()
+        mitzi = json.loads(self._run('details', 'mitzi@lackadaisy.com'))
+        self.io.clear()
+        both  = json.loads(self._run('details', '-e', 'mitzi@lackadaisy.com', 'atlas@lackadaisy.com'))
+        self.assertIsInstance(both, dict)
+        self.assertEqual(both['["local",null,"atlas"]'], atlas)
+        self.assertEqual(both['["local",null,"mitzi"]'], mitzi)
 
     def test_details_public(self):
         data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '--public'))
@@ -285,7 +304,7 @@ class TestIdentity(unittest.TestCase):
             '--name=freckle@lackadaisy.com',
             '--location=["local", null, "freckle"]',
             '--encryptor=["rotate", 5]')
-        data = json.loads(output)['["local", null, "freckle"]']
+        data = json.loads(output)['["local",null,"freckle"]']
         self.assertEqual('freckle@lackadaisy.com', data['name'])
         self.assertEqual(['local', None, 'freckle'], data['location'])
         self.assertEqual(['rotate', 5], data['encryptor'])
