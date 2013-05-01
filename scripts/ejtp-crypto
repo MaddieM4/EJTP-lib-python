@@ -49,7 +49,7 @@ def hex_to_byte(hexstr):
 
 def main(argv=None):
     arguments = docopt(__doc__, argv=argv[1:],
-        version='ejtp-crypto 0.9.4')
+        version='ejtp-crypto 0.9.5')
 
     if arguments['-f']:
         with open(arguments['-f'], 'r') as stdin:

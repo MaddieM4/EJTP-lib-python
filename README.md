@@ -22,13 +22,12 @@ Latest version
 ==============
 
 The latest stable version (and the first community-developed stable
-version yet available) is [Version 0.9.4](
+version yet available) is [Version 0.9.5](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has benchmarking tools, performance enhancements, pip support,
-and various improvements to the test suite.
+which is a small update bringing the ejtp-identity utility.
 
 You can read more about this release in [this blog entry](
-http://roaming-initiative.net/blog/blog/ejtp-0.9.4.html).
+http://roaming-initiative.net/blog/blog/ejtp-0.9.5.html).
 
 Installation
 ============
