@@ -122,11 +122,11 @@ class TestString(unittest.TestCase):
         self.assertEqual(tuple(iter(String('abc'))), ('a', 'b', 'c'))
   
     def test_hash(self):
-        version_major = sys.version_info[0]
-        if (version_major == 2):      
-            self.assertEqual(hash(String('abc')), hash(unicode('abc')))
-        elif (version_major >= 3):
+        from ejtp.util.compat import is_py3k
+        if is_py3k:
             self.assertEqual(hash(String('abc')), hash('abc'))
+        else:
+            self.assertEqual(hash(String('abc')), hash(unicode('abc')))
         
     def test_repr(self):
         self.assertEqual(repr(String('abc')), "String('abc')")

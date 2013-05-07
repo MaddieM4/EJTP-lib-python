@@ -1,15 +1,25 @@
-from __future__ import with_statement
-
 import os
 import imp
 import sys
+import json
 import tempfile
 
 from ejtp.util.compat import unittest
+from ejtp.tests.resource_path import *
 
-root = os.path.abspath(os.path.join(os.path.split(__file__)[0], '../..'))
-ident_cache_path = os.path.join(root, 'resources/examplecache.json')
-os.environ['EJTP_IDENTITY_CACHE_PATH'] = ident_cache_path
+ENV_VAR = 'EJTP_IDENTITY_CACHE_PATH'
+
+def set_environ():
+    ident_cache_path = testing_path('examplecache.json')
+    os.environ[ENV_VAR] = ident_cache_path
+
+def import_as_module(script_name):
+    filename = script_path(script_name)
+    with open(filename, 'rb') as fp:
+        module = imp.new_module(script_name)
+        exec(fp.read(), module.__dict__)
+        return module
+
 
 class IOMock(object):
 
@@ -59,16 +69,10 @@ class IOMock(object):
 
 class TestConsole(unittest.TestCase):
 
-    def _import(self):
-        filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-console'))
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-console')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
+        set_environ()
         self.io = IOMock()
-        self.console = self._import()
+        self.console = import_as_module('ejtp-console')
         self.inter = self.console.Interactive()
 
     def _assertCLI(self, expected):
@@ -149,15 +153,9 @@ class TestConsole(unittest.TestCase):
 
 class TestCrypto(unittest.TestCase):
 
-    def _import(self):
-        filename = os.path.abspath(os.path.join(root, 'scripts', 'ejtp-crypto'))
-        with open(filename, 'rb') as fp:
-            module = imp.new_module('ejtp-crypto')
-            exec(fp.read(), module.__dict__)
-            return module
-
     def setUp(self):
-        self.crypto = self._import()
+        set_environ()
+        self.crypto = import_as_module('ejtp-crypto')
         self.io = IOMock()
 
 
@@ -219,3 +217,197 @@ class TestCrypto(unittest.TestCase):
             self.crypto.main(argv)
 
         self.assertEqual('True', self.io.get_value())
+
+
+class TestIdentity(unittest.TestCase):
+
+    def _run(self, command, *args, **kwargs):
+        argv = ['ejtp-identity']
+        argv.append(command)
+        argv.extend(args)
+        with self.io:
+            try:
+                self.identity.main(argv)
+            except SystemExit:
+                if not kwargs.get('error'):
+                    raise
+        return self.io.get_value()
+
+    def _tmp_file_with_env_cache(self):
+        _, fname = tempfile.mkstemp()
+        with open(fname, 'w') as f:
+            f.write(open(os.environ[ENV_VAR]).read())
+        return fname
+
+    def setUp(self):
+        set_environ()
+        self.identity = import_as_module('ejtp-identity')
+        self.io = IOMock()
+
+    def test_list(self):
+        records = self._run('list').strip().split('\n')
+        for name in ('mitzi', 'victor', 'atlas'):
+            self.assertIn(name + '@lackadaisy.com (rsa)', records)
+
+    def test_list_by_file(self):
+        records = self._run('list', '--by-file').strip().split('\n')
+        self.assertIn('examplecache.json', records[0])
+        for name in ('mitzi', 'victor', 'atlas'):
+            self.assertIn(name + '@lackadaisy.com (rsa)', records)
+
+    def test_details(self):
+        data = json.loads(self._run('details', 'mitzi@lackadaisy.com'))
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
+    def test_details_multi(self):
+        atlas = self._run('details', 'atlas@lackadaisy.com')
+        self.io.clear()
+        mitzi = self._run('details', 'mitzi@lackadaisy.com')
+        self.io.clear()
+        both  = self._run('details', 'mitzi@lackadaisy.com', 'atlas@lackadaisy.com')
+        self.assertIn(atlas, both)
+        self.assertIn(mitzi, both)
+
+    def test_details_export(self):
+        dict_data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '-e'))
+        self.assertIsInstance(dict_data, dict)
+        self.assertEqual(1, len(dict_data))
+        location, data = list(dict_data.items())[0]
+        self.assertEqual('["local",null,"mitzi"]', location)
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN RSA PRIVATE KEY-----'))
+
+    def test_details_multi_export(self):
+        atlas = json.loads(self._run('details', 'atlas@lackadaisy.com'))
+        self.io.clear()
+        mitzi = json.loads(self._run('details', 'mitzi@lackadaisy.com'))
+        self.io.clear()
+        both  = json.loads(self._run('details', '-e', 'mitzi@lackadaisy.com', 'atlas@lackadaisy.com'))
+        self.assertIsInstance(both, dict)
+        self.assertEqual(both['["local",null,"atlas"]'], atlas)
+        self.assertEqual(both['["local",null,"mitzi"]'], mitzi)
+
+    def test_details_public(self):
+        data = json.loads(self._run('details', 'mitzi@lackadaisy.com', '--public'))
+        self.assertEqual('mitzi@lackadaisy.com', data['name'])
+        encryptor = data['encryptor']
+        self.assertEqual('rsa', encryptor[0])
+        self.assertTrue(encryptor[1].startswith('-----BEGIN PUBLIC KEY-----'))
+
+    def test_new_identity_with_required_parameters(self):
+        output = self._run('new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]')
+        data = json.loads(output)['["local",null,"freckle"]']
+        self.assertEqual('freckle@lackadaisy.com', data['name'])
+        self.assertEqual(['local', None, 'freckle'], data['location'])
+        self.assertEqual(['rotate', 5], data['encryptor'])
+
+    def test_list_with_cache_source(self):
+        _, fname = tempfile.mkstemp()
+        output = self._run('new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]')
+        with open(fname, 'w') as f:
+            f.write(output)
+        self.io.clear()
+        output = self._run('list', '--cache-source=' + fname)
+        self.assertEqual('freckle@lackadaisy.com (rotate)', output)
+
+    def test_merge_files(self):
+        fname = self._tmp_file_with_env_cache()
+        self._run('new',
+            '--name=freckle@lackadaisy.com',
+            '--location=["local", null, "freckle"]',
+            '--encryptor=["rotate", 5]')
+        self.io.pipe()
+        self._run('merge', fname)
+
+        with open(fname, 'r') as f:
+            data = json.load(f)
+        self.assertEqual(4, len(data))
+
+    def test_set_attribute(self):
+        fname = self._tmp_file_with_env_cache()
+        self._run('set',
+            'atlas@lackadaisy.com',
+            '--args={"noob":true}',
+            '--cache-source=' + fname)
+        self.io.clear()
+        output = self._run('details',
+            'atlas@lackadaisy.com',
+            '--cache-source=' + fname)
+        data = json.loads(output)
+        self.assertEqual(True, data['noob'])
+
+    def test_without_env_var(self):
+        self.env_data = None
+        if ENV_VAR in os.environ:
+            self.env_data = os.environ.pop(ENV_VAR)
+        try:
+            self._run('list')
+        finally:
+            if self.env_data:
+                os.environ[ENV_VAR] = self.env_data
+
+    def test_rm_valid_name(self):
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'atlas@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('atlas@lackadaisy.com removed from file %s' % fname, output)
+
+        self.io.clear()
+        output = self._run('list', '--cache-source=' + fname)
+        self.assertNotIn('atlas@lackadaisy.com', self.io.get_value())
+
+    def test_rm_two_valid_names(self):
+        fname = self._tmp_file_with_env_cache()
+        names = ('atlas@lackadaisy.com', 'victor@lackadaisy.com')
+
+        data = self._run('rm', '--cache-source=' + fname, *names)
+        for name in names:
+            self.assertIn(name + ' removed from file %s' % fname, data)
+
+        self.io.clear()
+        data = self._run('list', '--cache-source=' + fname)
+        for name in names:
+            self.assertNotIn(name, data)
+
+    def test_rm_invalid_name(self):
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'none@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('none@lackadaisy.com not found in any cache file', output)
+
+    def test_rm_invalid_name(self):
+        fname = self._tmp_file_with_env_cache()
+        output = self._run('rm', 'none@lackadaisy.com', '--cache-source=' + fname)
+        self.assertIn('none@lackadaisy.com not found in any cache file', output)
+
+    def test_rm_error_with_name_repeated_across_files(self):
+        fname1 = self._tmp_file_with_env_cache()
+        fname2 = self._tmp_file_with_env_cache()
+        self._curr_var = os.environ[ENV_VAR]
+        os.environ[ENV_VAR] = ':'.join([fname1, fname2])
+        try:
+            output = self._run('rm', 'mitzi@lackadaisy.com', error=True)
+            self.assertIn('Identity mitzi@lackadaisy.com found in multiple files', output)
+        finally:
+            os.environ[ENV_VAR] = self._curr_var
+
+    def test_rm_name_in_all_files(self):
+        fname1 = self._tmp_file_with_env_cache()
+        fname2 = self._tmp_file_with_env_cache()
+        self._curr_var = os.environ[ENV_VAR]
+        os.environ[ENV_VAR] = ':'.join([fname1, fname2])
+        try:
+            data = self._run('rm', 'mitzi@lackadaisy.com', '-A')
+            self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname1, data)
+            self.assertIn('mitzi@lackadaisy.com removed from file %s' % fname2, data)
+        finally:
+            os.environ[ENV_VAR] = self._curr_var

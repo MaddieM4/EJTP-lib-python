@@ -16,18 +16,29 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-import sys
+import os
+import os.path
 
-if (2, 7) <= sys.version_info[:2] < (3, 0) or sys.version_info >= (3, 2):
-    import unittest
-else:
-    import unittest2 as unittest
+def testing_path(path):
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        path
+    )
 
-# Same as sys.version_info.major, but supports pre-2.7
-is_py3k = sys.version_info[0] == 3
+def script_path(path):
+    # Attempt local version before resorting to global path
+    return search_path(path,
+        os.path.join(
+            os.path.split(__file__)[0],
+            '../../scripts',
+        )
+    ) or which(path)
 
-# Python 3+ moved cStringIO to io module
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+def search_path(filename, search_path):
+    for path in search_path.split(os.pathsep):
+        potential_match = os.path.abspath(os.path.join(path, filename))
+        if os.path.exists(potential_match):
+            return potential_match
+
+def which(execname):
+    return search_path(execname, os.environ['PATH'])

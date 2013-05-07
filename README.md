@@ -5,7 +5,7 @@ EJTP-lib-python
 
 [![Build Status](https://travis-ci.org/campadrenalin/EJTP-lib-python.png)](https://travis-ci.org/campadrenalin/EJTP-lib-python)
 
-Encrypted JSON Transport Protocol library for Python 2.x.
+Encrypted JSON Transport Protocol library for Python 2.6-3.3.
 
 EJTP is a data transfer protocol that allows JSON exchange over a
 very wide and infinitely extensible set of underlying transports.
@@ -18,20 +18,50 @@ who goes by the name of Bluethulu.
 
 ![Bluethulu](https://raw.github.com/campadrenalin/EJTP-lib-python/stable/resources/bluethulu.png)
 
+Latest version
+==============
+
+The latest stable version (and the first community-developed stable
+version yet available) is [Version 0.9.5](
+https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
+which is a small update bringing the ejtp-identity utility.
+
+You can read more about this release in [this blog entry](
+http://roaming-initiative.net/blog/blog/ejtp-0.9.5.html).
+
 Installation
 ============
+
+### Easy way (via pip)
+
+You can easily install the stable version of EJTP with just a few
+commands, now that it's available on PyPI.
+
+Make sure you have the headers for Python/C binding compilation:
+
+    $ sudo apt-get install python-dev
+
+For platforms other than Ubuntu/Debian, replace with the appropriate
+package manager invocation as necessary. This is necessary because
+of our dependency on PyCrypto, which will automatically install
+with EJTP, but only if it can compile.
+
+After that finishes, install via pip.
+
+    $ sudo pip install ejtp
+
+You'll probably need to run that as sudo to install systemwide, but
+should not use sudo when installing EJTP into a virtualenv environment.
+
+You won't need to manually install any mandatory dependencies, but
+still need to manually install any optional ones you want, like PyECC.
+
+### Less easy way (via git)
 
 Download, clone, or transmodulate the source code to your computer,
 go into the uncompressed directory, and run "./setup.py install" as
 an administrator account. This is standard procedure for most
 Python libraries, and is how this one works as well.
-
-The latest stable version (and the first community-developed stable
-version yet available) is [Version 0.9.2](
-https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which has bug fixes, Python 3.X support, and the identity system
-migrated from DEJE, which forms the new standard format for storing
-encryption identity metadata.
 
 If you have issues, be sure to [submit the issue](
 https://github.com/campadrenalin/EJTP-lib-python/issues/new) and,
@@ -44,7 +74,7 @@ Dependencies
 ============
 
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
- * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository]((https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
+ * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository](https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
  * For testing:
    * Install [DoctestAll](https://github.com/campadrenalin/DoctestAll).
    * For developer testing: [tox](http://testrun.org/tox/latest/index.html).
@@ -61,6 +91,23 @@ their rcv_callback property to your own preferred callback.
 Testing
 =======
 
+### People who installed via pip
+
+To test EJTP, just run the following commands from any location.
+
+    $ doctestall ejtp
+    $ python -m ejtp.tests.runner
+
+If you run into import errors, it means you need to install some things to
+make tests work (the PyPI package only installs the requirements you need
+to _use_ EJTP, not test it). Depending on your platform and Python version,
+this is usually unittest2 and DoctestAll. Install whatever's missing, until
+you don't have import errors in your output:
+
+    $ sudo pip install doctestall unittest2
+
+If you still have errors, see the paragraph a few down from this one.
+
 ### Normal users
 
 Run `./install_and_test.sh`. This installs (or reinstalls) EJTP according
@@ -74,12 +121,11 @@ standard library.
 ### Developers
 
 Install the software needed for testing (see Dependencies section above),
-including Python versions 2.5-3.3, then simply run the `tox` command.
+including Python versions 2.6-3.3, then simply run the `tox` command.
 
     name@machine$ tox
     (a bunch of output ...)
     ____________ summary ______________
-      py25: commands succeeded
       py26: commands succeeded
       py27: commands succeeded
       py31: commands succeeded

@@ -16,8 +16,6 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.compat import format, bytes
-
 class RawData(object):
     '''
     This class is supposed to store raw data and behaves similar to str in
@@ -43,19 +41,19 @@ class RawData(object):
         else:
             if isinstance(value, int):
                 value = (value,)
-            try:
-                iter(value)
-            except TypeError:
+            if not (hasattr(value, '__iter__') or hasattr(value, '__getitem__')):
                 raise TypeError('value must be iterable')
             if isinstance(value, bytes):
                 # this makes sure that iterating over value gives one byte at a time
                 # in python 2 and 3
                 if bytes == str:
                     # in python 2 iterating over bytes gives characters instead of integers
-                    value = (ord(c) for c in value)
-                value = tuple(value)
+                    value = tuple(map(ord, value))
+                else:
+                    # Only tuple-ify if not already tuple-ified by map above
+                    value = tuple(value)
             elif bytes==str and isinstance(value, unicode):
-                    value = tuple((ord(c) for c in value.encode('utf-8')))
+                value = tuple(map(ord, value.encode('utf-8')))
             elif isinstance(value, str):
                 # only python3 strings here
                 value = tuple(value.encode('utf-8'))
@@ -64,7 +62,7 @@ class RawData(object):
             else:
                 # maybe a list of ints?
                 try:
-                    value = tuple((int(i) for i in value))
+                    value = tuple(map(int, value))
                 except ValueError:
                     raise ValueError('values must be ints')
 
@@ -109,7 +107,7 @@ class RawData(object):
         return self._data.__hash__()
 
     def __repr__(self):
-        return 'RawData((' + ','.join([format(c, '#04x') for c in self._data]) + '))'
+        return 'RawData((' + ','.join(map(hex, self._data)) + '))'
     
     def __int__(self):
         '''
@@ -133,9 +131,7 @@ class RawData(object):
         if len(byte) != 1:
             raise TypeError('byte must be of length 1')
         try:
-            _data = self._data if isinstance(self._data, tuple) and hasattr(self._data, 'index') \
-                else list(self._data)
-            return _data.index(byte._data[0])
+            return self._data.index(byte._data[0])
         except ValueError:
             raise ValueError('byte not in RawData')
 
@@ -160,7 +156,7 @@ class RawData(object):
         expect bytes. Don't use this for comparison!
         '''
         if bytes == str:
-            return bytes().join(chr(c) for c in self._data)
+            return bytes().join(map(chr,self._data))
         return bytes(self._data)
 
 
@@ -183,22 +179,24 @@ class String(object):
         Takes an string or RawData and converts it to unicode.
         '''
         if isinstance(string, String):
-            string = string._data
+            self._data = string._data
         elif isinstance(string, RawData):
             try:
-                string = string.toString()._data
+                self._data = string.toString()._data
             except UnicodeDecodeError:
                 raise TypeError("can't convert RawData to String")
         elif isinstance(string, bytes):
-            string = RawData(string).toString()._data
+            self._data = RawData(string).toString()._data
         elif (bytes == str):
             # python2 only here
             if not isinstance(string, unicode):
                 raise TypeError('string must be of type str, unicode or RawData')
+            self._data = string
         elif not isinstance(string, str):
             # python3 only here
             raise TypeError('string must be of type bytes, str or RawData')
-        self._data = string
+        else:
+            self._data = string
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -388,7 +386,7 @@ class RawDataDecorator(DataDecorator):
                         newargs.append(RawData(arg))
                     except (TypeError, ValueError):
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to RawData" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to RawData" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
@@ -450,7 +448,7 @@ class StringDecorator(DataDecorator):
                         newargs.append(String(arg))
                     except TypeError:
                         if self._dec_args['strict']:
-                            raise TypeError("can't convert arg %i to String" % list(args).index(arg))
+                            raise TypeError("can't convert arg %i to String" % args.index(arg))
                         newargs.append(arg)
                 else:
                     newargs.append(arg)
