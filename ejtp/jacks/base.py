@@ -16,26 +16,73 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import RawDataDecorator
 from ejtp.address import py_address
+from ejtp.router import Router
+from ejtp.util.py2and3 import RawDataDecorator
 
 
 class BaseJack(object):
+    '''
+    Base class for ReaderJack and WriterJack.
+
+    Don't inherit from this class directly, use ReaderJack and WriterJack instead.
+
+    Class attributes:
+    bind: indicates if this Jack class needs to bind to an address.
+    '''
+    bind = False
+
     def __init__(self, address):
+        '''
+        Subclasses must call BaseJack.__init__ if it gets overridden.
+
+        Arguments:
+        address: valid EJTP address
+        '''
         self._address = py_address(address)
+        self._router = None
+   
+    def link(self, router):
+        '''
+        links jack to the given router.
+
+        Also unlinks from the current router, if it is linked.
+
+        Arguments:
+        router: instance of ejtp.router.Router 
+        '''
+        if not isinstance(router, Router):
+            raise ValueError('router must be instance of ejtp.router.Router')
+
+        if self._router is not None:
+            self.unlink()
+ 
+        self._router = router
+        self._router._load_jack(self)
+   
+    def unlink(self):
+        '''
+        unlinks jack from previous linked router.
+        '''
+        if self._router is not None:
+            self._router.unload_jack(self, True)
+            self._router = None
     
     @property
     def router_key(self):
         '''
         Returns unique identifier for storing in the router.
         '''
-        raise NotImplementedError('subclasses of BaseJack must define router_key')
+        if not self.bind:
+            return (self._address[0], None)
+        else:
+            return tuple(self._address[0:2])
 
 
 class ReaderJack(BaseJack):
-    @property
-    def router_key(self):
-        return tuple(self._address[0:2])
+    '''
+    Base class of jacks that are capable of receiving data.
+    '''
 
     def run(self):
         raise NotImplementedError('subclasses of ReaderJack must define run')

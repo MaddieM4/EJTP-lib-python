@@ -28,6 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ejtp import frame
+from ejtp.jacks.base import BaseJack
 from ejtp.util.crashnicely import Guard
 
 STOPPED = 0
@@ -38,7 +39,7 @@ class Router(object):
         self.runstate = STOPPED
         self._jacks = {}
         self._clients = {}
-        self._loadjacks(jacks)
+        self.load_jacks(jacks)
         self._loadclients(clients)
         self.run()
 
@@ -82,44 +83,77 @@ class Router(object):
         else:
             return None
 
+    def load_jack(self, jack):
+        '''
+        loads jack into router.
+
+        If jack was already loaded, it gets unloaded and reloaded instead.
+
+        Arguments:
+        jack: instance of ejtp.jacks.base.BaseJack
+
+        Raises:
+        TypeError: if jack is not a valid jack
+        '''
+        if not isinstance(jack, BaseJack):
+            raise TypeError('jack must be instance of BaseJack')
+        jack.link(self)
+
+    def load_jacks(self, jacks):
+        '''
+        Convenient call for loading multiple jacks at once.
+
+        Arguments:
+        jacks: iterable that contains instances of ejtp.jacks.base.BaseJack
+        '''
+        for j in jacks:
+            self.load_jack(j)
+    
+    def unload_jack(self, jack):
+        '''
+        unloads jack from router.
+
+        Arguments:
+        jack: instance of ejtp.jacks.base.BaseJack
+
+        Raises:
+        TypeError: if jack is not a valid jack
+        ValueError: if jack is not loaded in this router
+        '''
+        if not isinstance(jack, BaseJack):
+            raise TypeError('jack must be instance of BaseJack')
+        if jack.router_key not in self._jacks:
+            raise ValueError('jack is not loaded in router')
+        jack.unlink()
+
     def kill_client(self, addr):
         addr = rtuple(addr[:3])
         del self._clients[addr] # Bubble exception up if client does not exist
+   
+    def _load_jack(self, jack):
+        '''
+        loads jack into router.
 
-    def thread_all(self):
-        # Run all Jack threads
-        for i in self._jacks:
-            self._jacks[i].run_threaded()
+        Arguments:
+        jack: instance of ejtp.jacks.base.BaseJack
+        '''
+        self._jacks[jack.router_key] = jack
+    
+    def _unload_jack(self, jack):
+        '''
+        unloads jack from router.
 
-    def stop_all(self):
-        # Run all Jack threads
-        for i in self._jacks:
-            self._jacks[i].close()
+        If jack was not loaded in this router, this method returns silently.
 
-    def run(self, level=THREADED):
-        if level==THREADED:
-            if self.runstate == STOPPED:
-                self.thread_all()
-        elif level==STOPPED:
-            # stop all jacks
-            self.stop_all()
-        self.runstate = level
-
-    def _loadjacks(self, jacks):
-        for j in jacks:
-            self._loadjack(j)
+        Arguments:
+        jack: instance of ejtp.jacks.base.BaseJack
+        '''
+        if jack.router_key in self._jacks:
+            del self._jacks[jack.router_key]
 
     def _loadclients(self, clients):
         for c in clients:
             self._loadclient(c)
-
-    def _loadjack(self, jack):
-        key = rtuple(jack.interface[:2])
-        if key in self._jacks:
-            raise ValueError('jack already loaded')
-        self._jacks[key] = jack
-        if self.runstate == THREADED:
-            jack.run_threaded()
 
     def _loadclient(self, client):
         key = rtuple(client.interface[:3])

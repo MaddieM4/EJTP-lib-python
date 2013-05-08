@@ -24,7 +24,7 @@ from ejtp.address import py_address
 
 # contains all types of jacks known to ejtp
 # keys are the addrtype field of an address
-# values are list of length 2: [readerJack, writerJack]
+# values are lists of length 2: [readerJack, writerJack]
 _jacktypes = {}
 
 def createJack(address, reader = False):
