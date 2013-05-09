@@ -19,6 +19,7 @@ along with the Python EJTP library.  If not, see
 from ejtp.address import py_address
 from ejtp.router import Router
 from ejtp.util.py2and3 import RawDataDecorator
+import threading
 
 
 class BaseJack(object):
@@ -79,31 +80,65 @@ class BaseJack(object):
             return tuple(self._address[0:2])
 
 
+class JackRunningError(Exception):
+    '''
+    Gets raised if you try to start a ReaderJack that is currently running.
+    '''
+    pass
+
+
 class ReaderJack(BaseJack):
     '''
     Base class of jacks that are capable of receiving data.
     '''
 
-    def run(self):
-        raise NotImplementedError('subclasses of ReaderJack must define run')
+    bind = True
+
+    def __init__(self, *args):
+        BaseJack.__init__(self, *args)
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def _run(self):
+        '''
+        Blocking call for receiving new data.
+
+        Incoming frames must be passed to self.recv.
+        Must be overridden by subclasses.
+        '''
+        raise NotImplementedError('subclasses of ReaderJack must define _run')
     
-    @RawDataDecorator(strict=True)
-    def recv(self, data):
+    def run(self):
+        ''' 
+        Starts listening for incoming data.
+
+        Internally, a new thread will run self._run and waits for data being yielded.
+        The data then will be passed to self.recv.
         '''
-        Gets called in self.run() and passes the data to the router
+        if self._thread.is_alive():
+            raise JackRunningError()
+        self._thread.start()
+
+    def recv(self, frame):
         '''
-        pass 
+        Gets called in self._run() and passes the frame to the router.
+
+        If no router is loaded, the frame will be discarded.
+
+        Arguments:
+        frame: a frame returned by ejtp.frame.createFrame
+        '''
+        if self._router is None:
+            #TODO: log this
+            # frame gets discarded here
+            return
+        
+        self._router.recv(frame)
 
 
 class WriterJack(BaseJack):
-    nobind = True
-
-    @property
-    def router_key(self):
-        if self.nobind:
-            return (self._address[0], None)
-        else:
-            return tuple(self._address[0:2])
+    '''
+    Base class of jacks that are capable of sending data.
+    '''
 
     @RawDataDecorator(strict=True)
     def send(self, data):
