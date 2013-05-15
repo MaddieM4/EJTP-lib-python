@@ -17,9 +17,9 @@ along with the Python EJTP library.  If not, see
 '''
 
 from Crypto.Hash import SHA256
+from persei import RawData
 
 from ejtp.util.compat import unittest
-from ejtp.util.py2and3 import RawData
 
 from ejtp.crypto import make
 from ejtp.crypto.ecc import ECC

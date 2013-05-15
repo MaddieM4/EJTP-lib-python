@@ -16,7 +16,7 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
+from persei import RawData, String, RawDataDecorator, StringDecorator
 
 json = __import__('json', {})
 

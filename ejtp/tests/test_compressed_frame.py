@@ -16,8 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from persei import RawData
+
 from ejtp.util.compat import unittest
-from ejtp.util.py2and3 import RawData
 from ejtp import frame
 
 import zlib

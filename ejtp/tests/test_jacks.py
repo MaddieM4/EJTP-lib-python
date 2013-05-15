@@ -1,8 +1,10 @@
 from ejtp.util.compat import unittest
 
 import threading
+
+from persei import String, RawData
+
 from ejtp import router, client
-from ejtp.util.py2and3 import String, RawData
 from ejtp.jacks.stream import Connection
 
 class TestJacks(unittest.TestCase):

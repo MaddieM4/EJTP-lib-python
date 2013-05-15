@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from ejtp.util.compat import unittest
 
-from ejtp.util.py2and3 import RawData, String, RawDataDecorator, StringDecorator
+from persei import RawData, String, RawDataDecorator, StringDecorator
 
 from random import randint
 import sys

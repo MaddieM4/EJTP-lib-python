@@ -18,9 +18,11 @@ along with the Python EJTP library.  If not, see
 
 import logging
 logger = logging.getLogger(__name__)
+
+from persei import RawData, RawDataDecorator, StringDecorator
+
 from ejtp.crypto.encryptor import make
 from ejtp.util.hasher import strict, make as hashfunc
-from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
 
 from ejtp.address import *
 from ejtp import frame

@@ -16,14 +16,15 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import re
 import logging
 logger = logging.getLogger(__name__)
 
+from persei import String
+
 from ejtp.client import Client
 from ejtp.util.hasher import strict
-from ejtp.util.py2and3 import String
 from ejtp.address import *
-import re
 
 errorcodes = {
     100:"Internal error (Reason unknown or unspecified)",
