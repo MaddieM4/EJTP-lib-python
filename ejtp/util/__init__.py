@@ -20,5 +20,4 @@ along with the Python EJTP library.  If not, see
 __all__ = [
 	'crashnicely',
 	'hasher',
-    'py2and3',
 ]
