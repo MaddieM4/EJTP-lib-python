@@ -16,10 +16,10 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.compat import unittest
+from persei import String
 
+from ejtp.util.compat import unittest
 from ejtp.address import str_address, py_address
-from ejtp.util.py2and3 import String
 
 class TestPyAddress(unittest.TestCase):
 

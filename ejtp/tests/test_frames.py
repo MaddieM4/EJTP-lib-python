@@ -16,9 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.util.compat import unittest 
-from ejtp.util.py2and3 import RawData, String, StringDecorator
+from persei import RawData, String, StringDecorator
 
+from ejtp.util.compat import unittest
 from ejtp import frame
 
 class RegistrationPreservingTest(unittest.TestCase):
