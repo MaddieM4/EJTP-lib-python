@@ -33,6 +33,7 @@ setup(
     },
     install_requires = [
         'pycrypto',
+        'persei',
     ],
     classifiers = [
         'Development Status :: 4 - Beta',
