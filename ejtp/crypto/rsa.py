@@ -21,8 +21,9 @@ try:
     import thread
 except ImportError: # in python3.x it's renamed to _thread
     import _thread as thread
+from persei import RawDataDecorator
+
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawDataDecorator
 
 from   Crypto.PublicKey import RSA as rsalib
 from   Crypto.Cipher import PKCS1_OAEP as Cipher

@@ -16,8 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from persei import JSONBytesEncoder
+
 import ejtp.crypto
-from ejtp.util.py2and3 import JSONBytesEncoder
 
 class Identity(object):
     def __init__(self, name, encryptor, location, **kwargs):

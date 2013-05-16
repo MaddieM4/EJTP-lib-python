@@ -16,8 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from persei import RawDataDecorator
+
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawDataDecorator
 
 class ECC(encryptor.Encryptor):
     def __init__(self, public, private, curve):

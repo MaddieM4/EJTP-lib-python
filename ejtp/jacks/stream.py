@@ -16,9 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.jacks import core as jack
+from persei import RawData, RawDataDecorator
 
-from ejtp.util.py2and3 import RawData, RawDataDecorator
+from ejtp.jacks import core as jack
 
 import threading
 try:

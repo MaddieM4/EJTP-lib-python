@@ -16,14 +16,13 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import socket
 import logging
 logger = logging.getLogger(__name__)
 
+from persei import RawDataDecorator
+
 from ejtp.jacks import stream
-
-from ejtp.util.py2and3 import RawDataDecorator
-
-import socket
 
 class TCPJack(stream.StreamJack):
 

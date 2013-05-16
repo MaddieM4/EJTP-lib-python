@@ -16,11 +16,12 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from persei import RawData, RawDataDecorator
+
 from ejtp.address import str_address
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import ReceiverCategory
-from ejtp.util.py2and3 import RawData, RawDataDecorator
 
 @RegisterFrame('r')
 class EncryptedFrame(ReceiverCategory, BaseFrame):

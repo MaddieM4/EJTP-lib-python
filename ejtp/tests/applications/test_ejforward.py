@@ -1,8 +1,9 @@
+from persei import String
+
 from ejtp.router import Router
 from ejtp.applications.ejforward.client import ForwardClient, logger as client_logger
 from ejtp.applications.ejforward.server import ForwardServer, logger as server_logger
 from ejtp.util.hasher import strict
-from ejtp.util.py2and3 import String
 
 from ejtp.tests.tools import TestCaseWithLog
 

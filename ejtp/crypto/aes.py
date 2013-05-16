@@ -16,9 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from persei import RawData, RawDataDecorator, StringDecorator
 
 from ejtp.crypto import encryptor
-from ejtp.util.py2and3 import RawData, RawDataDecorator, StringDecorator
 
 from Crypto.Hash import SHA
 from Crypto.Cipher import AES
