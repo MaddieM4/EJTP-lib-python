@@ -20,6 +20,7 @@ from persei import String, RawDataDecorator, StringDecorator
 
 from ejtp.util.hasher import strict
 from Crypto.Hash import SHA256 as hashclass
+import streql
 
 class Encryptor(object):
     def encrypt(self, s):
@@ -75,7 +76,7 @@ class Encryptor(object):
         Verify a signature, by comparing it against a new signature
         of the same source data.
         '''
-        return signature == self.sign(plaintext)
+        return streql.equals(signature.export(), self.sign(plaintext).export())
 
     def flip(self):
         return Flip(self)
