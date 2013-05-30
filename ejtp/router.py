@@ -187,7 +187,6 @@ class Router(object):
     def unload_connection(self, conn):
         addr = rtuple(conn.remote[:2])
         del self._connections[addr]
-        conn.close()
 
     def _loadclients(self, clients):
         for c in clients:
@@ -198,6 +197,10 @@ class Router(object):
         if key in self._clients:
             raise ValueError('client already loaded')
         self._clients[key] = client
+
+    def close_jacks(self):
+        for jack in self._jacks.values():
+            jack.close()
 
 def rtuple(obj):
     # Convert lists into tuples recursively

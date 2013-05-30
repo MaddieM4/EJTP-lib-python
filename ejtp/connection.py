@@ -54,6 +54,7 @@ class Connection(object):
         '''
         Close all sockets and de-register from Jack.
         '''
+        self.router.unload_connection(self)
         self.jack.close_connection(self)
 
     @property

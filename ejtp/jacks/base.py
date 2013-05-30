@@ -41,7 +41,9 @@ class BaseJack(object):
         '''
         self._address = py_address(address)
         self._router = None
-        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread = threading.Thread(target=self._run)
+        self._thread.daemon = True
+        self._stop   = False
    
     def link(self, router):
         '''
@@ -67,21 +69,34 @@ class BaseJack(object):
         unlinks jack from previous linked router.
         '''
         if self._router is not None:
-            self._router.unload_jack(self, True)
+            router = self._router
             self._router = None
+            router.unload_jack(self)
 
     def connect(self, address):
         '''
         Return a Connection object that provides access to the given address.
         '''
-        raise NotImplementedError('Jacks must provide a connect(addr) function')
+        raise NotImplementedError('subclasses of BaseJack must define connect')
     
+    def send(self, conn, data):
+        '''
+        Send data through a connection.
+        '''
+        raise NotImplementedError('subclasses of BaseJack must define send')
+
+    def close_connection(self, conn):
+        '''
+        Close all sockets for a connection.
+        '''
+        raise NotImplementedError('subclasses of BaseJack must define close_connection')
+
     def _run(self):
         '''
         Blocking call for receiving new data.
 
         Incoming frames must be passed to self.recv.
-        Must be overridden by subclasses.
+        Must be overridden by subclasses, should regularly test for self._stop.
         '''
         raise NotImplementedError('subclasses of BaseJack must define _run')
     
@@ -95,6 +110,22 @@ class BaseJack(object):
         if self._thread.is_alive():
             raise JackRunningError()
         self._thread.start()
+
+    def recv(self, data):
+        '''
+        Forward frame to router, if linked. Otherwise, silently drop that data.
+        '''
+        if self._router is not None:
+            self._router.recv(data)
+
+    def close(self):
+        '''
+        Shut down incoming connection server, all connections, and thread.
+        '''
+        for conn in self.connections:
+            conn.close()
+        self._stop = True
+        self._thread.join()
 
     @property
     def router_key(self):

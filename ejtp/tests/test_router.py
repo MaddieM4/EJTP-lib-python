@@ -8,14 +8,17 @@ class TestRouter(unittest.TestCase):
         self.router = router.Router()
 
     def test_jack_already_loaded(self):
-        from ejtp.jacks import Jack
-        class DummyJack(Jack):
+        from ejtp.jacks.base import ReaderJack
+        class DummyJack(ReaderJack):
             def run(self, *args):
                 pass
 
-        jack = DummyJack(self.router, (1, 2, 3))
-        self.assertRaisesRegexp(ValueError,
-            'jack already loaded', self.router._loadjack, jack)
+        jack = DummyJack((1, 2, 3))
+        self.router.load_jack(jack)
+        # TODO: We no longer raise an exception for this, just unload and 
+        # reload the jack
+        #self.assertRaisesRegexp(ValueError,
+        #    'jack already loaded', self.router.load_jack, jack)
 
     def test_client_already_loaded(self):
         from ejtp.client import Client

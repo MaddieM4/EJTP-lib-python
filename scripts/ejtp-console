@@ -43,7 +43,6 @@ except: pass
 class Interactive(object):
     def __init__(self, router=None):
         self.router = router or Router()
-        self.router.run()
         self.client = None
         self.messages   = []
         self._cache = None
