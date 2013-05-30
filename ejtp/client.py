@@ -38,8 +38,9 @@ class Client(object):
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
         self.encryptor_cache = encryptor_cache or identity.IdentityCache()
-        if make_jack:
-            jacks.make(router, interface)
+        if make_jack and interface[0] != 'local':
+            jack = jacks.createJack(interface)
+            self.router.load_jack(jack)
 
     def send(self, msg):
         # Send frame to router

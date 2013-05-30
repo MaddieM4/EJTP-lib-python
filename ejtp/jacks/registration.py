@@ -21,6 +21,7 @@ __doctestall__ = []
 
 from ejtp.util.py2and3 import RawData, RawDataDecorator
 from ejtp.address import py_address
+from ejtp.jacks.base import *
 
 # contains all types of jacks known to ejtp
 # keys are the addrtype field of an address
@@ -47,9 +48,8 @@ class RegisterJack(object):
     '''
     This class is used as a decorator for reader and writer Jacks
 
-    >>> from ejtp.frame.base import BaseFrame
-    >>> @RegisterFrame('x')
-    ... class MyXFrame(BaseFrame):
+    >>> @RegisterJack('x')
+    ... class MyXJack(ReaderJack):
     ...     pass
     ...
     '''

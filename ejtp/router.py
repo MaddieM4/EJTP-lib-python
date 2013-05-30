@@ -28,6 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ejtp import frame
+from ejtp.jacks import createJack
 from ejtp.jacks.base import BaseJack
 from ejtp.util.crashnicely import Guard
 
@@ -36,12 +37,11 @@ THREADED = 1
 
 class Router(object):
     def __init__(self, jacks=[], clients=[]):
-        self.runstate = STOPPED
         self._jacks = {}
         self._clients = {}
+        self._connections = {}
         self.load_jacks(jacks)
         self._loadclients(clients)
-        self.run()
 
     def recv(self, msg):
         '''
@@ -57,7 +57,7 @@ class Router(object):
                 logger.info("Router could not parse frame: %s", repr(msg))
                 return
         if isinstance(msg, frame.address.ReceiverCategory):
-            recvr = self.client(msg.address) or self.jack(msg.address)
+            recvr = self.client(msg.address) or self.connection(msg.address)
             if recvr:
                 with Guard():
                     recvr.route(msg)
@@ -82,6 +82,35 @@ class Router(object):
             return self._clients[addr]
         else:
             return None
+
+    def connection(self, addr):
+        addr = rtuple(addr[:2])
+        if addr in self._connections:
+            return self._connections[addr]
+        else:
+            return None
+
+    def connect(self, address):
+        '''
+        Create and register a Connection to the given address.
+        '''
+        jack = self.create_jack(address)
+        conn = jack.connect(address)
+        self.load_connection(conn)
+        return conn
+
+    def create_jack(self, address):
+        '''
+        Create and register a WriterJack, if necessary.
+        '''
+        registered = self.jack(addr)
+        if registered:
+            return registered
+        else:
+            # Create and register new Jack
+            jack = createJack(address)
+            self.load_jack(jack)
+            return jack
 
     def load_jack(self, jack):
         '''
@@ -150,6 +179,15 @@ class Router(object):
         '''
         if jack.router_key in self._jacks:
             del self._jacks[jack.router_key]
+
+    def load_connection(self, conn):
+        addr = rtuple(conn.remote[:2])
+        self._connections[addr] = conn
+
+    def unload_connection(self, conn):
+        addr = rtuple(conn.remote[:2])
+        del self._connections[addr]
+        conn.close()
 
     def _loadclients(self, clients):
         for c in clients:

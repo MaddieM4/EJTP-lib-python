@@ -17,7 +17,6 @@ along with the Python EJTP library.  If not, see
 '''
 
 from ejtp.address import py_address
-from ejtp.router import Router
 from ejtp.util.py2and3 import RawDataDecorator
 import threading
 
@@ -42,6 +41,7 @@ class BaseJack(object):
         '''
         self._address = py_address(address)
         self._router = None
+        self._thread = threading.Thread(target=self._run, daemon=True)
    
     def link(self, router):
         '''
@@ -52,6 +52,7 @@ class BaseJack(object):
         Arguments:
         router: instance of ejtp.router.Router 
         '''
+        from ejtp.router import Router
         if not isinstance(router, Router):
             raise ValueError('router must be instance of ejtp.router.Router')
 
@@ -68,7 +69,33 @@ class BaseJack(object):
         if self._router is not None:
             self._router.unload_jack(self, True)
             self._router = None
+
+    def connect(self, address):
+        '''
+        Return a Connection object that provides access to the given address.
+        '''
+        raise NotImplementedError('Jacks must provide a connect(addr) function')
     
+    def _run(self):
+        '''
+        Blocking call for receiving new data.
+
+        Incoming frames must be passed to self.recv.
+        Must be overridden by subclasses.
+        '''
+        raise NotImplementedError('subclasses of BaseJack must define _run')
+    
+    def run(self):
+        ''' 
+        Starts listening for incoming data.
+
+        Internally, a new thread will run self._run and waits for data being yielded.
+        The data then will be passed to self.router.recv.
+        '''
+        if self._thread.is_alive():
+            raise JackRunningError()
+        self._thread.start()
+
     @property
     def router_key(self):
         '''
@@ -89,60 +116,13 @@ class JackRunningError(Exception):
 
 class ReaderJack(BaseJack):
     '''
-    Base class of jacks that are capable of receiving data.
+    Base class of jacks that are capable of receiving connections.
     '''
 
     has_local_address = True
 
-    def __init__(self, *args):
-        BaseJack.__init__(self, *args)
-        self._thread = threading.Thread(target=self._run, daemon=True)
-
-    def _run(self):
-        '''
-        Blocking call for receiving new data.
-
-        Incoming frames must be passed to self.recv.
-        Must be overridden by subclasses.
-        '''
-        raise NotImplementedError('subclasses of ReaderJack must define _run')
-    
-    def run(self):
-        ''' 
-        Starts listening for incoming data.
-
-        Internally, a new thread will run self._run and waits for data being yielded.
-        The data then will be passed to self.recv.
-        '''
-        if self._thread.is_alive():
-            raise JackRunningError()
-        self._thread.start()
-
-    def recv(self, frame):
-        '''
-        Gets called in self._run() and passes the frame to the router.
-
-        If no router is loaded, the frame will be discarded.
-
-        Arguments:
-        frame: a frame returned by ejtp.frame.createFrame
-        '''
-        if self._router is None:
-            #TODO: log this
-            # frame gets discarded here
-            return
-        
-        self._router.recv(frame)
-
-
 class WriterJack(BaseJack):
     '''
-    Base class of jacks that are capable of sending data.
+    Base class of jacks that are capable of creating connections.
     '''
-
-    @RawDataDecorator(strict=True)
-    def send(self, data):
-        '''
-        Sends data to address.
-        '''
-        raise NotImplementedError('subclasses of WriterJack must define send')
+    pass
