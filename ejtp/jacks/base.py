@@ -29,9 +29,9 @@ class BaseJack(object):
     Don't inherit from this class directly, use ReaderJack and WriterJack instead.
 
     Class attributes:
-    bind: indicates if this Jack class needs to bind to an address.
+    has_local_address: indicates if this Jack class needs to bind to an address.
     '''
-    bind = False
+    has_local_address = False
 
     def __init__(self, address):
         '''
@@ -74,7 +74,7 @@ class BaseJack(object):
         '''
         Returns unique identifier for storing in the router.
         '''
-        if not self.bind:
+        if not self.has_local_address:
             return (self._address[0], None)
         else:
             return tuple(self._address[0:2])
@@ -92,7 +92,7 @@ class ReaderJack(BaseJack):
     Base class of jacks that are capable of receiving data.
     '''
 
-    bind = True
+    has_local_address = True
 
     def __init__(self, *args):
         BaseJack.__init__(self, *args)

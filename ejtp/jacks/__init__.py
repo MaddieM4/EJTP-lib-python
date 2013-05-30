@@ -28,5 +28,6 @@ from ejtp.jacks.registration import createJack, RegisterJack
 
 def init():
     #TODO import known Jacks here
+    pass
 
 init()
