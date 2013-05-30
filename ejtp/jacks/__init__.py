@@ -16,11 +16,18 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-from ejtp.jacks.core import *
-
 __all__ = [
-    'core',
+    'base',
+    'registration',
     'stream',
     'tcp',
     'udp',
 ]
+
+from ejtp.jacks.registration import createJack, RegisterJack
+
+def init():
+    #TODO import known Jacks here
+    pass
+
+init()
