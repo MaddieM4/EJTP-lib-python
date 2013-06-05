@@ -35,9 +35,10 @@ Options:
 import sys
 import binascii
 
+from persei import String
+
 from ejtp.vendor.docopt import docopt
 from ejtp.crypto.encryptor import make
-from ejtp.util.py2and3 import String
 from ejtp.identity.cache import IdentityCache
 from ejtp.config import configure_identity_cache
 

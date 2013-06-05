@@ -18,8 +18,9 @@ along with the Python EJTP library.  If not, see
 
 import json
 
+from persei import String, StringDecorator, JSONBytesEncoder
+
 from ejtp.address import *
-from ejtp.util.py2and3  import String, StringDecorator, JSONBytesEncoder
 from ejtp.identity.core import Identity, deserialize
 
 

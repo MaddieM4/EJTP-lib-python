@@ -23,14 +23,13 @@ along with the Python EJTP library.  If not, see
     IPv6 UDP jack, currently programmed quick and dirty to serve forever.
 '''
 
+import socket
 import logging
 logger = logging.getLogger(__name__)
 
+from persei import RawDataDecorator
+
 from ejtp.jacks import core as jack
-
-from ejtp.util.py2and3 import RawDataDecorator
-
-import socket
 
 class UDPJack(jack.Jack):
 

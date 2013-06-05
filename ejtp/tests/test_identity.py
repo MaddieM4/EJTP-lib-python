@@ -18,14 +18,15 @@ along with the Python EJTP library.  If not, see
 
 import os
 import json
+
+from persei import JSONBytesEncoder
+
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import testing_path
-
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor
 from ejtp.identity import Identity, IdentityCache
 from ejtp.identity.core import deserialize
-from ejtp.util.py2and3 import JSONBytesEncoder
 
 class TestIdentity(unittest.TestCase):
 

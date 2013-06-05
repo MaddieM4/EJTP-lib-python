@@ -41,8 +41,9 @@ import os
 import sys
 import json
 
+from persei import JSONBytesEncoder
+
 from ejtp.config import test_filenames
-from ejtp.util.py2and3 import JSONBytesEncoder
 from ejtp.util.hasher import strict
 from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt

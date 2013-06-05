@@ -18,9 +18,10 @@ along with the Python EJTP library.  If not, see
 
 __all__ = ['CompressedFrame', 'construct']
 
+from persei import RawData, String, RawDataDecorator
+
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
-from ejtp.util.py2and3 import RawData, String, RawDataDecorator
 from ejtp.util.hasher import strict
 
 import bz2

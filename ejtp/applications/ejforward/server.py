@@ -19,10 +19,11 @@ along with the Python EJTP library.  If not, see
 import logging
 logger = logging.getLogger(__name__)
 
+from persei import RawData, String
+
 from ejtp.client import Client
 from ejtp.address import *
 from ejtp.util.hasher import make as hashfunc
-from ejtp.util.py2and3 import RawData, String
 
 class ForwardServer(Client):
     def __init__(self, router, interface, **kwargs):
