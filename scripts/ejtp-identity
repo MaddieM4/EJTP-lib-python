@@ -156,7 +156,7 @@ def rm_identities(cache_source, rm_all=False, *names):
 
 def main(argv):
     arguments = docopt(__doc__, argv=argv[1:],
-        version='ejtp-identity 0.9.5')
+        version='ejtp-identity 0.9.6')
 
     cache_source = arguments.get('--cache-source')
 
