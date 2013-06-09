@@ -17,8 +17,9 @@ along with the Python EJTP library.  If not, see
 '''
 import collections
 import json
+import warnings
 
-from persei import String
+from persei import String, StringDecorator
 
 from ejtp.util.hasher import strict
 
@@ -60,3 +61,40 @@ class Address(collections.namedtuple('_Address', ('addrtype', 'addrdetails', 'ca
         Returns address as json string.
         '''
         return strict(self)
+
+
+@StringDecorator()
+def str_address(address):
+    '''
+        Converts address to string, only if it isn't already
+        >>> str_address([0,9])
+        '[0,9]'
+        >>> str_address("[0,9]")
+        '[0,9]'
+    '''
+    warnings.warn("don't use str_address, it will be removed soon! Use Address instead.", DeprecationWarning)
+    if isinstance(address, String):
+        return address
+    else:
+        return strict(address)
+
+
+@StringDecorator()
+def py_address(address):
+    '''
+        Converts address to non-string, only if it isn't already
+        >>> py_address([0,9])
+        [0, 9]
+        >>> py_address("[0,9]")
+        [0, 9]
+    '''
+    warnings.warn("don't use py_address, it will be removed soon! Use Address instead.", DeprecationWarning)
+
+    if isinstance(address, String):
+        return loads(address.export())
+    elif isinstance(address, list):
+        return address
+    elif isinstance(address, tuple):
+        return loads(strict(address).export())
+    else:
+        raise ValueError("Can not convert to py_address: %r" % address)
