@@ -15,31 +15,24 @@ You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
 '''
-
-from persei import String
-
+from ejtp.address import Address
 from ejtp.util.compat import unittest
-from ejtp.address import str_address, py_address
-
-class TestPyAddress(unittest.TestCase):
-
-    def _assert(self, expected, value):
-        self.assertEqual(expected, py_address(value))
-
-    def test_with_string(self):
-        self._assert([0, 9], '[0,9]')
-
-    def test_with_list(self):
-        self._assert([0, 9], [0, 9])
+from ejtp.util.hasher import strict
 
 
-class TestStrAddress(unittest.TestCase):
-
-    def _assert(self, expected, value):
-        self.assertEqual(expected, str_address(value))
-
-    def test_with_string(self):
-        self._assert(String('[0,9]'), '[0,9]')
-
-    def test_with_list(self):
-        self._assert(String('[0,9]'), [0, 9])
+class TestAddress(unittest.TestCase):
+    def test_init(self):
+        self.assertEqual(Address('myproto', ('foo', 'bar'), 'Peter'), ('myproto', ('foo', 'bar'), 'Peter'))
+        self.assertEqual(Address('myproto', ('foo', 'bar')), ('myproto', ('foo', 'bar'), None))
+        self.assertEqual(Address(addrtype='myproto', addrdetails=('foo', 'bar'), callsign='Peter'), ('myproto', ('foo', 'bar'), 'Peter'))
+        self.assertEqual(Address(addrtype='myproto', addrdetails=('foo', 'bar')), ('myproto', ('foo', 'bar'), None))
+    
+    def test_create(self):
+        self.assertEqual(Address.create('["myproto", ["foo", "bar"], "Peter"]'), Address('myproto', ['foo', 'bar'], 'Peter'))
+        self.assertEqual(Address.create('["myproto", ["foo", "bar"]]'), Address('myproto', ['foo', 'bar'], None))
+        self.assertRaises(ValueError, Address.create, object())
+        self.assertRaises(ValueError, Address.create, '["foo"]')
+        self.assertRaises(ValueError, Address.create, '["foo", "bar", "baz", "foobarbaz"]')
+    
+    def test_export(self):
+        self.assertEqual(Address('myproto', ('foo', 'bar'), 'Peter').export(), strict(['myproto', ['foo', 'bar'], 'Peter']))
