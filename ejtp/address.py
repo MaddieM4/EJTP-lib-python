@@ -91,10 +91,10 @@ def py_address(address):
     warnings.warn("don't use py_address, it will be removed soon! Use Address instead.", DeprecationWarning)
 
     if isinstance(address, String):
-        return loads(address.export())
+        return json.loads(address.export())
     elif isinstance(address, list):
         return address
     elif isinstance(address, tuple):
-        return loads(strict(address).export())
+        return json.loads(strict(address).export())
     else:
         raise ValueError("Can not convert to py_address: %r" % address)
