@@ -44,6 +44,11 @@ class Identity(object):
     def __delitem__(self, i):
         del self._contents[i]
 
+    def __eq__(self, other):
+        if not isinstance(other, Identity):
+            return False
+        return self.serialize() == other.serialize()
+
     # Encryptor shortcuts
 
     def encrypt(self, plaintext):

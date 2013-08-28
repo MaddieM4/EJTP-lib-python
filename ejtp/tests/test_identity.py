@@ -59,6 +59,12 @@ class TestIdentity(unittest.TestCase):
         self.assertNotIn('PRIVATE', str(public_proto[1]))
         self.assertIn('PUBLIC', str(public_proto[1]))
 
+    def test_equality(self):
+        self.assertTrue(self.ident == Identity('joe', ['rotate', 8], None))
+        self.assertFalse(self.ident == Identity('joke', ['rotate', 8], None))
+        self.assertFalse(self.ident == Identity('joe', ['rotate', 9], None))
+        self.assertFalse(self.ident == Identity('joe', ['rotate', 8], "tangerine"))
+        self.assertFalse(self.ident == Identity('joe', ['rotate', 8], None, arbitrary="hula"))
 
 class TestIdentitySerialize(unittest.TestCase):
 
