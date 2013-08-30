@@ -25,7 +25,7 @@ from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import testing_path
 import ejtp.crypto
 from ejtp.crypto.rotate import RotateEncryptor
-from ejtp.identity import Identity, IdentityCache
+from ejtp.identity import Identity, IdentityCache, IdentRef
 from ejtp.identity.core import deserialize
 
 class TestIdentity(unittest.TestCase):
@@ -193,6 +193,43 @@ class TestIdentityCache(unittest.TestCase):
         self.cache.update_ident(self.mitzi_ident)
         self.cache.save_to(filename, indent=4)
         os.remove(filename)
+
+class TestIdentityRef(unittest.TestCase):
+
+    def setUp(self):
+        self.ident = mockup()
+        self.cache = IdentityCache()
+        self.cache.update_ident(self.ident)
+        self.ref = IdentRef(self.ident.key, self.cache)
+
+    def thorough_equality(self, other_ref):
+        self.assertEqual(self.ref, other_ref)
+        self.assertEqual(hash(self.ref), hash(other_ref))
+
+    def thorough_inequality(self, ineq_ref):
+        self.assertNotEqual(self.ref, ineq_ref)
+        self.assertNotEqual(hash(self.ref), hash(ineq_ref))
+
+    def test_eq(self):
+        self.thorough_equality(IdentRef(self.ident.key, self.cache))
+        self.thorough_inequality(IdentRef("random key", self.cache))
+        self.thorough_inequality(IdentRef(self.ident.key, IdentityCache()))
+
+    def test_deref(self):
+        self.assertEqual(self.ident, self.ref.deref())
+
+    def test_from_cache(self):
+        self.assertEqual(self.ref, self.cache.ref(self.ident))
+        self.assertEqual(self.ref, self.cache.ref(self.ident.key))
+
+    def test_from_ident(self):
+        self.assertEqual(self.ref, self.ident.ref(self.cache))
+
+    def test_hashable(self):
+        # What can I say, I'm paranoid.
+        myset = set([self.ref])
+        self.assertIn(self.ref, myset)
+        self.assertEquals(list(myset), [self.ref])
 
 mockups = {
     "mitzi":("mitzi@lackadaisy.com", ["rsa","-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDAZQNip0GPxFZsyxcgIgyvuPTHsruu66DBsESG5/Pfbcye3g4W\nwfg+dBP3IfUnLB4QXGzK42BAd57fCBXOtalSOkFoze/C2q74gYFBMvIPbEfef8yQ\n83uoNkYAFBVp6yNlT51IQ2mY19KpqoyxMZftxwdtImthE5UG1knZE64sIwIDAQAB\nAoGAIGjjyRqj0LQiWvFbU+5odLGTipBxTWYkDnzDDnbEfj7g2WJOvUavqtWjB16R\nDahA6ECpkwP6kuGTwb567fdsLkLApwwqAtpjcu96lJpbRC1nq1zZjwNB+ywssqfV\nV3R2/rgIEE6hsWS1wBHufJeqBZtlkeUp/VEx/uopyuR/WgECQQDJOaFSutj1q1dt\nNO23Q6w3Ie4uMQ59rWeRxXA5+KjDZCxrizzo/Bew5ZysJzHB2n8QQ15WJ7gTSjwJ\nMQdl/7SJAkEA9MQG/6JivkhUNh45xMYqnMHuutyIeGE17QndSfknU+8CX9UBLjsL\nw1QU+llJ3iYfMPEDaydn0HJ8+iinyyAISwJAe7Z2vEorwT5KTdXQoG92nZ66tKNs\naVAG8NQWH04FU7tuo9/C3uq+Ff/UxvKB4NDYdcM1aHqa7SEir/P4vHjtIQJAFKc9\n1/BB2MCNqoteYIZALj4HAOl+8nlxbXD5pTZK5UAzuRZmJRqCYZcEtiM2onIhC6Yq\nna4Tink+pnUrw24OhQJBAIjujQS5qwOf2p5yOqU3UYsBv7PS8IitmYFARTlcYh1G\nrmcIPHRtkxIwNuFxy3ZRRPEDGFa82id5QHUJT8sJbqY=\n-----END RSA PRIVATE KEY-----"], ['local', None, 'mitzi']),

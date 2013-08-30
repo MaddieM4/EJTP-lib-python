@@ -20,6 +20,7 @@ from persei import JSONBytesEncoder
 
 import ejtp.crypto
 from ejtp.address import str_address
+from ejtp.identity.ref import IdentRef
 
 class Identity(object):
     def __init__(self, name, encryptor, location, **kwargs):
@@ -53,6 +54,9 @@ class Identity(object):
     @property
     def key(self):
         return str_address(self.location)
+
+    def ref(self, cache):
+        return IdentRef(self.key, cache)
 
     # Encryptor shortcuts
 

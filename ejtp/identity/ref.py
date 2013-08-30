@@ -16,12 +16,23 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
-__all__ = [
-    'core',
-    'cache',
-    'ref',
-]
+from persei import String
 
-from ejtp.identity.core  import Identity
-from ejtp.identity.cache import IdentityCache
-from ejtp.identity.ref   import IdentRef
+class IdentRef(object):
+    '''
+    Store a hashable reference to an Identity.
+
+    This works like a glorified (key, cache) tuple, basically.
+    '''
+    def __init__(self, key, cache):
+        self.key   = String(key)
+        self.cache = cache
+
+    def __eq__(self, other):
+        return (self.key == other.key) and (self.cache == other.cache)
+
+    def __hash__(self):
+        return hash(self.key.export()) ^ hash(self.cache)
+
+    def deref(self):
+        return self.cache[self.key]

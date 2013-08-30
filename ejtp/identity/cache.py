@@ -22,7 +22,7 @@ from persei import String, StringDecorator, JSONBytesEncoder
 
 from ejtp.address import *
 from ejtp.identity.core import Identity, deserialize
-
+from ejtp.identity.ref  import IdentRef
 
 class IdentityCache(object):
     def __init__(self, source={}):
@@ -89,6 +89,13 @@ class IdentityCache(object):
 
     def all(self):
         return self.cache.values()
+
+    def ref(self, ident):
+        if isinstance(ident, Identity):
+            key = ident.key
+        else:
+            key = ident
+        return IdentRef(key, self)
 
     def encrypt_capable(self):
         '''
