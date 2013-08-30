@@ -19,7 +19,7 @@ along with the Python EJTP library.  If not, see
 import os
 import json
 
-from persei import JSONBytesEncoder
+from persei import JSONBytesEncoder, String
 
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import testing_path
@@ -65,6 +65,14 @@ class TestIdentity(unittest.TestCase):
         self.assertFalse(self.ident == Identity('joe', ['rotate', 9], None))
         self.assertFalse(self.ident == Identity('joe', ['rotate', 8], "tangerine"))
         self.assertFalse(self.ident == Identity('joe', ['rotate', 8], None, arbitrary="hula"))
+
+    def test_key(self):
+        # Location is None
+        self.assertRaises(TypeError, lambda: self.ident.key)
+
+        # Set location to legitimate data
+        self.ident.location = ['local', None, 'joey']
+        self.assertEqual(self.ident.key, String('["local",null,"joey"]'))
 
 class TestIdentitySerialize(unittest.TestCase):
 

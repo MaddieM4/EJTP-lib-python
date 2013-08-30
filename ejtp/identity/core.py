@@ -19,6 +19,7 @@ along with the Python EJTP library.  If not, see
 from persei import JSONBytesEncoder
 
 import ejtp.crypto
+from ejtp.address import str_address
 
 class Identity(object):
     def __init__(self, name, encryptor, location, **kwargs):
@@ -48,6 +49,10 @@ class Identity(object):
         if not isinstance(other, Identity):
             return False
         return self.serialize() == other.serialize()
+
+    @property
+    def key(self):
+        return str_address(self.location)
 
     # Encryptor shortcuts
 
