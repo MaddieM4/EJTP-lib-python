@@ -78,6 +78,16 @@ class IdentityCache(object):
     def update_ident(self, ident):
         self[str_address(ident.location)] = ident
 
+    def update_idents(self, idents):
+        for ident in idents:
+            self.update_ident(ident)
+
+    def filter_by_name(self, name):
+        '''
+        Return a new cache of every ident matching the given name.
+        '''
+        return [x for x in self.all() if x.name == name]
+
     def find_by_name(self, name):
         for ident in self.cache.values():
             if ident.name == name:

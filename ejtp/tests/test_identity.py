@@ -141,6 +141,32 @@ class TestIdentityCache(unittest.TestCase):
         self.assertRaisesRegexp(ValueError, "Trying to cache ident in the wrong location",
             self.cache.__setitem__, ['x', 'y', 'z'], self.joe_ident)
 
+    def test_update_idents(self):
+        idents = [self.joe_ident, self.victor_ident]
+        self.cache.update_idents(idents)
+        self.assertEquals(list(self.cache.all()), idents)
+        for i in idents:
+            self.assertEquals(self.cache[i.location], i)
+
+    def test_filter_by_name(self):
+        # Create alternate-universe Joe
+        alt_joe = self.joe_ident.clone()
+        alt_joe.location = ['local', None, 'alt_joe']
+
+        idents = [self.mitzi_ident, self.joe_ident, alt_joe]
+        self.cache.update_idents(idents)
+
+        self.assertEqual(
+            self.cache.filter_by_name(self.mitzi_ident.name),
+            [self.mitzi_ident]
+        )
+
+        joe_filtered = self.cache.filter_by_name(self.joe_ident.name)
+        self.assertEqual(
+            sorted(joe_filtered, key=lambda x:x.key),
+            sorted([self.joe_ident, alt_joe], key=lambda x:x.key)
+        )
+
     def test_serialize(self):
         self.cache.update_ident(self.mitzi_ident)
         serialized_ident = self.cache.serialize()

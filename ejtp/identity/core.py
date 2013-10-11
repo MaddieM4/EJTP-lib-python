@@ -95,6 +95,12 @@ class Identity(object):
         self['encryptor'] = self.encryptor.proto()
         return self._contents
 
+    def clone(self):
+        '''
+        Create new unique copy in memory.
+        '''
+        return deserialize(self.serialize())
+
     @property
     def name(self):
         return self['name']
