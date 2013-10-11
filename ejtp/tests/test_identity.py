@@ -144,7 +144,10 @@ class TestIdentityCache(unittest.TestCase):
     def test_update_idents(self):
         idents = [self.joe_ident, self.victor_ident]
         self.cache.update_idents(idents)
-        self.assertEquals(list(self.cache.all()), idents)
+        self.assertEquals(
+            sorted(self.cache.all(), key=lambda x:x.key),
+            sorted(idents, key=lambda x:x.key)
+        )
         for i in idents:
             self.assertEquals(self.cache[i.location], i)
 
