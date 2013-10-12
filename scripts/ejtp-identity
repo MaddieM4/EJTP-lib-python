@@ -26,6 +26,7 @@ Usage:
     ejtp-identity ( details ) [-ep] <names>... [--cache-source=<cache-source>]
     ejtp-identity ( rm ) [-A] <names>... [--cache-source=<cache-source>]
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
+    ejtp-identity ( new-interactive )
     ejtp-identity ( merge ) <filename>
     ejtp-identity ( set ) <name> --args=<args> [--cache-source=<cache-source>]
     ejtp-identity -h | --help
@@ -40,6 +41,7 @@ Options:
 import os
 import sys
 import json
+import traceback
 
 from persei import JSONBytesEncoder
 
@@ -47,6 +49,7 @@ from ejtp.config import test_filenames
 from ejtp.util.hasher import strict
 from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt
+from ejtp.identity import Identity, IdentityCache
 
 class JSONEncoder(json.JSONEncoder):
 
@@ -101,6 +104,104 @@ def new_identity(name, location, encryptor, **kwargs):
     }
     data.update(kwargs)
     print(json.dumps({strict(data['location']).export(): data}, indent=2, cls=JSONEncoder))
+
+IDENT_TYPES = {
+    "udp"  : "IPv6 address, accessed over UDP",
+    "udp4" : "IPv4 address, accessed over UDP",
+    "tcp"  : "IPv6 address, accessed over TCP",
+    "tcp4" : "IPv4 address, accessed over TCP",
+    "local": "Can only communicate within a single OS process",
+}
+ENC_TYPES = {
+    #"aes"    : "AES Shared-Key encryption (not currently useful)",
+    "rotate" : "Only for trivial demos, not recommended!",
+    "rsa"    : "RSA Public-Key encryption (recommended)",
+}
+
+def new_interactive():
+    try:
+        input
+    except:
+        input = raw_input
+
+    confirmed = False
+    while not confirmed:
+        idname = input("Your name, in email form: ")
+        print("\nNext, we need your network location.")
+        print("These are made of 3 parts - type, address, and callsign.")
+        print('For example, ["udp4", ["107.6.106.82", 9090], "randall"]')
+        ltype = ""
+        while not ltype in IDENT_TYPES:
+            print("The following types are available:\n")
+            for (name, desc) in IDENT_TYPES.items():
+                print("    {0} : {1}".format(name, desc))
+            ltype = input("\nWhich type do you want? ")
+        laddr = None
+        while ltype != "local" and not isinstance(laddr, list):
+            print('Now the address part, like ["107.6.106.82", 9090]')
+            laddr = input("Please write that out as JSON: ")
+            try:
+                laddr = json.loads(laddr)
+            except:
+                print("Not valid JSON")
+                laddr = None
+        print("\nYour callsign distinguishes you from other people on")
+        print("the same host and port - or just lets you run more")
+        print("than one service for yourself on the same 'line'.")
+        lcall = input("Your callsign: ")
+
+        loc = [ltype, laddr, lcall]
+        print("Your name and location are:")
+        print("    {0}, {1}".format(idname, json.dumps(loc)))
+        confirmed = "y" in input("Is this correct [y/n]? ").lower()
+    print("\nNow we generate your encryptor.")
+    etype = ""
+    while not etype in ENC_TYPES:
+        print("The following types are available:\n")
+        for name, desc in ENC_TYPES.items():
+            print("    {0} : {1}".format(name, desc))
+        etype = input("\nWhich type do you want? ")
+    if etype == "rotate":
+        amount = None
+        while type(amount) != int:
+            try:
+                amount = int(input("How much to rotate? "))
+            except ValueError:
+                pass
+        enc = [etype, amount]
+    else:
+        enc = None
+        while enc == None:
+            amount = None
+            while type(amount) != int:
+                try:
+                    amount = int(input("How many bits? "))
+                except ValueError:
+                    pass
+            from ejtp.crypto.rsa import RSA
+            try:
+                print("Generating... if it takes awhile, wiggle your mouse.")
+                enc = RSA(None, amount).proto()
+            except:
+                traceback.print_exc()
+    print("\n    Your encryptor is:\n")
+    print(json.dumps(enc))
+
+    ident = Identity(idname, enc, loc)
+    print("\n\nYour full identity is:\n")
+    print(json.dumps(ident.serialize()))
+
+    has_written = False
+    cache = IdentityCache()
+    cache.update_ident(ident)
+    while not has_written:
+        fname = input("File location to save your new cache? ")
+        try:
+            json.dump(cache.serialize(), open(fname, 'w'), indent=2)
+            has_written = True
+        except:
+            traceback.print_exc()
+    print("Congratulations!")
 
 def merge(filename, data_to_merge):
     with open(filename, 'r') as f:
@@ -172,6 +273,9 @@ def main(argv):
         location = json.loads(arguments.get('--location'))
         encryptor = json.loads(arguments.get('--encryptor'))
         new_identity(name, location, encryptor)
+
+    if arguments.get('new-interactive'):
+        new_interactive()
 
     if arguments.get('merge'):
         filename = arguments.get('<filename>')

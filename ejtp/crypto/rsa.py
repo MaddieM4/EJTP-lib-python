@@ -137,7 +137,8 @@ class RSA(encryptor.Encryptor):
             self.genlock.release()
 
     def proto(self):
-        return ['rsa', self.key.exportKey()]
+        key = self.key
+        return ['rsa', key.exportKey()]
 
     def public(self):
         key = self.key.publickey()
