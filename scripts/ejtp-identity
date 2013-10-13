@@ -51,6 +51,11 @@ from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt
 from ejtp.identity import Identity, IdentityCache
 
+try:
+    input = raw_input
+except:
+    pass
+
 class JSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
@@ -119,11 +124,6 @@ ENC_TYPES = {
 }
 
 def new_interactive():
-    try:
-        input
-    except:
-        input = raw_input
-
     confirmed = False
     while not confirmed:
         idname = input("Your name, in email form: ")
@@ -152,7 +152,7 @@ def new_interactive():
 
         loc = [ltype, laddr, lcall]
         print("Your name and location are:")
-        print("    {0}, {1}".format(idname, json.dumps(loc)))
+        print("    {0}, {1}".format(idname, json.dumps(loc,cls=JSONEncoder)))
         confirmed = "y" in input("Is this correct [y/n]? ").lower()
     print("\nNow we generate your encryptor.")
     etype = ""
@@ -184,12 +184,12 @@ def new_interactive():
                 enc = RSA(None, amount).proto()
             except:
                 traceback.print_exc()
-    print("\n    Your encryptor is:\n")
-    print(json.dumps(enc))
+    #print("\n    Your encryptor is:\n")
+    #print(json.dumps(enc, cls=JSONEncoder))
 
     ident = Identity(idname, enc, loc)
     print("\n\nYour full identity is:\n")
-    print(json.dumps(ident.serialize()))
+    print(json.dumps(ident.serialize(),indent=2,cls=JSONEncoder))
 
     has_written = False
     cache = IdentityCache()
@@ -197,7 +197,7 @@ def new_interactive():
     while not has_written:
         fname = input("File location to save your new cache? ")
         try:
-            json.dump(cache.serialize(), open(fname, 'w'), indent=2)
+            json.dump(cache.serialize(), open(fname, 'w'), indent=2,cls=JSONEncoder)
             has_written = True
         except:
             traceback.print_exc()
