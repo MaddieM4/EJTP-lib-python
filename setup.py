@@ -34,6 +34,7 @@ setup(
     install_requires = [
         'pycrypto',
         'persei',
+        'requests',
         'streql',
     ],
     classifiers = [

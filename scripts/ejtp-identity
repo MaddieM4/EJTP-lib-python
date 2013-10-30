@@ -17,6 +17,8 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import print_function
+
 __doc__ = '''ejtp-identity
 
 A simple little script for EJTP identity management from the command line.
@@ -28,6 +30,7 @@ Usage:
     ejtp-identity ( new ) --name=<name> --location=<location> --encryptor=<encryptor>
     ejtp-identity ( new-interactive )
     ejtp-identity ( merge ) <filename>
+    ejtp-identity ( dl | download ) <names>... [--server=<server>]
     ejtp-identity ( set ) <name> --args=<args> [--cache-source=<cache-source>]
     ejtp-identity -h | --help
     ejtp-identity --version
@@ -43,6 +46,7 @@ import sys
 import json
 import traceback
 
+import requests
 from persei import JSONBytesEncoder
 
 from ejtp.config import test_filenames
@@ -212,6 +216,48 @@ def merge(filename, data_to_merge):
     with open(filename, 'w') as f:
         json.dump(data, f)
 
+def download_idents(names, server):
+    cache = IdentityCache()
+    def die(short, e):
+        longmsg = "".join(
+            traceback.format_exception_only(type(e), e)
+        )
+        allmsg = " FAIL! (%s)\n%s" % (short, longmsg)
+        print(allmsg, file=sys.stderr)
+        quit(1)
+    
+    print("Downloading via %s..." % server, file=sys.stderr)
+    for name in names:
+        url = "%sidents/%s" % (server, name)
+        print(" * %s..." % url, end='', file=sys.stderr)
+        try:
+            req = requests.get(url)
+        except IOError as e:
+            die('conn', e)
+
+        try:
+            req.raise_for_status()
+        except Exception as e:
+            die("http %d" % req.status_code, e)
+
+        try:
+            cache_json = req.json()
+        except Exception as e:
+            die("json parsing", e)
+
+        try:
+            cache.deserialize(cache_json)
+        except Exception as e:
+            die("accum cache", e)
+        print(" done", file=sys.stderr)
+    json.dump(
+        cache.serialize(),
+        sys.stdout,
+        indent = 2,
+        cls = JSONEncoder
+    )
+    print() # Final newline
+
 def set_attribute(cache_source, name, **kwargs):
     found = False
     for fname, data in data_per_file(cache_source):
@@ -281,6 +327,14 @@ def main(argv):
         filename = arguments.get('<filename>')
         data_to_merge = json.load(sys.stdin)
         merge(filename, data_to_merge)
+
+    if arguments.get('dl') or arguments.get('download'):
+        default_server = 'http://localhost:16232'
+        names  = arguments.get('<names>')
+        server = arguments.get('--server') or default_server
+        if not server.endswith('/'):
+            server = server + '/'
+        download_idents(names, server)
 
     if arguments.get('set'):
         args = json.loads(arguments.get('--args'))
