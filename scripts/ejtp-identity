@@ -130,9 +130,13 @@ ENC_TYPES = {
 def new_interactive():
     confirmed = False
     while not confirmed:
-        idname = input("Your name, in email form: ")
-        print("\nNext, we need your network location.")
-        print("These are made of 3 parts - type, address, and callsign.")
+        print("NOTE: If you intend to host this identity in the DJDNS")
+        print("registry, the email domain needs to match your branch")
+        print("regex to be accessible.")
+        print("\nhttp://roaming-initiative.com/blog/blog/djdns-ident-registration.html")
+        idname = input('\nYour identity name, in email form: ')
+        print('\nNext, we need your network location.')
+        print('These are made of 3 parts - type, address, and callsign.')
         print('For example, ["udp4", ["107.6.106.82", 9090], "randall"]')
         ltype = ""
         while not ltype in IDENT_TYPES:
@@ -142,12 +146,12 @@ def new_interactive():
             ltype = input("\nWhich type do you want? ")
         laddr = None
         while ltype != "local" and not isinstance(laddr, list):
-            print('Now the address part, like ["107.6.106.82", 9090]')
-            laddr = input("Please write that out as JSON: ")
-            try:
-                laddr = json.loads(laddr)
-            except:
-                print("Not valid JSON")
+            ip = input('Your IP address, at which you can be contacted: ')
+            port = input('Port at which you are reachable: ')
+            laddr = [ip, int(port)]
+            print('Address = %r' % laddr)
+            correct = input('Is this correct? [y/n] ')
+            if not 'y' in correct.lower():
                 laddr = None
         print("\nYour callsign distinguishes you from other people on")
         print("the same host and port - or just lets you run more")
