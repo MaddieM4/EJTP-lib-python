@@ -256,7 +256,7 @@ def download_idents(names, server):
         indent = 2,
         cls = JSONEncoder
     )
-    print() # Final newline
+    #print() # Final newline
 
 def set_attribute(cache_source, name, **kwargs):
     found = False

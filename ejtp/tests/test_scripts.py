@@ -3,6 +3,8 @@ import imp
 import sys
 import json
 import tempfile
+import time
+import subprocess
 
 from ejtp.util.compat import unittest
 from ejtp.tests.resource_path import *
@@ -20,34 +22,48 @@ def import_as_module(script_name):
         exec(fp.read(), module.__dict__)
         return module
 
+class IOMockStream(object):
+    def __init__(self, parent, lines=None):
+        self.parent = parent
+        self.lines  = lines or []
+
+    def readline(self):
+        _input = self.lines.pop(0)
+        self.parent._stream.append('$ ' + _input)
+        return _input
+
+    def read(self):
+        text = '\n'.join(self.lines)
+        return text
+
+    def write(self, text):
+        _output = text.strip().split('\n')
+        self.parent._stream.extend(_output)
+        self.lines.extend(_output)
 
 class IOMock(object):
 
     def __init__(self):
         self._stream = []
-        self.input = []
-        self.output = []
+        self.input   = IOMockStream(self)
+        self.output  = IOMockStream(self)
+        self.error   = IOMockStream(self)
 
-    def readline(self):
-        _input = self.input.pop(0)
-        self._stream.append('$ ' + _input)
-        return _input
+    def append(self, value):
+        self.input.lines.append(value)
 
-    def read(self):
-        text = '\n'.join(self.input)
-        return text
-
-    def write(self, text):
-        _output = text.strip().split('\n')
-        self._stream.extend(_output)
-        self.output.extend(_output)
+    def extend(self, value):
+        self.input.lines.extend(value)
 
     def __enter__(self):
-        sys.stdin = sys.stdout = self
+        sys.stdin  = self.input
+        sys.stdout = self.output
+        sys.stderr = self.error
 
     def __exit__(self, type, value, traceback):
-        sys.stdin = sys.__stdin__
+        sys.stdin  = sys.__stdin__
         sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
     def get_lines(self):
         return [line for line in self._stream if line]
@@ -56,16 +72,16 @@ class IOMock(object):
         return '\n'.join(self.get_lines())
 
     def pipe(self):
-        self.input = self.output
-        self.output = []
         self._stream = []
+        self.input   = self.output
+        self.output  = IOMockStream(self)
+        self.error   = IOMockStream(self)
 
     def clear(self):
-        self.input = []
-        self.output = []
         self._stream = []
-
-
+        self.input   = IOMockStream(self)
+        self.output  = IOMockStream(self)
+        self.error   = IOMockStream(self)
 
 class TestConsole(unittest.TestCase):
 
@@ -77,7 +93,7 @@ class TestConsole(unittest.TestCase):
 
     def _assertCLI(self, expected):
         lines_expected = [line.strip() for line in expected.strip().split('\n')]
-        self.io.input.extend([line[2:] for line in lines_expected if line.startswith('$')])
+        self.io.extend([line[2:] for line in lines_expected if line.startswith('$')])
 
         with self.io:
             self.assertRaises(SystemExit, self.inter.repl)
@@ -166,7 +182,7 @@ class TestCrypto(unittest.TestCase):
             args = ['with', with_]
 
         argv = ['ejtp-crypto', 'encode'] + args
-        self.io.input.append(text)
+        self.io.append(text)
         with self.io:
             self.crypto.main(argv)
 
@@ -185,7 +201,7 @@ class TestCrypto(unittest.TestCase):
 
     def test_test_encode_decode_from_file(self):
         argv = ['ejtp-crypto', 'encode', 'id', 'mitzi@lackadaisy.com']
-        self.io.input.append('banana')
+        self.io.append('banana')
         with self.io:
             self.crypto.main(argv)
 
@@ -202,7 +218,7 @@ class TestCrypto(unittest.TestCase):
 
     def test_signature(self):
         argv = ['ejtp-crypto', 'sign', 'id', 'mitzi@lackadaisy.com']
-        self.io.input.append('banana')
+        self.io.append('banana')
         with self.io:
             self.crypto.main(argv)
 
@@ -212,7 +228,7 @@ class TestCrypto(unittest.TestCase):
 
         argv = ['ejtp-crypto', 'sig-verify', 'id', 'mitzi@lackadaisy.com', '--sigfile', tmp]
         self.io.clear()
-        self.io.input.append('banana')
+        self.io.append('banana')
         with self.io:
             self.crypto.main(argv)
 
@@ -333,6 +349,52 @@ class TestIdentity(unittest.TestCase):
         with open(fname, 'r') as f:
             data = json.load(f)
         self.assertEqual(4, len(data))
+
+    def test_dl(self):
+        '''
+        Need to run local webserver for this test.
+        '''
+        # run server
+        if int(sys.version[0]) == 2:
+            server_module = 'SimpleHTTPServer'
+        elif int(sys.version[0]) == 3:
+            server_module = 'http.server'
+        else:
+            raise Exception("Unknown Python version")
+
+        port = 8888
+        args = ['python', '-m' + server_module, str(port)]
+        webserver = subprocess.Popen(
+            args,
+            cwd='ejtp/tests',
+            # Suppress output
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        time.sleep(0.5) # Allow server to start up
+        try:
+            names = ('philip@ri.hype', 'jonathan@matrix.hype')
+            for name in names:
+                self._run('dl', name, '--server=http://localhost:%d' % port)
+                txt_cache = self.io.output.read()
+                self.assertEqual(
+                    json.loads(txt_cache),
+                    json.load(open('ejtp/tests/idents/'+name))
+                )
+                expected_stderr = "\n".join([
+                    "Downloading via http://localhost:%d/...",
+                    "",
+                    "* http://localhost:%d/idents/%s...",
+                    "",
+                    "done\n",
+                ]) % (port, port, name)
+                self.assertEqual(
+                    self.io.error.read(),
+                    expected_stderr
+                )
+                self.io.clear()
+        finally:
+            webserver.terminate()
 
     def test_set_attribute(self):
         fname = self._tmp_file_with_env_cache()
