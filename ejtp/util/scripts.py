@@ -86,7 +86,8 @@ def choose(options, singular, plural):
     choice = None
     while not choice in options:
         print("The following %s are available:\n" % plural)
-        for (name, desc) in options.items():
+        for name in sorted(options.keys()):
+            desc = options[name]
             print("    {0} : {1}".format(name, desc))
         choice = input("\nWhich %s do you want? " % singular)
     return choice
