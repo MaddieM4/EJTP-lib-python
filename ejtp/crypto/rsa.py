@@ -38,7 +38,7 @@ class RSA(encryptor.Encryptor):
         self._key = None
         self.genlock = thread.allocate()
         if keystr == None:
-            self.generate(bits=bits or 1024)
+            self.generate(bits=int(bits) or 1024)
         else:
             self.set_key(rsalib.importKey(keystr.export()))
 

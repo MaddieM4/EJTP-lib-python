@@ -291,7 +291,7 @@ class TestScriptUtils(unittest.TestCase):
             '$ y',
         ])
 
-    def test_get_encryptor_rsa(self):
+    def test_get_encryptor_rsa_bad_bitscount(self):
         with self.io:
             self.io.extend([
                 'rsa',
@@ -300,17 +300,9 @@ class TestScriptUtils(unittest.TestCase):
                 'n',
                 '97',
                 'y',
-                'rsa',
-                '1024',
-                'y',
             ])
             self.assertRaises(ValueError, get_encryptor)
-            result = get_encryptor()
-            self.assertEquals(len(result), 2)
-            self.assertEquals(result[0], 'rsa')
-            self.assertIn('PRIVATE KEY', str(result[1]))
         lines = self.io.get_lines()
-        self.maxDiff = None
         expected_beginning = [
             'The following types are available:',
             'rotate : Only for trivial demos, not recommended!',
@@ -328,9 +320,27 @@ class TestScriptUtils(unittest.TestCase):
             '$ 97',
             'Is this correct? [y/n]',
             '$ y',
+            'Generating... if it takes awhile, wiggle your mouse.',
         ]
-        # Intentionally ignore the env-specific Crypto traceback
         expected_end = [
+            "AttributeError: 'NoneType' object has no attribute 'exportKey'",
+        ]
+        self.assertEqual(lines[:len(expected_beginning)], expected_beginning)
+        self.assertEqual(lines[-len(expected_end):], expected_end)
+
+    def test_get_encryptor_rsa_good_bitscount(self):
+        with self.io:
+            self.io.extend([
+                'rsa',
+                '1024',
+                'y',
+            ])
+            result = get_encryptor()
+            self.assertEquals(len(result), 2)
+            self.assertEquals(result[0], 'rsa')
+            self.assertIn('PRIVATE KEY', str(result[1]))
+        self.maxDiff = None
+        self.assertEqual(self.io.get_lines(), [
             'The following types are available:',
             'rotate : Only for trivial demos, not recommended!',
             'rsa : RSA Public-Key encryption (recommended)',
@@ -341,6 +351,4 @@ class TestScriptUtils(unittest.TestCase):
             'Is this correct? [y/n]',
             '$ y',
             'Generating... if it takes awhile, wiggle your mouse.',
-        ]
-        self.assertEqual(lines[:len(expected_beginning)], expected_beginning)
-        self.assertEqual(lines[-len(expected_end):], expected_end)
+        ])
