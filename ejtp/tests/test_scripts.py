@@ -389,7 +389,7 @@ class TestIdentity(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(0.5) # Allow server to start up
+        time.sleep(0.8) # Allow server to start up
         try:
             names = ('philip@ri.hype', 'jonathan@matrix.hype')
             for name in names:

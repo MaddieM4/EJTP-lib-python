@@ -163,3 +163,184 @@ class TestScriptUtils(unittest.TestCase):
         ]
         self.assertEqual(lines[:len(expected_beginning)], expected_beginning)
         self.assertEqual(lines[-len(expected_end):], expected_end)
+
+    def test_get_name(self):
+        with self.io:
+            self.io.extend([
+                'notanemail',
+                'yesanemail@domain.net',
+            ])
+            self.assertRaises(ValueError, get_name)
+            self.assertEquals(get_name(), 'yesanemail@domain.net')
+        self.assertEqual(self.io.get_lines(), [
+            'Your identity name, in email form:',
+            '$ notanemail',
+            'Your identity name, in email form:',
+            '$ yesanemail@domain.net',
+        ])
+
+    def test_get_location(self):
+        ip   = '81.21.42.96'
+        port = 9999
+        call = 'somecallsign'
+        with self.io:
+            self.io.extend([
+                # First demo local
+                'local',
+                call,
+                'yes',
+                # then demo an address-taking ltype.
+                'tcp4',
+                ip,
+                str(port),
+                'yes',
+                call,
+                'yes',
+            ])
+            local = get_location()
+            tcp4  = get_location()
+            self.assertEquals(local, ['local', None, call])
+            self.assertEquals(tcp4 , ['tcp4', [ip,port], call])
+        self.assertEqual(self.io.get_lines(), [
+            'The following types are available:',
+            'local : Can only communicate within a single OS process',
+            'tcp : IPv6 address, accessed over TCP',
+            'tcp4 : IPv4 address, accessed over TCP',
+            'udp : IPv6 address, accessed over UDP',
+            'udp4 : IPv4 address, accessed over UDP',
+            'Which type do you want?',
+            '$ local',
+            'Your callsign:',
+            '$ somecallsign',
+            'Is this correct? [y/n]',
+            '$ yes',
+            'The following types are available:',
+            'local : Can only communicate within a single OS process',
+            'tcp : IPv6 address, accessed over TCP',
+            'tcp4 : IPv4 address, accessed over TCP',
+            'udp : IPv6 address, accessed over UDP',
+            'udp4 : IPv4 address, accessed over UDP',
+            'Which type do you want?',
+            '$ tcp4',
+            'Your IP address, at which you can be contacted:',
+            '$ 81.21.42.96',
+            'Port at which you are reachable:',
+            '$ 9999',
+            "Address = ['81.21.42.96', 9999]",
+            'Is this correct? [y/n]',
+            '$ yes',
+            'Your callsign:',
+            '$ somecallsign',
+            'Is this correct? [y/n]',
+            '$ yes'
+        ])
+
+    def test_get_addr(self):
+        with self.io:
+            self.io.extend(['a','b','c','5'])
+            self.assertRaises(ValueError, get_addr)
+            self.assertEquals(get_addr(), ['c', 5])
+        self.assertEqual(self.io.get_lines(), [
+            'Your IP address, at which you can be contacted:',
+            '$ a',
+            'Port at which you are reachable:',
+            '$ b',
+            'Your IP address, at which you can be contacted:',
+            '$ c',
+            'Port at which you are reachable:',
+            '$ 5',
+        ])
+
+    def test_get_callsign(self):
+        with self.io:
+            callsign = "some callsign"
+            self.io.append(callsign)
+            self.assertEqual(callsign, get_callsign())
+        self.assertEqual(self.io.get_lines(), [
+            'Your callsign:',
+            '$ ' + callsign,
+        ])
+
+    def test_get_encryptor_rotate(self):
+        with self.io:
+            self.io.extend([
+                'rotate',
+                'not an int',
+                '-7',
+                'n',
+                '97',
+                'y',
+            ])
+            self.assertEquals(get_encryptor(), ['rotate', 97])
+        self.assertEqual(self.io.get_lines(), [
+            'The following types are available:',
+            'rotate : Only for trivial demos, not recommended!',
+            'rsa : RSA Public-Key encryption (recommended)',
+            'Which type do you want?',
+            '$ rotate',
+            'How much to rotate?',
+            '$ not an int',
+            'Invalid input: ValueError("invalid literal for int() with base 10: \'not an int\'",)',
+            'How much to rotate?',
+            '$ -7',
+            'Is this correct? [y/n]',
+            '$ n',
+            'How much to rotate?',
+            '$ 97',
+            'Is this correct? [y/n]',
+            '$ y',
+        ])
+
+    def test_get_encryptor_rsa(self):
+        with self.io:
+            self.io.extend([
+                'rsa',
+                'not an int',
+                '-7',
+                'n',
+                '97',
+                'y',
+                'rsa',
+                '1024',
+                'y',
+            ])
+            self.assertRaises(ValueError, get_encryptor)
+            result = get_encryptor()
+            self.assertEquals(len(result), 2)
+            self.assertEquals(result[0], 'rsa')
+            self.assertIn('PRIVATE KEY', str(result[1]))
+        lines = self.io.get_lines()
+        self.maxDiff = None
+        expected_beginning = [
+            'The following types are available:',
+            'rotate : Only for trivial demos, not recommended!',
+            'rsa : RSA Public-Key encryption (recommended)',
+            'Which type do you want?',
+            '$ rsa',
+            'How many bits?',
+            '$ not an int',
+            'Invalid input: ValueError("invalid literal for int() with base 10: \'not an int\'",)',
+            'How many bits?',
+            '$ -7',
+            'Is this correct? [y/n]',
+            '$ n',
+            'How many bits?',
+            '$ 97',
+            'Is this correct? [y/n]',
+            '$ y',
+        ]
+        # Intentionally ignore the env-specific Crypto traceback
+        expected_end = [
+            'The following types are available:',
+            'rotate : Only for trivial demos, not recommended!',
+            'rsa : RSA Public-Key encryption (recommended)',
+            'Which type do you want?',
+            '$ rsa',
+            'How many bits?',
+            '$ 1024',
+            'Is this correct? [y/n]',
+            '$ y',
+            'Generating... if it takes awhile, wiggle your mouse.',
+        ]
+        self.assertEqual(lines[:len(expected_beginning)], expected_beginning)
+        self.assertEqual(lines[-len(expected_end):], expected_end)
