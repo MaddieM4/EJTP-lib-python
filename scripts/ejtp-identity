@@ -122,6 +122,7 @@ def new_interactive():
 
     ident = confirm(get_identity, show=show_ident)
 
+    # TODO: Break writing into separate testable function
     has_written = False
     cache = IdentityCache()
     cache.update_ident(ident)

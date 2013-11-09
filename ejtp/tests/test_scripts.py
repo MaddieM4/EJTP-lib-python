@@ -101,6 +101,41 @@ class IOMock(object):
         self.output  = IOMockStream(self)
         self.error   = IOMockStream(self)
 
+class IOAssert(object):
+    def __init__(self, testcase, expected):
+        self.testcase = testcase
+        self.expected = expected
+
+    def __enter__(self):
+        self.extend()
+        self.io.__enter__()
+
+    def __exit__(self, type, value, traceback):
+        if traceback == None:
+            self.validate()
+        return self.io.__exit__(type, value, traceback)
+
+    def validate(self):
+        for pair in zip(self.lines_expected, self.io.get_lines()):
+            if pair[0].startswith('$'):
+                self.testcase.assertEqual(*pair)
+            else:
+                self.testcase.assertIn(*pair)
+
+    def extend(self):
+        self.io.extend([
+            line[2:] for line in self.lines_expected
+            if line.startswith('$')
+        ])
+
+    @property
+    def io(self):
+        return self.testcase.io
+
+    @property
+    def lines_expected(self):
+        return [line.strip() for line in self.expected.strip().split('\n')]
+
 class TestConsole(unittest.TestCase):
 
     def setUp(self):
@@ -110,17 +145,8 @@ class TestConsole(unittest.TestCase):
         self.inter = self.console.Interactive()
 
     def _assertCLI(self, expected):
-        lines_expected = [line.strip() for line in expected.strip().split('\n')]
-        self.io.extend([line[2:] for line in lines_expected if line.startswith('$')])
-
-        with self.io:
+        with IOAssert(self, expected):
             self.assertRaises(SystemExit, self.inter.repl)
-
-        for pair in zip(lines_expected, self.io.get_lines()):
-            if pair[0].startswith('$'):
-                self.assertEqual(*pair)
-            else:
-                self.assertIn(*pair)
 
     def test_quit(self):
         expected = '''
@@ -354,6 +380,81 @@ class TestIdentity(unittest.TestCase):
         self.io.clear()
         output = self._run('list', '--cache-source=' + fname)
         self.assertEqual('freckle@lackadaisy.com (rotate)', output)
+
+    def test_new_interactive(self):
+        _, fname = tempfile.mkstemp()
+        expected = '''
+        NOTE: If you intend to host this identity in the DJDNS
+        registry, the email domain needs to match your branch
+        regex to be accessible.
+        http://roaming-initiative.com/blog/blog/djdns-ident-registration.html
+        Your identity name, in email form:
+        $ boomer@galactica.gov
+        The name you chose: 'boomer@galactica.gov'
+        Is this correct? [y/n]
+        $ y
+        The following types are available:
+        local : Can only communicate within a single OS process
+        tcp : IPv6 address, accessed over TCP
+        tcp4 : IPv4 address, accessed over TCP
+        udp : IPv6 address, accessed over UDP
+        udp4 : IPv4 address, accessed over UDP
+        Which type do you want?
+        $ local
+        Your callsign:
+        $ athena
+        Is this correct? [y/n]
+        $ y
+        Your location is:
+        ['local', None, 'athena']
+        Is this correct? [y/n]
+        $ y
+        Now we generate your encryptor.
+        The following types are available:
+        rotate : Only for trivial demos, not recommended!
+        rsa : RSA Public-Key encryption (recommended)
+        Which type do you want?
+        $ rotate
+        How much to rotate?
+        $ 120
+        Is this correct? [y/n]
+        $ y
+        Your full identity is:
+        {
+            "encryptor": [
+                "rotate",
+                120
+            ],
+            "name": "boomer@galactica.gov",
+            "location": [
+                "local",
+                null,
+                "athena"
+            ]
+        }
+        Is this correct? [y/n]
+        $ y
+        File location to save your new cache? 
+        $ %s
+        Congratulations!
+        ''' % fname
+        with IOAssert(self, expected):
+            self._run('new-interactive')
+        written = open(fname, 'r').read()
+        self.assertEqual(written.replace(' \n','\n'), '''{
+  "[\\"local\\",null,\\"athena\\"]": {
+    "encryptor": [
+      "rotate",
+      120
+    ],
+    "name": "boomer@galactica.gov",
+    "location": [
+      "local",
+      null,
+      "athena"
+    ]
+  }
+}''')
 
     def test_merge_files(self):
         fname = self._tmp_file_with_env_cache()
