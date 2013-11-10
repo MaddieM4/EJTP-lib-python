@@ -22,6 +22,7 @@ try:
 except:
     pass
 
+import sys
 import re
 import traceback
 
@@ -62,6 +63,22 @@ the same host and port - or just lets you run more
 than one service for yourself on the same 'line'.
 '''.strip()
 
+def print_exception():
+    traceback.print_exc()
+
+def print_exception_only():
+    exc_type, exc_value, _ = sys.exc_info()
+    print(
+        "".join(traceback.format_exception_only(exc_type, exc_value)),
+        file=sys.stderr
+    )
+
+def print_exception_fmt(fmt):
+    if fmt == "short":
+        print_exception_only()
+    elif fmt == "long":
+        print_exception()
+
 def confirm(func, label = None, show = None):
     '''
     Get a bit of data from the user, confirming that it's correct.
@@ -91,6 +108,18 @@ def choose(options, singular, plural):
             print("    {0} : {1}".format(name, desc))
         choice = input("\nWhich %s do you want? " % singular)
     return choice
+
+def retry(prompt, callback, max_retry=-1, fmt="short", catches=(Exception,)):
+    attempts  = 0
+    while (max_retry < 0) or (attempts <= max_retry):
+        user_input = input(prompt)
+        try:
+            return callback(user_input)
+        except catches:
+            print_exception_fmt(fmt)
+            attempts += 1
+            if (max_retry > 0) and (attempts >= max_retry):
+                raise
 
 def get_identity():
     print(NOTICE_EMAIL)
@@ -154,6 +183,6 @@ def get_encryptor():
             print("Generating... if it takes awhile, wiggle your mouse.")
             enc = RSA(None, amount).proto()
         except:
-            traceback.print_exc()
+            print_exception()
             raise ValueError("Could not generate key with %d bits." % amount)
     return enc

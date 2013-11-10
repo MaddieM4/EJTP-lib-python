@@ -51,7 +51,7 @@ from persei import JSONBytesEncoder
 
 from ejtp.config import test_filenames
 from ejtp.util.hasher import strict
-from ejtp.util.scripts import confirm, get_identity
+from ejtp.util.scripts import confirm, retry, get_identity
 from ejtp.crypto.encryptor import make
 from ejtp.vendor.docopt import docopt
 from ejtp.identity import Identity, IdentityCache
@@ -121,18 +121,18 @@ def new_interactive():
         print(json.dumps(ident.serialize(),indent=2,cls=JSONEncoder))
 
     ident = confirm(get_identity, show=show_ident)
-
-    # TODO: Break writing into separate testable function
-    has_written = False
     cache = IdentityCache()
     cache.update_ident(ident)
-    while not has_written:
-        fname = input("File location to save your new cache? ")
-        try:
-            json.dump(cache.serialize(), open(fname, 'w'), indent=2,cls=JSONEncoder)
-            has_written = True
-        except:
-            traceback.print_exc()
+
+    def write(fname):
+        json.dump(
+            cache.serialize(),
+            open(fname, 'w'),
+            indent=2,
+            cls=JSONEncoder
+        )
+
+    retry("File location to save your new cache? ", write)
     print("Congratulations!")
 
 def merge(filename, data_to_merge):

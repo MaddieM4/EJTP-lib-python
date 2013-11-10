@@ -16,6 +16,9 @@ along with the Python EJTP library.  If not, see
 <http://www.gnu.org/licenses/>.
 '''
 
+import os
+import tempfile
+
 from ejtp.util.compat import unittest
 from ejtp.tests.test_scripts import IOMock
 from ejtp.identity import Identity
@@ -80,6 +83,46 @@ class TestScriptUtils(unittest.TestCase):
             list_options +
             ['$ thing3']
         )
+
+    def test_retry(self):
+        def callback(data):
+            if data != "good": raise ValueError("Not 'good'!")
+            return data
+
+        with self.io:
+            self.io.extend(['bad', 'also bad', 'good'])
+            result = retry("Good or bad?", callback)
+            self.assertEqual(result, 'good')
+        self.assertEqual(self.io.get_lines(), [
+            'Good or bad?',
+            '$ bad',
+            "ValueError: Not 'good'!",
+            'Good or bad?',
+            '$ also bad',
+            "ValueError: Not 'good'!",
+            'Good or bad?',
+            '$ good',
+        ])
+
+    def test_retrying_save(self):
+        _, writeable_fn = tempfile.mkstemp()
+        _, nowrite_fn   = tempfile.mkstemp()
+        os.chmod(nowrite_fn, 0o444) # No write
+
+        filecontents = 'Hello, world!'
+        def write(fname):
+            open(fname, 'w').write(filecontents)
+
+        with self.io:
+            self.io.extend([nowrite_fn, writeable_fn])
+            retry("What file name?", write)
+        self.assertEqual(self.io.get_lines(), [
+            'What file name?',
+            '$ ' + nowrite_fn,
+            'IOError: [Errno 13] Permission denied: \'%s\'' % nowrite_fn,
+            'What file name?',
+            '$ ' + writeable_fn,
+        ])
 
     def test_get_identity(self):
         '''
