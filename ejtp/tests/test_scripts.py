@@ -425,12 +425,12 @@ class TestIdentity(unittest.TestCase):
                 "rotate",
                 120
             ],
-            "name": "boomer@galactica.gov",
             "location": [
                 "local",
                 null,
                 "athena"
-            ]
+            ],
+            "name": "boomer@galactica.gov"
         }
         Is this correct? [y/n]
         $ y

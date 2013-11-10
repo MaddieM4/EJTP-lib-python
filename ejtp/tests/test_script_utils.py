@@ -116,13 +116,19 @@ class TestScriptUtils(unittest.TestCase):
         with self.io:
             self.io.extend([nowrite_fn, writeable_fn])
             retry("What file name?", write)
-        self.assertEqual(self.io.get_lines(), [
-            'What file name?',
-            '$ ' + nowrite_fn,
-            'IOError: [Errno 13] Permission denied: \'%s\'' % nowrite_fn,
-            'What file name?',
-            '$ ' + writeable_fn,
-        ])
+        self.assertEqual(
+            [
+                line.replace('PermissionError', 'IOError')
+                for line in self.io.get_lines()
+            ],
+            [
+                'What file name?',
+                '$ ' + nowrite_fn,
+                'IOError: [Errno 13] Permission denied: \'%s\'' % nowrite_fn,
+                'What file name?',
+                '$ ' + writeable_fn,
+            ]
+        )
 
     def test_get_identity(self):
         '''

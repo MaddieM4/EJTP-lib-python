@@ -118,7 +118,12 @@ def new_identity(name, location, encryptor, **kwargs):
 def new_interactive():
     def show_ident(ident):
         print("\n\nYour full identity is:\n")
-        print(json.dumps(ident.serialize(),indent=2,cls=JSONEncoder))
+        print(json.dumps(
+            ident.serialize(),
+            indent=2,
+            cls=JSONEncoder,
+            sort_keys = True
+        ))
 
     ident = confirm(get_identity, show=show_ident)
     cache = IdentityCache()
