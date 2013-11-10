@@ -134,7 +134,8 @@ def new_interactive():
             cache.serialize(),
             open(fname, 'w'),
             indent=2,
-            cls=JSONEncoder
+            cls=JSONEncoder,
+            sort_keys = True
         )
 
     retry("File location to save your new cache? ", write)
