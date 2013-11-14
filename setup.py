@@ -22,7 +22,7 @@ For more technical and in-depth information, visit the `Github project <https://
 
 setup(
 	name = 'ejtp',
-	version = '0.9.6',
+	version = '0.9.7',
 	description = 'Encrypted JSON Transport Protocol library',
     long_description = long_desc,
 	author = 'Philip Horger',

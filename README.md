@@ -22,9 +22,9 @@ Latest version
 ==============
 
 The latest stable version (and the first community-developed stable
-version yet available) is [Version 0.9.6](
+version yet available) is [Version 0.9.7](
 https://github.com/campadrenalin/EJTP-lib-python/tree/stable-0.9.x),
-which is a small update bringing the ejtp-identity utility.
+which has a feature list [here](https://github.com/campadrenalin/EJTP-lib-python/issues/145). You can see a history of releases [here](https://github.com/campadrenalin/EJTP-lib-python/wiki/Releases).
 
 
 Installation
@@ -71,6 +71,7 @@ me to hammer at the code until it works again.
 Dependencies
 ============
 
+ * persei, streql and requests (installable via pip)
  * The latest version of [PyCrypto](https://www.dlitz.net/software/pycrypto/).
  * The latest version of [PyECC](http://pypi.python.org/pypi/PyECC) from [our third-party, actually maintained repository](https://github.com/campadrenalin/PyECC), if you want ECC cipher support.
  * For testing:
@@ -126,7 +127,6 @@ including Python versions 2.6-3.3, then simply run the `tox` command.
     ____________ summary ______________
       py26: commands succeeded
       py27: commands succeeded
-      py31: commands succeeded
       py32: commands succeeded
       py33: commands succeeded
       congratulations :)
