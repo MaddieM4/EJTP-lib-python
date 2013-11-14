@@ -81,7 +81,7 @@ def make_rotate(args):
     )
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='ejtp-keygen 0.9.6')
+    arguments = docopt(__doc__, version='ejtp-keygen 0.9.7')
     if arguments['rsa']:
         make_rsa(arguments)
     elif arguments['aes']:

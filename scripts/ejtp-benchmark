@@ -155,7 +155,7 @@ def create_process(process_type, count, kwargs):
 
 def run(argv):
     arguments = docopt(__doc__, argv=argv,
-        version='ejtp-benchmark 0.9.6')
+        version='ejtp-benchmark 0.9.7')
 
     count = int(arguments['<count>'])
     types = arguments['<type>']
