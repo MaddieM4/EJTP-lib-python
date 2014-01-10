@@ -15,11 +15,53 @@ You should have received a copy of the GNU Lesser Public License
 along with the Python EJTP library.  If not, see 
 <http://www.gnu.org/licenses/>.
 '''
-from json import loads
+import collections
+import json
+import warnings
 
 from persei import String, StringDecorator
 
 from ejtp.util.hasher import strict
+
+
+class Address(collections.namedtuple('_Address', ('addrtype', 'addrdetails', 'callsign'))):
+    '''
+    Represents an Address in EJTP.
+    
+    There are 3 fields: addrtype, addrdetails and callsign.
+    addrtype is the jack type that will be used (e.g. 'udp' or 'tcp6')
+    addrdetails are additional protocol specific parameters
+    callsign is used to identify different clients on the same jack. They only
+    get used by Clients.
+    '''
+    __slots__ = ()
+
+    def __new__(cls, addrtype, addrdetails, callsign=None):
+        return super(Address, cls).__new__(cls, addrtype, addrdetails, callsign)
+
+    @classmethod
+    def create(cls, addr_string):
+        '''
+        Create address from json string.
+        '''
+        try:
+            addr_string = String(addr_string).export()
+        except (ValueError, TypeError):
+            pass
+        try:
+            addr = json.loads(addr_string)
+        except (ValueError, TypeError):
+            raise ValueError("couldn't parse json string: %r" % addr_string)
+        if len(addr) < 2 or len(addr) > 3:
+            raise ValueError('invalid address format')
+        return cls(*addr)
+    
+    def export(self):
+        '''
+        Returns address as json string.
+        '''
+        return strict(self)
+
 
 @StringDecorator()
 def str_address(address):
@@ -30,10 +72,12 @@ def str_address(address):
         >>> str_address("[0,9]")
         '[0,9]'
     '''
+    warnings.warn("don't use str_address, it will be removed soon! Use Address instead.", DeprecationWarning)
     if isinstance(address, String):
         return address
     else:
         return strict(address)
+
 
 @StringDecorator()
 def py_address(address):
@@ -44,11 +88,13 @@ def py_address(address):
         >>> py_address("[0,9]")
         [0, 9]
     '''
+    warnings.warn("don't use py_address, it will be removed soon! Use Address instead.", DeprecationWarning)
+
     if isinstance(address, String):
-        return loads(address.export())
+        return json.loads(address.export())
     elif isinstance(address, list):
         return address
     elif isinstance(address, tuple):
-        return loads(strict(address).export())
+        return json.loads(strict(address).export())
     else:
         raise ValueError("Can not convert to py_address: %r" % address)

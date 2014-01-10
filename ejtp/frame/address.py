@@ -19,7 +19,7 @@ Contains categories for storing sender and receiver addresses.
 '''
 
 from ejtp.frame.base import BaseCategory
-from ejtp.address import py_address
+from ejtp.address import Address
 
 class AddressCategory(BaseCategory):
     '''
@@ -30,7 +30,7 @@ class AddressCategory(BaseCategory):
 
     @property
     def address(self):
-        return py_address(self.header)
+        return Address.create(self.header)
 
 
 class SenderCategory(AddressCategory):
