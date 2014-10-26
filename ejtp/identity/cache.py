@@ -30,7 +30,7 @@ class IdentityCache(object):
         self.cache.update(source)
 
     def __contains__(self, location):
-        location = str_address(location)
+        location = Address.create(location).export()
         return location in self.cache
 
     def __getitem__(self, location):
@@ -64,19 +64,19 @@ class IdentityCache(object):
             raise TypeError(
                 "Expected ejtp.identity.core.Identity, got %r" % value
             )
-        location = str_address(location)
-        if location != str_address(value.location):
+        location = Address.create(location).export()
+        if location != Address.create(value.location).export():
             raise ValueError(
                 'Trying to cache ident in the wrong location'
             )
         self.cache[location] = value
 
     def __delitem__(self, location):
-        location = str_address(location)
+        location = Address.create(location).export()
         del self.cache[location]
 
     def update_ident(self, ident):
-        self[str_address(ident.location)] = ident
+        self[Address.create(ident.location).export()] = ident
 
     def update_idents(self, idents):
         for ident in idents:
@@ -95,7 +95,7 @@ class IdentityCache(object):
         raise KeyError(name)
 
     def find_by_location(self, location):
-        return self.cache[str_address(location)]
+        return self.cache[Address.create(location).export()]
 
     def all(self):
         return self.cache.values()
@@ -144,7 +144,7 @@ class IdentityCache(object):
         '''
         for straddr in cache_dict:
             ident = deserialize(cache_dict[straddr])
-            if str_address(ident.location) != str_address(straddr):
+            if Address.create(ident.location) != Address.create(straddr):
                 raise ValueError(   "Bad location key %r for %r", 
                                     straddr,
                                     ident.location)

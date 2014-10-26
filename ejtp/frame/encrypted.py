@@ -18,7 +18,7 @@ along with the Python EJTP library.  If not, see
 
 from persei import RawData, RawDataDecorator
 
-from ejtp.address import str_address
+from ejtp.address import Address
 from ejtp.frame.base import BaseFrame
 from ejtp.frame.registration import RegisterFrame
 from ejtp.frame.address import ReceiverCategory
@@ -36,7 +36,7 @@ class EncryptedFrame(ReceiverCategory, BaseFrame):
 def construct(identity, content):
     return EncryptedFrame(
         RawData('r') + \
-        RawData(str_address(identity.location)) + \
+        RawData(Address.create(identity.location).export()) + \
         RawData((0,)) + \
         RawData(identity.encryptor.encrypt(content))
     )

@@ -63,7 +63,7 @@ class ForwardServer(Client):
         ... ) # doctest: +ELLIPSIS
         {...'type': ...'example'}
         '''
-        address = str_address(msg.address)
+        address = Address.create(msg.address).export()
         if address in self.client_data:
             mhash = self.store_message(address, msg.content.export())
             self.message(address, mhash)
@@ -161,10 +161,10 @@ class ForwardServer(Client):
         >>> server.client(address) == {'hello':'world', 'sample':'bacon'}
         True
         '''
-        return self.client_data[str_address(address)]
+        return self.client_data[Address.create(address).export()]
 
     def create_client(self, address, data={}):
-        address = str_address(address)
+        address = Address.create(address).export()
         self.client_data[address] = dict()
         self.client(address).update(data)
 

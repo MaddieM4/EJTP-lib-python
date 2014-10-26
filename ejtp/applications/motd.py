@@ -50,14 +50,14 @@ class MOTDClient(Client):
         '''
         Callbacks get called with arguments (frame msg, Client client)
         '''
-        self.callbacks[str_address(remote)] = callback
-        self.write_json(py_address(remote), {
+        self.callbacks[Address.create(remote).export()] = callback
+        self.write_json(Address.create(remote), {
             'type':'motd-request'
         })
 
     def rcv_callback(self, msg, client_obj):
         sender = msg.sender
-        strsender = str_address(sender)
+        strsender = Address.create(sender).export()
         if strsender not in self.callbacks:
             logger.info("Message from stranger: %r" % sender)
         self.callbacks[strsender](msg, self)

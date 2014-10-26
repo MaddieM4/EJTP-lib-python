@@ -19,7 +19,7 @@ along with the Python EJTP library.  If not, see
 from persei import JSONBytesEncoder
 
 import ejtp.crypto
-from ejtp.address import str_address
+from ejtp.address import Address
 from ejtp.identity.ref import IdentRef
 
 class Identity(object):
@@ -53,7 +53,7 @@ class Identity(object):
 
     @property
     def key(self):
-        return str_address(self.location)
+        return Address.create(self.location).export()
 
     def ref(self, cache):
         return IdentRef(self.key, cache)

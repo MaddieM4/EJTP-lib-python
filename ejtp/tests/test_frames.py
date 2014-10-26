@@ -168,7 +168,7 @@ class TestEncryptedFrame(unittest.TestCase):
     def test_construct(self):
         from ejtp.identity import Identity
         ident = Identity('joe', ['rotate', 1], ['testing'])
-        self.assertEqual(frame.encrypted.construct(ident, 'foo'), frame.encrypted.EncryptedFrame('r["testing"]\x00gpp'))
+        self.assertEqual(frame.encrypted.construct(ident, 'foo'), frame.encrypted.EncryptedFrame('r["testing",null,null]\x00gpp'))
     
     def test_decode(self):
         from ejtp.identity import Identity, IdentityCache
@@ -186,7 +186,7 @@ class TestSignedFrame(unittest.TestCase):
         ident = Identity('joe', ['rotate', 1], ['testing'])
         signature = ident.sign('foo')
         siglen = len(signature)
-        self.assertEqual(frame.signed.construct(ident, 'foo'), frame.signed.SignedFrame(RawData('s["testing"]\x00') + (siglen//256, siglen%256) + signature + 'foo'))
+        self.assertEqual(frame.signed.construct(ident, 'foo'), frame.signed.SignedFrame(RawData('s["testing",null,null]\x00') + (siglen//256, siglen%256) + signature + 'foo'))
     
     def test_decode(self):
         from ejtp.identity import Identity, IdentityCache
