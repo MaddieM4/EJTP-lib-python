@@ -45,7 +45,7 @@ errorcodes = {
 class DaemonClient(Client):
     def __init__(self, router, interface, controller, filter='.*', encryptor_cache = None, make_jack = True):
         Client.__init__(self, router, interface, encryptor_cache, make_jack)
-        self.controller = py_address(controller)
+        self.controller = Address.create(controller)
         self.set_filter(filter)
 
     def set_filter(self, filter_text):
@@ -160,7 +160,7 @@ class DaemonClient(Client):
 class ControllerClient(Client):
     def __init__(self, router, interface, target, encryptor_cache = None, make_jack = True):
         Client.__init__(self, router, interface, encryptor_cache, make_jack)
-        self.target = py_address(target)
+        self.target = Address.create(target)
 
     def rcv_callback(self, msg, client_obj):
         sender = msg.sender

@@ -35,7 +35,7 @@ class Client(object):
             encryptor_get should be a function that accepts an argument "iface"
             and returns an encryptor prototype (2-element list, like ["rotate", 5]).
         '''
-        self.interface = (interface and py_address(interface)) or interface
+        self.interface = (interface and Address.create(interface)) or interface
         self.router = router
         if hasattr(self.router, "_loadclient"):
             self.router._loadclient(self)
@@ -83,7 +83,7 @@ class Client(object):
             msg = self.wrap_sender(msg)
         # Onion routing magic
         for address in reversed(hoplist):
-            ident = self.encryptor_cache[str_address(address)]
+            ident = self.encryptor_cache[Address.create(address).export()]
             msg = frame.encrypted.construct(ident, msg.content)
         self.send(msg)
 
@@ -105,11 +105,11 @@ class Client(object):
     # Encryption
 
     def encryptor_get(self, address):
-        address = str_address(address)
+        address = Address.create(address).export()
         return make(self.encryptor_cache[address].encryptor)
 
     def encryptor_set(self, address, encryptor):
-        address = py_address(address)
+        address = Address.create(address)
         if not address in self.encryptor_cache:
             dummy_ident = identity.Identity(None, encryptor, address)
             self.encryptor_cache.update_ident(dummy_ident)
